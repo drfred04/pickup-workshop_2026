@@ -1,0 +1,441 @@
+<meta charset="UTF-8">
+<title>Free-Body Diagram Clinic — Worksheet</title>
+<style>
+  :root {
+    --bg: #E9EEF0;
+    --page: #FFFFFF;
+    --panel-2: #DEE6E8;
+    --ink: #17242B;
+    --ink-soft: #4B5C63;
+    --ink-faint: #81949C;
+    --grid-line: rgba(23,36,43,0.07);
+    --border: rgba(23,36,43,0.28);
+    --accent-wrong: #C8401F;
+    --accent-correct: #12766A;
+  }
+  :root[data-theme="dark"] {
+    --bg: #16262A; --page: #1E3236; --panel-2: #16282B;
+    --ink: #EDF3EF; --ink-soft: #A9BFC0; --ink-faint: #5E7679;
+    --grid-line: rgba(237,243,239,0.08); --border: rgba(237,243,239,0.28);
+    --accent-wrong: #E8734A; --accent-correct: #45C4AC;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #16262A; --page: #1E3236; --panel-2: #16282B;
+      --ink: #EDF3EF; --ink-soft: #A9BFC0; --ink-faint: #5E7679;
+      --grid-line: rgba(237,243,239,0.08); --border: rgba(237,243,239,0.28);
+      --accent-wrong: #E8734A; --accent-correct: #45C4AC;
+    }
+  }
+  @media print {
+    :root { --bg:#fff; --page:#fff; --panel-2:#fff; --ink:#111; --ink-soft:#333; --ink-faint:#666; --grid-line:rgba(0,0,0,0.08); --border:#111; }
+  }
+
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    background: var(--bg);
+    color: var(--ink);
+    font-family: -apple-system, "Segoe UI", system-ui, sans-serif;
+    font-size: 14px;
+    line-height: 1.5;
+  }
+  .mono { font-family: ui-monospace, "SF Mono", "Cascadia Code", Menlo, Consolas, monospace; }
+
+  .toolbar {
+    position: sticky; top: 0; z-index: 5;
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 10px 24px; background: var(--ink); color: var(--bg);
+    font-size: 13px;
+  }
+  .toolbar button {
+    font-family: -apple-system, "Segoe UI", system-ui, sans-serif;
+    font-weight: 600; font-size: 13px;
+    background: var(--bg); color: var(--ink); border: none;
+    padding: 7px 14px; cursor: pointer;
+  }
+  @media print { .toolbar { display: none; } }
+
+  .page {
+    max-width: 880px;
+    margin: 22px auto;
+    background: var(--page);
+    border: 1px solid var(--border);
+    padding: 34px 40px;
+    position: relative;
+  }
+  @media print {
+    .page { max-width: none; margin: 0; border: none; padding: 14mm 16mm; page-break-after: always; }
+    .page:last-child { page-break-after: auto; }
+  }
+
+  .page::before, .page::after {
+    content: ""; position: absolute; width: 14px; height: 14px; pointer-events: none;
+  }
+  .page::before { top: 8px; left: 8px; border-top: 1.5px solid var(--ink-faint); border-left: 1.5px solid var(--ink-faint); }
+  .page::after { top: 8px; right: 8px; border-top: 1.5px solid var(--ink-faint); border-right: 1.5px solid var(--ink-faint); }
+
+  .titleblock {
+    display: flex; justify-content: space-between; align-items: baseline;
+    border-bottom: 2px solid var(--ink); padding-bottom: 10px; margin-bottom: 4px;
+  }
+  .titleblock h1 { font-size: 21px; margin: 0; }
+  .titleblock .tag { font-family: ui-monospace, monospace; font-size: 11px; color: var(--ink-soft); text-align: right; }
+  .kicker { font-family: ui-monospace, monospace; font-size: 11px; letter-spacing: 0.08em; color: var(--ink-faint); text-transform: uppercase; margin: 14px 0 2px; }
+  h2.stitle { font-size: 19px; margin: 2px 0 6px; }
+  p.prompt { color: var(--ink-soft); max-width: 66ch; margin: 0 0 16px; }
+
+  .cols { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 10px; }
+  .col h3 {
+    font-family: ui-monospace, monospace; font-size: 11px; letter-spacing: 0.06em; text-transform: uppercase;
+    margin: 0 0 6px; color: var(--ink-soft);
+  }
+  .diagram-box {
+    border: 1px solid var(--border);
+    background: var(--panel-2);
+  }
+  @media print { .diagram-box { background: #fff; border: 1px solid #888; } }
+  svg.fbd { width: 100%; height: auto; display: block; }
+
+  .blank-box {
+    border: 1px dashed var(--border);
+    background:
+      linear-gradient(var(--grid-line) 1px, transparent 1px),
+      linear-gradient(90deg, var(--grid-line) 1px, transparent 1px);
+    background-size: 20px 20px;
+    position: relative;
+    min-height: 260px;
+  }
+  .blank-box .origin {
+    position: absolute; left: 50%; top: 56%; width: 8px; height: 8px;
+    border: 1.5px solid var(--ink-faint); border-radius: 50%;
+    transform: translate(-50%,-50%);
+  }
+  .blank-box .hint {
+    position: absolute; bottom: 8px; left: 8px; right: 8px;
+    font-size: 11.5px; color: var(--ink-faint); font-style: italic;
+  }
+
+  .footer-row { display: flex; justify-content: space-between; margin-top: 22px; font-size: 11px; color: var(--ink-faint); font-family: ui-monospace, monospace; }
+  .name-line { border-bottom: 1px solid var(--ink-faint); width: 220px; display: inline-block; margin-left: 6px; }
+
+  /* Answer key */
+  .key-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 22px; margin-top: 14px; }
+  .key-item { border: 1px solid var(--border); padding: 12px; break-inside: avoid; }
+  .key-item h3 { font-size: 14px; margin: 0 0 2px; }
+  .key-item .misid { font-family: ui-monospace, monospace; font-size: 10.5px; color: var(--ink-faint); }
+  .key-item .diagram-box { margin: 8px 0; }
+  .key-item p { font-size: 12px; color: var(--ink-soft); margin: 6px 0 0; }
+</style>
+
+<div class="toolbar">
+  <span>Free-Body Diagram Clinic — Printable Worksheet</span>
+  <button onclick="window.print()">Print / Save as PDF</button>
+</div>
+
+<div id="pages"></div>
+
+<script>
+"use strict";
+const SCENARIOS = [
+  {
+    id: "table", title: "Block at Rest on a Table",
+    prompt: "A wooden block sits motionless on a horizontal tabletop. No one is touching it.",
+    ox: 300, oy: 236,
+    scene: (ox,oy)=>`
+      <line x1="120" y1="${oy+22}" x2="480" y2="${oy+22}" stroke="var(--ink-soft)" stroke-width="2"/>
+      ${hatch(120,480,oy+22,10)}
+      <rect x="${ox-22}" y="${oy-22}" width="44" height="44" fill="none" stroke="var(--ink)" stroke-width="2"/>`,
+    flawed: [ {label:"Weight (Gravity)", angle:270, len:90} ],
+    correct: [ {label:"Weight (Gravity)", angle:270, len:90}, {label:"Normal Force", angle:90, len:90} ],
+    misconceptionTitle: "The Missing Normal Force",
+    explanation: "A resting object still needs an upward push from its supporting surface. Since the block isn't accelerating, the table must exert a normal force exactly equal and opposite to gravity — without it, the block would accelerate downward through the table."
+  },
+  {
+    id: "pushed-box", title: "Box Pushed at Constant Velocity",
+    prompt: "A hand pushes a box to the right across a rough floor. The box moves at constant velocity.",
+    ox: 300, oy: 236,
+    scene: (ox,oy)=>`
+      <line x1="100" y1="${oy+22}" x2="500" y2="${oy+22}" stroke="var(--ink-soft)" stroke-width="2"/>
+      ${hatch(100,500,oy+22,10)}
+      <rect x="${ox-22}" y="${oy-22}" width="44" height="44" fill="none" stroke="var(--ink)" stroke-width="2"/>
+      <g stroke="var(--ink-faint)" stroke-width="1.5" stroke-dasharray="3 4">
+        <line x1="${ox-70}" y1="${oy-30}" x2="${ox-40}" y2="${oy-30}"/>
+        <line x1="${ox-70}" y1="${oy}" x2="${ox-40}" y2="${oy}"/>
+        <line x1="${ox-70}" y1="${oy+30}" x2="${ox-40}" y2="${oy+30}"/>
+      </g>`,
+    flawed: [
+      {label:"Weight (Gravity)", angle:270, len:80},
+      {label:"Normal Force", angle:90, len:80},
+      {label:"Applied Force (Push)", angle:0, len:70},
+      {label:"Friction (Kinetic)", angle:0, len:70}
+    ],
+    correct: [
+      {label:"Weight (Gravity)", angle:270, len:80},
+      {label:"Normal Force", angle:90, len:80},
+      {label:"Applied Force (Push)", angle:0, len:70},
+      {label:"Friction (Kinetic)", angle:180, len:70}
+    ],
+    misconceptionTitle: "Friction Pointing the Wrong Way",
+    explanation: "Kinetic friction always opposes the relative sliding between two surfaces — it points backward, against the motion, never along it. Since the box moves at constant velocity, friction must exactly cancel the applied push."
+  },
+  {
+    id: "incline", title: "Block on a Frictionless Incline",
+    prompt: "A block rests on a frictionless 30° ramp, held in place by a rope running parallel to the ramp's surface.",
+    ox: 300, oy: 230,
+    scene: (ox,oy)=>{
+      const slope = 30*Math.PI/180;
+      const x0 = ox - 260*Math.cos(slope), y0 = oy + 260*Math.sin(slope);
+      const x1 = ox + 140*Math.cos(slope), y1 = oy - 140*Math.sin(slope);
+      return `
+      <line x1="${x0}" y1="${y0}" x2="${x1}" y2="${y1}" stroke="var(--ink-soft)" stroke-width="2"/>
+      <line x1="${x0}" y1="${y0}" x2="${x0}" y2="360" stroke="var(--ink-soft)" stroke-width="2"/>
+      ${hatch(x0-60,x0+40,355,8,true)}
+      <rect x="${ox-20}" y="${oy-16}" width="40" height="32" fill="none" stroke="var(--ink)" stroke-width="2"
+        transform="rotate(-30 ${ox} ${oy})"/>
+      <circle cx="${x1+18}" cy="${y1-10}" r="4" fill="var(--ink-soft)"/>`;
+    },
+    flawed: [
+      {label:"Weight (Gravity)", angle:270, len:90},
+      {label:"Normal Force", angle:90, len:70},
+      {label:"Tension (Rope)", angle:30, len:60}
+    ],
+    correct: [
+      {label:"Weight (Gravity)", angle:270, len:90},
+      {label:"Normal Force", angle:120, len:70},
+      {label:"Tension (Rope)", angle:30, len:60}
+    ],
+    misconceptionTitle: "Normal Force Isn't Always “Up”",
+    explanation: "The normal force is perpendicular to the contact surface, not to the ground. On a tilted ramp, “perpendicular” rotates along with the incline — drawing it straight up (as if the surface were flat) breaks equilibrium and misrepresents the geometry."
+  },
+  {
+    id: "contact-blocks", title: "Two Blocks in Contact",
+    prompt: "Block A is pushed to the right by force F and, in turn, pushes Block B along with it. Analyze the forces on Block A alone (frictionless table).",
+    ox: 260, oy: 236,
+    scene: (ox,oy)=>`
+      <line x1="100" y1="${oy+22}" x2="500" y2="${oy+22}" stroke="var(--ink-soft)" stroke-width="2"/>
+      ${hatch(100,500,oy+22,10)}
+      <rect x="${ox+22}" y="${oy-20}" width="40" height="40" fill="none" stroke="var(--ink-faint)" stroke-width="2" stroke-dasharray="4 4"/>
+      <text x="${ox+42}" y="${oy+5}" text-anchor="middle" class="mono" font-size="11" fill="var(--ink-faint)">B</text>
+      <rect x="${ox-22}" y="${oy-22}" width="44" height="44" fill="none" stroke="var(--ink)" stroke-width="2"/>
+      <text x="${ox}" y="${oy+5}" text-anchor="middle" class="mono" font-size="11" fill="var(--ink)">A</text>`,
+    flawed: [
+      {label:"Weight (Gravity)", angle:270, len:80},
+      {label:"Normal Force", angle:90, len:80},
+      {label:"Applied Force (F)", angle:0, len:100}
+    ],
+    correct: [
+      {label:"Weight (Gravity)", angle:270, len:80},
+      {label:"Normal Force", angle:90, len:80},
+      {label:"Applied Force (F)", angle:0, len:100},
+      {label:"Force from Block B", angle:180, len:55}
+    ],
+    misconceptionTitle: "The Missing Reaction Pair",
+    explanation: "By Newton's third law, if Block A pushes Block B forward, Block B pushes back on Block A with equal magnitude and opposite direction. That force is “internal” to the two-block system, but it's still real and necessary once you isolate Block A by itself."
+  },
+  {
+    id: "atwood", title: "Atwood Machine — Heavier Mass",
+    prompt: "Two masses hang from a light string over a frictionless pulley. m₁ (shown) is heavier than m₂, so m₁ accelerates downward. Analyze the forces on m₁ alone.",
+    ox: 230, oy: 250,
+    scene: (ox,oy)=>`
+      <circle cx="300" cy="90" r="18" fill="none" stroke="var(--ink-soft)" stroke-width="2"/>
+      <line x1="284" y1="90" x2="${ox}" y2="${oy-22}" stroke="var(--ink-soft)" stroke-width="1.5"/>
+      <line x1="316" y1="90" x2="380" y2="150" stroke="var(--ink-soft)" stroke-width="1.5"/>
+      <rect x="${ox-22}" y="${oy-22}" width="44" height="44" fill="none" stroke="var(--ink)" stroke-width="2"/>
+      <text x="${ox}" y="${oy+5}" text-anchor="middle" class="mono" font-size="11" fill="var(--ink)">m₁</text>
+      <rect x="365" y="150" width="30" height="30" fill="none" stroke="var(--ink-faint)" stroke-width="2" stroke-dasharray="4 4"/>
+      <text x="380" y="169" text-anchor="middle" class="mono" font-size="10" fill="var(--ink-faint)">m₂</text>`,
+    flawed: [
+      {label:"Weight (Gravity)", angle:270, len:100},
+      {label:"Tension (String)", angle:90, len:100}
+    ],
+    correct: [
+      {label:"Weight (Gravity)", angle:270, len:100},
+      {label:"Tension (String)", angle:90, len:62}
+    ],
+    misconceptionTitle: "Tension Isn't Always Equal to Weight",
+    explanation: "T = mg only holds in equilibrium. Here the system accelerates — m₁ falls as m₂ rises — so the net force on m₁ must point downward. That means tension has to be smaller than m₁'s weight, not equal to it."
+  },
+  {
+    id: "circular", title: "Ball on a String (Top View)",
+    prompt: "Viewed from above, a ball tied to a string moves in a horizontal circle at constant speed on a frictionless table. Analyze the forces on the ball at the instant shown.",
+    ox: 390, oy: 230,
+    scene: (ox,oy)=>`
+      <circle cx="300" cy="230" r="90" fill="none" stroke="var(--ink-faint)" stroke-width="1.5" stroke-dasharray="4 5"/>
+      <circle cx="300" cy="230" r="4" fill="var(--ink-soft)"/>
+      <circle cx="${ox}" cy="${oy}" r="10" fill="none" stroke="var(--ink)" stroke-width="2"/>
+      <line x1="${ox}" y1="${oy-14}" x2="${ox}" y2="${oy-56}" stroke="var(--ink-faint)" stroke-width="1.5" stroke-dasharray="3 4"/>
+      <text x="${ox+8}" y="${oy-58}" class="mono" font-size="11" fill="var(--ink-faint)">v</text>`,
+    flawed: [
+      {label:"Tension (Centripetal)", angle:180, len:70},
+      {label:"Centrifugal Force", angle:0, len:70}
+    ],
+    correct: [
+      {label:"Tension (Centripetal)", angle:180, len:70}
+    ],
+    misconceptionTitle: "There Is No “Centrifugal Force”",
+    explanation: "In the ball's actual (inertial, ground) reference frame, only real forces act — here, just the string's tension, pulling inward. That inward pull is exactly what continuously bends the ball's path into a circle. “Centrifugal force” only appears if you ride along with the ball, a non-inertial frame."
+  },
+  {
+    id: "projectile", title: "Projectile in Flight",
+    prompt: "A ball was thrown and is now mid-air, moving up and to the right (ignore air resistance). Analyze the forces on the ball at this instant.",
+    ox: 330, oy: 190,
+    scene: (ox,oy)=>`
+      <path d="M 140 340 Q 300 60 460 300" fill="none" stroke="var(--ink-faint)" stroke-width="1.5" stroke-dasharray="4 5"/>
+      <circle cx="${ox}" cy="${oy}" r="10" fill="none" stroke="var(--ink)" stroke-width="2"/>
+      <line x1="${ox}" y1="${oy}" x2="${ox+46}" y2="${oy-32}" stroke="var(--ink-faint)" stroke-width="1.5" stroke-dasharray="3 4"/>
+      <text x="${ox+52}" y="${oy-34}" class="mono" font-size="11" fill="var(--ink-faint)">v</text>`,
+    flawed: [
+      {label:"Weight (Gravity)", angle:270, len:90},
+      {label:"Force of Motion", angle:50, len:80}
+    ],
+    correct: [
+      {label:"Weight (Gravity)", angle:270, len:90}
+    ],
+    misconceptionTitle: "No Force Is Needed to Keep It Moving",
+    explanation: "Once the ball leaves the hand, the only force on it (ignoring air resistance) is gravity — even while it's still moving upward or sideways. Velocity and force aren't the same thing: the ball keeps moving because of inertia, not because something continues pushing it along its path."
+  },
+  {
+    id: "hanging-sign", title: "Sign Hanging from Two Ropes",
+    prompt: "A sign hangs in equilibrium from two ropes: a steep rope on the left (70° from horizontal) and a shallow rope on the right (30° from horizontal).",
+    ox: 300, oy: 250,
+    scene: (ox,oy)=>`
+      <line x1="120" y1="70" x2="480" y2="70" stroke="var(--ink-soft)" stroke-width="2"/>
+      ${hatch(120,480,70,-8)}
+      <line x1="170" y1="70" x2="${ox}" y2="${oy-24}" stroke="var(--ink-soft)" stroke-width="1.5"/>
+      <line x1="430" y1="70" x2="${ox}" y2="${oy-24}" stroke="var(--ink-soft)" stroke-width="1.5"/>
+      <rect x="${ox-34}" y="${oy-24}" width="68" height="28" fill="none" stroke="var(--ink)" stroke-width="2"/>`,
+    flawed: [
+      {label:"Weight (Gravity)", angle:270, len:90},
+      {label:"Tension (Left Rope)", angle:110, len:65},
+      {label:"Tension (Right Rope)", angle:30, len:65}
+    ],
+    correct: [
+      {label:"Weight (Gravity)", angle:270, len:90},
+      {label:"Tension (Left Rope)", angle:110, len:88},
+      {label:"Tension (Right Rope)", angle:30, len:35}
+    ],
+    misconceptionTitle: "Equal Angles Give Equal Tensions — Not Unequal Ones",
+    explanation: "Tension depends on geometry, not just on “both ropes are holding the same sign.” The steeper, more-vertical rope carries more of the load here, so it must have greater tension than the shallower rope. Symmetric-looking supports only have equal tension when the angles are actually symmetric."
+  }
+];
+
+function hatch(x0,x1,y,dir,steep){
+  let out = "";
+  const step = 14;
+  const dy = steep ? dir*2 : dir;
+  for (let x=x0; x<x1; x+=step) {
+    out += `<line x1="${x}" y1="${y}" x2="${x+dy}" y2="${y-dy}" stroke="var(--ink-faint)" stroke-width="1"/>`;
+  }
+  return out;
+}
+function tip(ox,oy,angle,len){
+  const r = angle*Math.PI/180;
+  return { x: ox + len*Math.cos(r), y: oy - len*Math.sin(r) };
+}
+function labelAnchor(angle){
+  const a = ((angle % 360) + 360) % 360;
+  if (a > 60 && a < 120) return "middle";
+  if (a > 240 && a < 300) return "middle";
+  if (a >= 300 || a <= 60) return "start";
+  return "end";
+}
+function angleDiff(a,b){
+  let d = Math.abs(a-b) % 360;
+  return d > 180 ? 360-d : d;
+}
+/* Nudges labels apart perpendicular to the arrow when two or more forces share nearly the same direction */
+function clusterOffsets(list, thresholdDeg, spacing){
+  thresholdDeg = thresholdDeg || 14; spacing = spacing || 13;
+  const n = list.length;
+  const parent = Array.from({length:n}, (_,i)=>i);
+  function find(x){ return parent[x]===x ? x : (parent[x]=find(parent[x])); }
+  for (let i=0;i<n;i++) for (let j=i+1;j<n;j++) {
+    if (angleDiff(list[i].angle, list[j].angle) < thresholdDeg) { const ra=find(i), rb=find(j); if (ra!==rb) parent[ra]=rb; }
+  }
+  const groups = {};
+  for (let i=0;i<n;i++) { const r=find(i); (groups[r]=groups[r]||[]).push(i); }
+  const offsets = new Array(n).fill(0);
+  Object.values(groups).forEach(members=>{
+    const m = members.length;
+    members.forEach((idx,k)=>{ offsets[idx] = (k - (m-1)/2) * spacing; });
+  });
+  return offsets;
+}
+function forcesSVG(list, ox, oy, color, sceneMarkup){
+  const offsets = clusterOffsets(list);
+  let markup = sceneMarkup;
+  list.forEach((f,idx)=>{
+    const t = tip(ox,oy,f.angle,f.len);
+    const anchor = labelAnchor(f.angle);
+    const r = f.angle*Math.PI/180;
+    const lx = ox + (f.len+16)*Math.cos(r) + Math.sin(r)*offsets[idx];
+    const ly = oy - (f.len+16)*Math.sin(r) + Math.cos(r)*offsets[idx];
+    const markerId = `arr-${idx}-${Math.round(f.angle)}-${Math.round(f.len)}`;
+    markup += `
+      <line x1="${ox}" y1="${oy}" x2="${t.x}" y2="${t.y}" stroke="${color}" stroke-width="3" marker-end="url(#${markerId})"/>
+      <text x="${lx}" y="${ly}" text-anchor="${anchor}" fill="${color}" font-size="12.5" font-weight="600" class="mono" dominant-baseline="middle">${f.label}</text>
+      <marker id="${markerId}" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto" markerUnits="userSpaceOnUse">
+        <path d="M0,1 L9,5 L0,9 Z" fill="${color}"/>
+      </marker>`;
+  });
+  return `<svg class="fbd" viewBox="0 0 600 420" role="img" aria-label="Free-body diagram">${markup}</svg>`;
+}
+
+const pagesEl = document.getElementById("pages");
+let html = "";
+
+SCENARIOS.forEach((s,i)=>{
+  const scene = s.scene(s.ox, s.oy);
+  html += `
+  <div class="page">
+    <div class="titleblock">
+      <h1>Free-Body Diagram Clinic</h1>
+      <div class="tag">SHEET ${String(i+1).padStart(2,"0")} / 08 &nbsp;·&nbsp; WORKSHEET</div>
+    </div>
+    <div class="kicker">Scenario ${i+1}</div>
+    <h2 class="stitle">${s.title}</h2>
+    <p class="prompt">${s.prompt}</p>
+    <div class="cols">
+      <div class="col">
+        <h3>As drawn (contains an error)</h3>
+        <div class="diagram-box">${forcesSVG(s.flawed, s.ox, s.oy, "var(--accent-wrong)", scene)}</div>
+      </div>
+      <div class="col">
+        <h3>Your corrected diagram</h3>
+        <div class="diagram-box blank-box">
+          <div class="origin"></div>
+          <div class="hint">Sketch each force as an arrow from the dot. Label direction and relative size.</div>
+        </div>
+      </div>
+    </div>
+    <div class="footer-row">
+      <span>NAME:<span class="name-line"></span></span>
+      <span>What's wrong with the original diagram, in one sentence? See answer key, p. 9.</span>
+    </div>
+  </div>`;
+});
+
+let keyItems = "";
+SCENARIOS.forEach((s,i)=>{
+  const scene = s.scene(s.ox, s.oy);
+  keyItems += `
+    <div class="key-item">
+      <div class="misid">SCENARIO ${i+1}</div>
+      <h3>${s.title}</h3>
+      <div class="diagram-box">${forcesSVG(s.correct, s.ox, s.oy, "var(--accent-correct)", scene)}</div>
+      <p><strong>${s.misconceptionTitle}.</strong> ${s.explanation}</p>
+    </div>`;
+});
+
+html += `
+  <div class="page">
+    <div class="titleblock">
+      <h1>Answer Key</h1>
+      <div class="tag">SHEET 09 / 09 &nbsp;·&nbsp; WORKSHEET</div>
+    </div>
+    <div class="key-grid">${keyItems}</div>
+  </div>`;
+
+pagesEl.innerHTML = html;
+</script>
