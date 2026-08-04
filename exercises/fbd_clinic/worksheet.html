@@ -236,15 +236,15 @@ const SCENARIOS = [
   {
     id: "atwood", title: "Atwood Machine — Heavier Mass",
     prompt: "Two masses hang from a light string over a frictionless pulley. m₁ (shown) is heavier than m₂, so m₁ accelerates downward. Analyze the forces on m₁ alone.",
-    ox: 230, oy: 250,
+    ox: 274, oy: 250,
     scene: (ox,oy)=>`
-      <circle cx="300" cy="90" r="18" fill="none" stroke="var(--ink-soft)" stroke-width="2"/>
-      <line x1="284" y1="90" x2="${ox}" y2="${oy-22}" stroke="var(--ink-soft)" stroke-width="1.5"/>
-      <line x1="316" y1="90" x2="380" y2="150" stroke="var(--ink-soft)" stroke-width="1.5"/>
+      <circle cx="300" cy="90" r="26" fill="none" stroke="var(--ink-soft)" stroke-width="2"/>
+      <line x1="274" y1="90" x2="${ox}" y2="${oy-22}" stroke="var(--ink-soft)" stroke-width="1.5"/>
+      <line x1="326" y1="90" x2="326" y2="150" stroke="var(--ink-soft)" stroke-width="1.5"/>
       <rect x="${ox-22}" y="${oy-22}" width="44" height="44" fill="none" stroke="var(--ink)" stroke-width="2"/>
       <text x="${ox}" y="${oy+5}" text-anchor="middle" class="mono" font-size="11" fill="var(--ink)">m₁</text>
-      <rect x="365" y="150" width="30" height="30" fill="none" stroke="var(--ink-faint)" stroke-width="2" stroke-dasharray="4 4"/>
-      <text x="380" y="169" text-anchor="middle" class="mono" font-size="10" fill="var(--ink-faint)">m₂</text>`,
+      <rect x="311" y="150" width="30" height="30" fill="none" stroke="var(--ink-faint)" stroke-width="2" stroke-dasharray="4 4"/>
+      <text x="326" y="169" text-anchor="middle" class="mono" font-size="10" fill="var(--ink-faint)">m₂</text>`,
     flawed: [
       {label:"Weight (Gravity)", angle:270, len:100},
       {label:"Tension (String)", angle:90, len:100}
@@ -298,12 +298,12 @@ const SCENARIOS = [
   {
     id: "hanging-sign", title: "Sign Hanging from Two Ropes",
     prompt: "A sign hangs in equilibrium from two ropes: a steep rope on the left (70° from horizontal) and a shallow rope on the right (30° from horizontal).",
-    ox: 300, oy: 250,
+    ox: 226, oy: 247,
     scene: (ox,oy)=>`
-      <line x1="120" y1="70" x2="480" y2="70" stroke="var(--ink-soft)" stroke-width="2"/>
-      ${hatch(120,480,70,-8)}
+      <line x1="100" y1="70" x2="540" y2="70" stroke="var(--ink-soft)" stroke-width="2"/>
+      ${hatch(100,540,70,-8)}
       <line x1="170" y1="70" x2="${ox}" y2="${oy-24}" stroke="var(--ink-soft)" stroke-width="1.5"/>
-      <line x1="430" y1="70" x2="${ox}" y2="${oy-24}" stroke="var(--ink-soft)" stroke-width="1.5"/>
+      <line x1="490" y1="70" x2="${ox}" y2="${oy-24}" stroke="var(--ink-soft)" stroke-width="1.5"/>
       <rect x="${ox-34}" y="${oy-24}" width="68" height="28" fill="none" stroke="var(--ink)" stroke-width="2"/>`,
     flawed: [
       {label:"Weight (Gravity)", angle:270, len:90},
