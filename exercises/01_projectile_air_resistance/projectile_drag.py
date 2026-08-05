@@ -5,7 +5,9 @@ g = 9.81
 
 
 def derivatives(state, k):
-    """state = [x, y, vx, vy]; k = Cd*rho*A/(2m), drag accel = -k*|v|*v."""
+    """
+		state = [x, y, vx, vy]; k = Cd*rho*A/(2m), drag accel = -k*|v|*v.
+    """
     x, y, vx, vy = state
     speed = np.hypot(vx, vy)
     return np.array([vx, vy, -k * speed * vx, -g - k * speed * vy])
@@ -31,7 +33,9 @@ def step(state, k, dt, method):
 
 
 def simulate(v0, angle_deg, k, dt=0.001, y0=0.0, method="euler_cromer"):
-    """Integrate the trajectory. Returns arrays of t, x, y, vx, vy."""
+    """
+		Integrate the trajectory. Returns arrays of t, x, y, vx, vy.
+    """
     theta = np.radians(angle_deg)
     state = np.array([0.0, y0, v0 * np.cos(theta), v0 * np.sin(theta)])
 
@@ -49,8 +53,10 @@ def simulate(v0, angle_deg, k, dt=0.001, y0=0.0, method="euler_cromer"):
 
 
 def compute_range(v0, angle_deg, k, dt, method="rk4", y0=0.0):
-    """Landing range, linearly interpolated to the y=0 crossing (avoids O(dt)
-    error from overshooting the ground on the last step)."""
+    """
+		Landing range, linearly interpolated to the y=0 crossing (avoids O(dt)
+		error from overshooting the ground on the last step).
+	"""
     theta = np.radians(angle_deg)
     state = np.array([0.0, y0, v0 * np.cos(theta), v0 * np.sin(theta)])
     prev = state.copy()
