@@ -12,19 +12,20 @@
     --border: rgba(23,36,43,0.28);
     --accent-wrong: #C8401F;
     --accent-correct: #12766A;
+    --accent-velocity: #6B3FA0;
   }
   :root[data-theme="dark"] {
     --bg: #16262A; --page: #1E3236; --panel-2: #16282B;
     --ink: #EDF3EF; --ink-soft: #A9BFC0; --ink-faint: #5E7679;
     --grid-line: rgba(237,243,239,0.08); --border: rgba(237,243,239,0.28);
-    --accent-wrong: #E8734A; --accent-correct: #45C4AC;
+    --accent-wrong: #E8734A; --accent-correct: #45C4AC; --accent-velocity: #B79CE8;
   }
   @media (prefers-color-scheme: dark) {
     :root:not([data-theme="light"]) {
       --bg: #16262A; --page: #1E3236; --panel-2: #16282B;
       --ink: #EDF3EF; --ink-soft: #A9BFC0; --ink-faint: #5E7679;
       --grid-line: rgba(237,243,239,0.08); --border: rgba(237,243,239,0.28);
-      --accent-wrong: #E8734A; --accent-correct: #45C4AC;
+      --accent-wrong: #E8734A; --accent-correct: #45C4AC; --accent-velocity: #B79CE8;
     }
   }
   @media print {
@@ -137,6 +138,43 @@
 
 <script>
 "use strict";
+
+/* ---------- Trajectory geometry (projectile scenario) ---------- */
+// Quadratic Bezier control points for the flight path, and the fraction along
+// it (0-1) where the snapshot is taken. t=0.4 sits on the ascending arm,
+// before the apex (~0.54), matching "moving up and to the right."
+const PROJ_PATH = { p0:{x:140,y:340}, p1:{x:300,y:60}, p2:{x:460,y:300} };
+const PROJ_T = 0.4;
+
+function bezierPoint(p0,p1,p2,t){
+  const mt = 1-t;
+  return { x: mt*mt*p0.x + 2*mt*t*p1.x + t*t*p2.x, y: mt*mt*p0.y + 2*mt*t*p1.y + t*t*p2.y };
+}
+function bezierTangent(p0,p1,p2,t){
+  const dx = 2*(1-t)*(p1.x-p0.x) + 2*t*(p2.x-p1.x);
+  const dy = 2*(1-t)*(p1.y-p0.y) + 2*t*(p2.y-p1.y);
+  const mag = Math.hypot(dx,dy) || 1;
+  return { x: dx/mag, y: dy/mag };
+}
+/* Draws a solid green velocity arrow from (ox,oy) along unit vector `dir`, labeled "v" */
+function velocityArrow(ox,oy,dir,startOff,len){
+  startOff = startOff===undefined ? 14 : startOff;
+  len = len===undefined ? 46 : len;
+  const sx = ox+dir.x*startOff, sy = oy+dir.y*startOff;
+  const tx = ox+dir.x*(startOff+len), ty = oy+dir.y*(startOff+len);
+  const a = 24*Math.PI/180;
+  const rot = (v,ang)=>({x:v.x*Math.cos(ang)-v.y*Math.sin(ang), y:v.x*Math.sin(ang)+v.y*Math.cos(ang)});
+  const back = {x:-dir.x, y:-dir.y};
+  const L = rot(back,a), R = rot(back,-a);
+  const head = 8;
+  const hp1 = {x:tx+L.x*head, y:ty+L.y*head}, hp2 = {x:tx+R.x*head, y:ty+R.y*head};
+  const lx = ox+dir.x*(startOff+len+16), ly = oy+dir.y*(startOff+len+16);
+  return `
+    <line x1="${sx}" y1="${sy}" x2="${tx}" y2="${ty}" stroke="var(--accent-velocity)" stroke-width="2.5"/>
+    <polygon points="${tx},${ty} ${hp1.x},${hp1.y} ${hp2.x},${hp2.y}" fill="var(--accent-velocity)"/>
+    <text x="${lx}" y="${ly}" text-anchor="middle" dominant-baseline="middle" class="mono" font-size="12.5" font-weight="700" fill="var(--accent-velocity)">v</text>`;
+}
+
 const SCENARIOS = [
   {
     id: "table", title: "Block at Rest on a Table",
@@ -264,8 +302,7 @@ const SCENARIOS = [
       <circle cx="300" cy="230" r="90" fill="none" stroke="var(--ink-faint)" stroke-width="1.5" stroke-dasharray="4 5"/>
       <circle cx="300" cy="230" r="4" fill="var(--ink-soft)"/>
       <circle cx="${ox}" cy="${oy}" r="10" fill="none" stroke="var(--ink)" stroke-width="2"/>
-      <line x1="${ox}" y1="${oy-14}" x2="${ox}" y2="${oy-56}" stroke="var(--ink-faint)" stroke-width="1.5" stroke-dasharray="3 4"/>
-      <text x="${ox+8}" y="${oy-58}" class="mono" font-size="11" fill="var(--ink-faint)">v</text>`,
+      ${velocityArrow(ox,oy,{x:0,y:-1})}`,
     flawed: [
       {label:"Tension (Centripetal)", angle:180, len:70},
       {label:"Centrifugal Force", angle:0, len:70}
@@ -279,12 +316,12 @@ const SCENARIOS = [
   {
     id: "projectile", title: "Projectile in Flight",
     prompt: "A ball was thrown and is now mid-air, moving up and to the right (ignore air resistance). Analyze the forces on the ball at this instant.",
-    ox: 330, oy: 190,
+    ox: Math.round(bezierPoint(PROJ_PATH.p0,PROJ_PATH.p1,PROJ_PATH.p2,PROJ_T).x),
+    oy: Math.round(bezierPoint(PROJ_PATH.p0,PROJ_PATH.p1,PROJ_PATH.p2,PROJ_T).y),
     scene: (ox,oy)=>`
-      <path d="M 140 340 Q 300 60 460 300" fill="none" stroke="var(--ink-faint)" stroke-width="1.5" stroke-dasharray="4 5"/>
+      <path d="M ${PROJ_PATH.p0.x} ${PROJ_PATH.p0.y} Q ${PROJ_PATH.p1.x} ${PROJ_PATH.p1.y} ${PROJ_PATH.p2.x} ${PROJ_PATH.p2.y}" fill="none" stroke="var(--ink-faint)" stroke-width="1.5" stroke-dasharray="4 5"/>
       <circle cx="${ox}" cy="${oy}" r="10" fill="none" stroke="var(--ink)" stroke-width="2"/>
-      <line x1="${ox}" y1="${oy}" x2="${ox+46}" y2="${oy-32}" stroke="var(--ink-faint)" stroke-width="1.5" stroke-dasharray="3 4"/>
-      <text x="${ox+52}" y="${oy-34}" class="mono" font-size="11" fill="var(--ink-faint)">v</text>`,
+      ${velocityArrow(ox,oy,bezierTangent(PROJ_PATH.p0,PROJ_PATH.p1,PROJ_PATH.p2,PROJ_T))}`,
     flawed: [
       {label:"Weight (Gravity)", angle:270, len:90},
       {label:"Force of Motion", angle:50, len:80}
