@@ -1,0 +1,15 @@
+# Input parameters for porous_impedance_2.py
+# Lines starting with # are comments; blank lines are ignored.
+# Format: key = value
+
+porosity        = 0.95      # open pore volume fraction (0-1)
+tortuosity      = 1.1       # high-frequency limit tortuosity, alpha_inf
+flow_resistance = 750.0     # sample flow resistance R_f, Pa s/m (ISO 9053)
+thickness       = 0.03      # sample thickness L, m
+
+freq_min        = 20        # Hz
+freq_max        = 10000     # Hz
+n_points        = 500       # optional, number of frequency points (default 500)
+
+# model: jca_circular | jca_slit | zwikker_kosten | delany_bazley_miki | all
+model           = all
