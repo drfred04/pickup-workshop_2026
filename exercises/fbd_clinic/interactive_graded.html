@@ -668,6 +668,16 @@ const SCENARIOS = [
   }
 ];
 
+/* Extra distractor labels, appended to every scenario's option list to widen the
+   field of choices. None of these are currently correct answers anywhere — they're
+   here to make students discriminate rather than pattern-match on a short list.
+   Some future scenarios may adopt one of these as the correct/expected label. */
+const DISTRACTOR_FORCES = [
+  "Gravity", "Static Friction", "Kinetic Friction", "Spring", "Tension",
+  "Normal", "Drag", "Push", "Pull", "Thrust", "Electromagnetic"
+];
+SCENARIOS.forEach(s => { s.options = s.options.concat(DISTRACTOR_FORCES); });
+
 function hatch(x0,x1,y,dir,steep){
   let out = "";
   const step = 14;
