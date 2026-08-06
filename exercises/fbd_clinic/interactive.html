@@ -744,7 +744,7 @@ function renderForceList(){
     const opts = s.options.map(o=>`<option value="${o}" ${o===f.label?"selected":""}>${o}</option>`).join("");
     chip.innerHTML = `
       <select>${opts}</select>
-      <span class="readout">∠ ${Math.round(f.angle)}° &nbsp; |F| ${Math.round(f.len)}</span>
+      <span class="readout">∠ ${Math.round(f.angle)}° &nbsp; |F| ${Math.round(f.len)} N</span>
       <button class="del" title="Remove force">×</button>
     `;
     chip.querySelector("select").addEventListener("change", (e)=>{
