@@ -1,0 +1,1025 @@
+<!doctype html>
+<title>Cantilever Studio</title>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@600;700;800&family=Source+Sans+3:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --paper: #ece4d3;
+    --surface: #f7f1e4;
+    --surface-2: #ffffff;
+    --ink: #26303d;
+    --ink-soft: #5b6472;
+    --rule: #b7a98c;
+    --accent: #1f6f6b;
+    --applied: #c1440e;
+    --reaction: #1f6f6b;
+    --success: #2f7d4f;
+    --success-bg: #dcefdf;
+    --warn: #93650c;
+    --warn-bg: #f5e6c8;
+    --danger: #a8341f;
+    --danger-bg: #f3ded9;
+    --shadow: 0 1px 2px rgba(38,48,61,.08), 0 6px 20px rgba(38,48,61,.08);
+    color-scheme: light dark;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --paper: #0f1e30;
+      --surface: #15293f;
+      --surface-2: #0e2135;
+      --ink: #e7edf5;
+      --ink-soft: #a9b8c8;
+      --rule: #2c4a6e;
+      --accent: #7fd8cb;
+      --applied: #ff8f66;
+      --reaction: #7fd8cb;
+      --success: #79d99a;
+      --success-bg: #123222;
+      --warn: #e0b64a;
+      --warn-bg: #33280f;
+      --danger: #ff7a6b;
+      --danger-bg: #341313;
+      --shadow: 0 1px 2px rgba(0,0,0,.4), 0 8px 24px rgba(0,0,0,.35);
+    }
+  }
+  :root[data-theme="dark"] {
+    --paper: #0f1e30;
+    --surface: #15293f;
+    --surface-2: #0e2135;
+    --ink: #e7edf5;
+    --ink-soft: #a9b8c8;
+    --rule: #2c4a6e;
+    --accent: #7fd8cb;
+    --applied: #ff8f66;
+    --reaction: #7fd8cb;
+    --success: #79d99a;
+    --success-bg: #123222;
+    --warn: #e0b64a;
+    --warn-bg: #33280f;
+    --danger: #ff7a6b;
+    --danger-bg: #341313;
+    --shadow: 0 1px 2px rgba(0,0,0,.4), 0 8px 24px rgba(0,0,0,.35);
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--paper);
+    color: var(--ink);
+    font-family: "Source Sans 3", system-ui, sans-serif;
+    padding-inline: 20px;
+    padding-block: 28px 60px;
+  }
+  h1, h2, h3 { font-family: "Archivo", system-ui, sans-serif; text-wrap: balance; margin: 0; }
+  .wrap { max-width: 1180px; margin: 0 auto; }
+
+  header.top { margin-bottom: 22px; }
+  .eyebrow {
+    font-family: "IBM Plex Mono", monospace;
+    font-size: .72rem;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+    color: var(--accent);
+    font-weight: 600;
+    margin-bottom: 6px;
+    display: block;
+  }
+  h1 { font-size: clamp(1.6rem, 3vw, 2.15rem); font-weight: 800; color: var(--ink); }
+  .lede { max-width: 62ch; color: var(--ink-soft); font-size: 1rem; line-height: 1.55; margin-top: 8px; }
+
+  .legend {
+    display: flex; flex-wrap: wrap; gap: 10px 22px;
+    margin-top: 18px; padding: 14px 16px;
+    background: var(--surface); border: 1px solid var(--rule); border-radius: 10px;
+    font-size: .86rem;
+  }
+  .legend-item { display: flex; align-items: center; gap: 8px; }
+  .swatch { width: 26px; height: 12px; border-radius: 2px; flex-shrink: 0; }
+  .swatch.applied { background: var(--applied); }
+  .swatch.reaction { background: var(--reaction); }
+  .swatch.moment { background: none; border: none; position: relative; width: 22px; height: 18px; }
+  .swatch.moment svg { width: 100%; height: 100%; }
+
+  .tabs {
+    display: flex; gap: 6px; margin-top: 26px; border-bottom: 2px solid var(--rule);
+    overflow-x: auto;
+  }
+  .tab-btn {
+    font-family: "IBM Plex Mono", monospace;
+    font-size: .82rem; font-weight: 600; letter-spacing: .02em;
+    background: transparent; border: none; cursor: pointer;
+    padding: 10px 18px; color: var(--ink-soft);
+    border-bottom: 3px solid transparent; margin-bottom: -2px;
+    white-space: nowrap;
+  }
+  .tab-btn.active { color: var(--ink); border-bottom-color: var(--accent); }
+  .tab-btn:hover { color: var(--ink); }
+
+  .scenario-panel { padding-top: 24px; }
+  .scenario-head { margin-bottom: 16px; }
+  .scenario-head h2 { font-size: 1.3rem; }
+  .scenario-head p { color: var(--ink-soft); margin: 8px 0 0; max-width: 68ch; font-size: 1.12rem; line-height: 1.6; }
+
+  .grid {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 22px; align-items: start;
+  }
+  @media (max-width: 820px) { .grid { grid-template-columns: 1fr; } }
+
+  .card {
+    background: var(--surface-2); border: 1px solid var(--rule); border-radius: 12px;
+    box-shadow: var(--shadow); overflow: hidden;
+  }
+  .card-body { padding: 14px 16px; }
+  .card h3 {
+    font-size: .78rem; text-transform: uppercase; letter-spacing: .08em;
+    color: var(--ink-soft); font-weight: 700; margin: 0 0 10px;
+  }
+  svg.illustration, svg.ghost { display: block; width: 100%; height: auto; background: var(--paper); }
+  svg.ghost { cursor: default; touch-action: none; }
+  svg.ghost.placing { cursor: crosshair; }
+
+  table.given { width: 100%; border-collapse: collapse; font-family: "IBM Plex Mono", monospace; font-size: .82rem; margin-top: 4px; }
+  table.given th { text-align: left; color: var(--ink-soft); font-weight: 600; padding: 4px 8px 4px 0; border-bottom: 1px solid var(--rule); }
+  table.given td { padding: 5px 8px 5px 0; border-bottom: 1px solid var(--rule); vertical-align: top; }
+  table.given tr:last-child td { border-bottom: none; }
+  table.given td.sym { color: var(--applied); font-weight: 600; white-space: nowrap; }
+  table.given td.val { white-space: nowrap; }
+  table.given td.desc { font-family: "Source Sans 3", sans-serif; color: var(--ink); }
+
+  .toolbar { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-bottom: 10px; }
+  .tool-btn {
+    font-family: "Source Sans 3", sans-serif; font-size: .84rem; font-weight: 600;
+    padding: 7px 13px; border-radius: 999px; border: 1px solid var(--rule);
+    background: var(--surface); color: var(--ink); cursor: pointer;
+  }
+  .tool-btn.active { background: var(--accent); border-color: var(--accent); color: var(--surface-2); }
+  .hint { font-size: .8rem; color: var(--ink-soft); font-style: italic; flex-basis: 100%; min-height: 1.1em; }
+
+  .actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+  .btn {
+    font-family: "Source Sans 3", sans-serif; font-size: .84rem; font-weight: 600;
+    padding: 8px 14px; border-radius: 8px; border: 1px solid var(--rule);
+    background: var(--surface); color: var(--ink); cursor: pointer;
+  }
+  .btn:hover { border-color: var(--accent); }
+  .btn.primary { background: var(--accent); border-color: var(--accent); color: var(--surface-2); }
+
+  ul.itemlist { list-style: none; margin: 12px 0 0; padding: 0; font-size: .84rem; display: flex; flex-direction: column; gap: 4px; }
+  ul.itemlist li { display: flex; justify-content: space-between; gap: 8px; align-items: center; background: var(--surface); border: 1px solid var(--rule); border-radius: 6px; padding: 5px 9px; }
+  ul.itemlist li.empty { color: var(--ink-soft); font-style: italic; justify-content: flex-start; background: none; border-style: dashed; }
+  ul.itemlist button { border: none; background: none; color: var(--danger); font-size: 1rem; cursor: pointer; line-height: 1; padding: 2px 4px; }
+
+  .feedback { margin-top: 14px; }
+  .feedback .score { font-family: "IBM Plex Mono", monospace; font-weight: 600; margin-bottom: 8px; font-size: .95rem; }
+  ul.feedback-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; font-size: .86rem; line-height: 1.4; }
+  ul.feedback-list li { padding: 7px 10px; border-radius: 7px; }
+  ul.feedback-list li.ok { background: var(--success-bg); color: var(--success); }
+  ul.feedback-list li.bad { background: var(--danger-bg); color: var(--danger); }
+  ul.feedback-list li.warn { background: var(--warn-bg); color: var(--warn); }
+
+  .popup {
+    position: fixed; z-index: 50; background: var(--surface-2); border: 1px solid var(--rule);
+    border-radius: 10px; box-shadow: var(--shadow); padding: 12px; width: 208px;
+    font-size: .84rem;
+  }
+  .popup-row { display: flex; gap: 6px; margin-bottom: 8px; flex-wrap: wrap; }
+  .popup-row button {
+    flex: 1; min-width: 40px; padding: 7px 4px; border-radius: 7px; border: 1px solid var(--rule);
+    background: var(--surface); cursor: pointer; font-size: .95rem; color: var(--ink);
+  }
+  .popup-row button.selected { background: var(--accent); border-color: var(--accent); color: var(--surface-2); }
+  .popup input {
+    width: 100%; padding: 6px 8px; border-radius: 6px; border: 1px solid var(--rule);
+    font-family: "Source Sans 3", sans-serif; font-size: .84rem; background: var(--surface); color: var(--ink);
+    margin-bottom: 8px;
+  }
+  .popup-actions { display: flex; gap: 6px; }
+  .popup-actions button { flex: 1; }
+
+  .item-label { font-family: "IBM Plex Mono", monospace; font-size: 11px; }
+  .small-label { font-family: "IBM Plex Mono", monospace; font-size: 10px; }
+  .item { cursor: pointer; }
+  .item:hover { opacity: .75; }
+
+  footer.note { margin-top: 34px; font-size: .78rem; color: var(--ink-soft); max-width: 68ch; line-height: 1.5; }
+</style>
+
+<div class="wrap">
+  <header class="top">
+    <span class="eyebrow">Statics · Rigid-Body Equilibrium</span>
+    <h1>Cantilever Studio</h1>
+    <p class="lede">Two fixed-support cantilevers, each shown as a realistic scene next to a ghosted schematic. Place every applied load and every support reaction the fixed connection must supply, then check your diagram.</p>
+    <div class="legend">
+      <div class="legend-item"><span class="swatch applied"></span> Applied load — given in the problem</div>
+      <div class="legend-item"><span class="swatch reaction"></span> Reaction — unknown, supplied by the fixed support</div>
+      <div class="legend-item"><span class="swatch moment"><svg viewBox="0 0 22 18"><path d="M9,3 A8,8 0 1,1 2,10" fill="none" stroke="currentColor" stroke-width="2.4" marker-end="url(#legendArrow)"/><defs><marker id="legendArrow" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse"><path d="M0,0L10,5L0,10Z" fill="currentColor"/></marker></defs></svg></span> Moment — curved arrow, applied or reactive</div>
+    </div>
+  </header>
+
+  <nav class="tabs">
+    <button class="tab-btn active" data-scenario="s1" onclick="showScenario('s1')">Sheet 1 — Shelf Bracket</button>
+    <button class="tab-btn" data-scenario="s2" onclick="showScenario('s2')">Sheet 2 — Signal Mast Arm</button>
+    <!-- Sheet 3 — Motor Bracket: temporarily disabled while we rework how the motor's torque interacts with the bracket. Panel markup and logic left intact below for when it's ready to return. -->
+  </nav>
+
+  <!-- ===================== SCENARIO 1 ===================== -->
+  <section class="scenario-panel" data-scenario="s1">
+    <div class="scenario-head">
+      <h2>Shelf Bracket &amp; Flower Pot</h2>
+      <p>A plank is bolted rigidly into a brick wall and carries a flower pot at its free end. Draw the pot's weight, the plank's self-weight, and every reaction the bolted flange must supply.</p>
+    </div>
+    <div class="grid">
+      <div class="card">
+        <div class="card-body">
+          <h3>Given scene</h3>
+          <svg class="illustration" id="real-s1" viewBox="0 0 480 380" width="480" height="380">
+            <defs>
+              <pattern id="brick-s1" width="40" height="20" patternUnits="userSpaceOnUse">
+                <rect width="40" height="20" fill="#b1583f"/>
+                <line x1="0" y1="10" x2="40" y2="10" stroke="#8a4630" stroke-width="1.4"/>
+                <line x1="20" y1="0" x2="20" y2="10" stroke="#8a4630" stroke-width="1.4"/>
+                <line x1="0" y1="10" x2="0" y2="20" stroke="#8a4630" stroke-width="1.4"/>
+                <line x1="40" y1="10" x2="40" y2="20" stroke="#8a4630" stroke-width="1.4"/>
+              </pattern>
+              <linearGradient id="shade-s1" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0" stop-color="#2a1610" stop-opacity=".28"/>
+                <stop offset=".4" stop-color="#2a1610" stop-opacity="0"/>
+                <stop offset="1" stop-color="#140a06" stop-opacity=".35"/>
+              </linearGradient>
+              <linearGradient id="wood-s1" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0" stop-color="#d8ad6f"/>
+                <stop offset=".5" stop-color="#c1904f"/>
+                <stop offset="1" stop-color="#9a6c37"/>
+              </linearGradient>
+              <linearGradient id="metal-s1" x1="0" y1="0" x2="1" y2="1">
+                <stop offset="0" stop-color="#c9ced4"/>
+                <stop offset="1" stop-color="#7c848f"/>
+              </linearGradient>
+              <radialGradient id="pot-s1" cx=".32" cy=".22" r=".95">
+                <stop offset="0" stop-color="#e2794a"/>
+                <stop offset="1" stop-color="#a44420"/>
+              </radialGradient>
+              <linearGradient id="room-s1" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0" stop-color="#f2ead9"/>
+                <stop offset="1" stop-color="#e6dac0"/>
+              </linearGradient>
+              <linearGradient id="floor-s1" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0" stop-color="#b98a54"/>
+                <stop offset="1" stop-color="#8a6238"/>
+              </linearGradient>
+              <linearGradient id="walledge-s1" x1="0" y1="0" x2="1" y2="0">
+                <stop offset="0" stop-color="#241108" stop-opacity=".38"/>
+                <stop offset="1" stop-color="#241108" stop-opacity="0"/>
+              </linearGradient>
+            </defs>
+            <rect width="480" height="380" fill="url(#room-s1)"/>
+            <rect x="0" y="340" width="480" height="40" fill="url(#floor-s1)"/>
+            <rect x="0" y="338" width="480" height="4" fill="#6e4a26" opacity=".5"/>
+            <rect width="140" height="380" fill="url(#brick-s1)"/>
+            <rect width="140" height="380" fill="url(#shade-s1)"/>
+            <rect x="140" y="0" width="36" height="380" fill="url(#walledge-s1)"/>
+            <rect x="140" y="140" width="14" height="46" fill="url(#metal-s1)" stroke="#5b616a" stroke-width="1"/>
+            <circle cx="147" cy="150" r="2.4" fill="#3d4147"/>
+            <circle cx="147" cy="160" r="2.4" fill="#3d4147"/>
+            <circle cx="147" cy="170" r="2.4" fill="#3d4147"/>
+            <circle cx="147" cy="180" r="2.4" fill="#3d4147"/>
+            <polygon points="140,175 140,206 174,175" fill="url(#metal-s1)" stroke="#5b616a" stroke-width="1"/>
+            <rect x="154" y="151" width="244" height="24" rx="3" fill="url(#wood-s1)" stroke="#7a5227" stroke-width="1.5"/>
+            <line x1="172" y1="158" x2="380" y2="158" stroke="#7a5227" stroke-width="1" opacity=".5"/>
+            <line x1="172" y1="168" x2="370" y2="168" stroke="#7a5227" stroke-width="1" opacity=".5"/>
+            <ellipse cx="366" cy="152" rx="24" ry="4" fill="#241108" opacity=".2"/>
+            <path d="M344,110 L392,110 L383,151 L353,151 Z" fill="url(#pot-s1)" stroke="#7a2f10" stroke-width="1.5"/>
+            <path d="M349,124 L387,124" stroke="#7a2f10" stroke-width="2" opacity=".55"/>
+            <path d="M346,138 L385,138" stroke="#7a2f10" stroke-width="2" opacity=".4"/>
+            <ellipse cx="368" cy="110" rx="25" ry="6.5" fill="#c96a3d" stroke="#7a2f10" stroke-width="1.5"/>
+            <ellipse cx="368" cy="109" rx="19" ry="4.2" fill="#3c2a1c"/>
+            <path d="M362,109 C356,88 346,74 350,54" fill="none" stroke="#3f7d43" stroke-width="3" stroke-linecap="round"/>
+            <path d="M370,109 C376,84 388,72 382,50" fill="none" stroke="#4c9350" stroke-width="3" stroke-linecap="round"/>
+            <ellipse cx="347" cy="53" rx="9" ry="5" fill="#4c9350" transform="rotate(-30 347 53)"/>
+            <ellipse cx="383" cy="49" rx="9" ry="5" fill="#5aa85e" transform="rotate(25 383 49)"/>
+            <circle cx="366" cy="65" r="4" fill="#e7b93f"/>
+            <line x1="147" y1="192" x2="147" y2="222" stroke="#5b6472" stroke-width="1"/>
+            <text x="70" y="236" text-anchor="middle" font-family="IBM Plex Mono" font-size="11" fill="#26303d">Fixed connection</text>
+            <text x="70" y="248" text-anchor="middle" font-family="IBM Plex Mono" font-size="11" fill="#26303d">(bolted flange)</text>
+            <circle cx="276" cy="163" r="6" fill="#f2ead9" stroke="#26303d" stroke-width="1.2"/>
+            <path d="M276,157 A6,6 0 0,1 282,163 L276,163 Z" fill="#26303d"/>
+            <path d="M276,169 A6,6 0 0,1 270,163 L276,163 Z" fill="#26303d"/>
+            <line x1="276" y1="171" x2="276" y2="200" stroke="#5b6472" stroke-width="1"/>
+            <text x="276" y="215" text-anchor="middle" font-family="IBM Plex Mono" font-size="12" font-weight="600" fill="#26303d">W_plank = 14 N</text>
+            <text x="276" y="229" text-anchor="middle" font-family="IBM Plex Mono" font-size="10" fill="#5b6472">weight, acting at center of gravity</text>
+            <line x1="368" y1="103" x2="440" y2="80" stroke="#5b6472" stroke-width="1"/>
+            <text x="474" y="78" text-anchor="end" font-family="IBM Plex Mono" font-size="12" font-weight="600" fill="#26303d">W_pot = 60 N</text>
+          </svg>
+          <table class="given">
+            <tr><th>Symbol</th><th>Value</th><th>Description</th></tr>
+            <tr><td class="sym">W_pot</td><td class="val">60 N</td><td class="desc">Weight of the flower pot, acting at the tip</td></tr>
+            <tr><td class="sym">W_plank</td><td class="val">14 N</td><td class="desc">Weight of the plank, acting as a point force at its center of gravity</td></tr>
+          </table>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-body">
+          <h3>Free body diagram</h3>
+          <svg class="ghost" id="ghost-s1" viewBox="0 0 440 300" width="440" height="300"></svg>
+          <div class="toolbar" data-scenario="s1" style="margin-top:12px;">
+            <button class="tool-btn" data-tool="force">+ Point Force</button>
+            <button class="tool-btn" data-tool="moment">+ Moment</button>
+            <span class="hint" id="hint-s1"></span>
+          </div>
+          <ul class="itemlist" id="itemlist-s1"></ul>
+          <div class="actions">
+            <button class="btn primary check-btn" data-scenario="s1">Check diagram</button>
+            <button class="btn answer-btn" id="answerBtn-s1" data-scenario="s1">Show answer</button>
+            <button class="btn reset-btn" data-scenario="s1">Reset</button>
+            <button class="btn export-btn" data-scenario="s1">Export PNG</button>
+          </div>
+          <div class="feedback" id="feedback-s1" hidden></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================== SCENARIO 2 ===================== -->
+  <section class="scenario-panel" data-scenario="s2" hidden>
+    <div class="scenario-head">
+      <h2>Traffic Signal Mast Arm</h2>
+      <p>A mast arm is welded to a pole. At the tip, the signal head weighs 90 N straight down and catches 40 N of wind blowing horizontally away from the pole. The arm's own weight is 24 N, acting as a point force at its center of gravity. Draw both applied loads at the tip, the arm's weight, and the reactions the welded joint supplies.</p>
+    </div>
+    <div class="grid">
+      <div class="card">
+        <div class="card-body">
+          <h3>Given scene</h3>
+          <svg class="illustration" id="real-s2" viewBox="0 0 480 380" width="480" height="380">
+            <defs>
+              <linearGradient id="sky-s2" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0" stop-color="#bcd9ea"/>
+                <stop offset="1" stop-color="#f0dcc0"/>
+              </linearGradient>
+              <linearGradient id="pole-s2" x1="0" y1="0" x2="1" y2="0">
+                <stop offset="0" stop-color="#6d7580"/>
+                <stop offset=".5" stop-color="#9aa1a9"/>
+                <stop offset="1" stop-color="#565d66"/>
+              </linearGradient>
+              <linearGradient id="arm-s2" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0" stop-color="#a7aeb6"/>
+                <stop offset="1" stop-color="#6d7580"/>
+              </linearGradient>
+            </defs>
+            <rect width="480" height="380" fill="url(#sky-s2)"/>
+            <ellipse cx="90" cy="60" rx="46" ry="14" fill="#ffffff" opacity=".55"/>
+            <ellipse cx="150" cy="45" rx="30" ry="10" fill="#ffffff" opacity=".4"/>
+            <rect x="0" y="340" width="480" height="40" fill="#8b8f92"/>
+            <rect x="0" y="340" width="480" height="6" fill="#c7cbcd"/>
+            <rect x="58" y="60" width="24" height="290" fill="url(#pole-s2)"/>
+            <rect x="61" y="60" width="4" height="290" fill="#c6cbd0" opacity=".6"/>
+            <polygon points="82,148 82,170 340,158 340,140" fill="url(#arm-s2)" stroke="#4c525a" stroke-width="1.2"/>
+            <rect x="66" y="130" width="30" height="42" fill="#7c848f" stroke="#4c525a" stroke-width="1.2"/>
+            <circle cx="75" cy="140" r="2.2" fill="#33373c"/>
+            <circle cx="87" cy="140" r="2.2" fill="#33373c"/>
+            <circle cx="75" cy="152" r="2.2" fill="#33373c"/>
+            <circle cx="87" cy="152" r="2.2" fill="#33373c"/>
+            <circle cx="75" cy="164" r="2.2" fill="#33373c"/>
+            <circle cx="87" cy="164" r="2.2" fill="#33373c"/>
+            <line x1="336" y1="145" x2="336" y2="176" stroke="#4c525a" stroke-width="3"/>
+            <rect x="316" y="176" width="40" height="80" rx="6" fill="#33373c" stroke="#1f2226" stroke-width="1.5"/>
+            <circle cx="336" cy="194" r="10" fill="#e3453a"/>
+            <circle cx="336" cy="216" r="10" fill="#e8b23a"/>
+            <circle cx="336" cy="238" r="10" fill="#3fae54"/>
+            <path d="M300,190 q-14,-4 -22,4" fill="none" stroke="#ffffff" stroke-width="2" opacity=".65"/>
+            <path d="M298,204 q-16,-2 -25,8" fill="none" stroke="#ffffff" stroke-width="2" opacity=".65"/>
+          </svg>
+          <table class="given">
+            <tr><th>Symbol</th><th>Value</th><th>Description</th></tr>
+            <tr><td class="sym">W_signal</td><td class="val">90 N</td><td class="desc">Weight of the signal head, acting at the tip</td></tr>
+            <tr><td class="sym">F_wind</td><td class="val">40 N →</td><td class="desc">Wind pushing the signal head away from the pole</td></tr>
+            <tr><td class="sym">W_arm</td><td class="val">24 N</td><td class="desc">Weight of the arm, acting as a point force at its center of gravity</td></tr>
+          </table>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-body">
+          <h3>Free body diagram</h3>
+          <svg class="ghost" id="ghost-s2" viewBox="0 0 440 300" width="440" height="300"></svg>
+          <div class="toolbar" data-scenario="s2" style="margin-top:12px;">
+            <button class="tool-btn" data-tool="force">+ Point Force</button>
+            <button class="tool-btn" data-tool="moment">+ Moment</button>
+            <span class="hint" id="hint-s2"></span>
+          </div>
+          <ul class="itemlist" id="itemlist-s2"></ul>
+          <div class="actions">
+            <button class="btn primary check-btn" data-scenario="s2">Check diagram</button>
+            <button class="btn answer-btn" id="answerBtn-s2" data-scenario="s2">Show answer</button>
+            <button class="btn reset-btn" data-scenario="s2">Reset</button>
+            <button class="btn export-btn" data-scenario="s2">Export PNG</button>
+          </div>
+          <div class="feedback" id="feedback-s2" hidden></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================== SCENARIO 3 ===================== -->
+  <section class="scenario-panel" data-scenario="s3" hidden>
+    <div class="scenario-head">
+      <h2>Motor Mounting Bracket</h2>
+      <p>A steel bracket is bolted to a machine frame and carries a running motor. The motor pushes back on its mount with a reaction torque as well as its weight. Draw both, the bracket's self-weight, and the flange's reactions.</p>
+    </div>
+    <div class="grid">
+      <div class="card">
+        <div class="card-body">
+          <h3>Given scene</h3>
+          <svg class="illustration" id="real-s3" viewBox="0 0 480 380" width="480" height="380">
+            <defs>
+              <linearGradient id="frame-s3" x1="0" y1="0" x2="1" y2="1">
+                <stop offset="0" stop-color="#4b5b6d"/>
+                <stop offset="1" stop-color="#28323e"/>
+              </linearGradient>
+              <linearGradient id="steel-s3" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0" stop-color="#b9c3cc"/>
+                <stop offset="1" stop-color="#7c8894"/>
+              </linearGradient>
+              <linearGradient id="motor-s3" x1="0" y1="0" x2="1" y2="0">
+                <stop offset="0" stop-color="#8b96a1"/>
+                <stop offset=".5" stop-color="#c3ccd3"/>
+                <stop offset="1" stop-color="#727d88"/>
+              </linearGradient>
+            </defs>
+            <rect width="480" height="380" fill="url(#frame-s3)"/>
+            <g stroke="#38424f" stroke-width="1" opacity=".5">
+              <line x1="0" y1="60" x2="480" y2="60"/>
+              <line x1="0" y1="300" x2="480" y2="300"/>
+              <line x1="40" y1="0" x2="40" y2="380"/>
+              <line x1="440" y1="0" x2="440" y2="380"/>
+            </g>
+            <rect x="150" y="132" width="18" height="60" fill="url(#steel-s3)" stroke="#4c525a" stroke-width="1"/>
+            <circle cx="159" cy="142" r="2.4" fill="#33373c"/>
+            <circle cx="159" cy="154" r="2.4" fill="#33373c"/>
+            <circle cx="159" cy="166" r="2.4" fill="#33373c"/>
+            <circle cx="159" cy="178" r="2.4" fill="#33373c"/>
+            <rect x="164" y="149" width="220" height="20" rx="2" fill="url(#steel-s3)" stroke="#4c525a" stroke-width="1.2"/>
+            <rect x="320" y="108" width="64" height="44" rx="8" fill="url(#motor-s3)" stroke="#4c525a" stroke-width="1.5"/>
+            <line x1="320" y1="122" x2="384" y2="122" stroke="#4c525a" stroke-width="1" opacity=".4"/>
+            <circle cx="332" cy="152" r="3" fill="#4c525a"/>
+            <circle cx="372" cy="152" r="3" fill="#4c525a"/>
+            <circle cx="352" cy="100" r="9" fill="#8b96a1" stroke="#4c525a" stroke-width="1.5"/>
+            <circle cx="352" cy="100" r="3" fill="#4c525a"/>
+            <path d="M364,88 A24,24 0 1,1 340,112" fill="none" stroke="#26303d" stroke-width="2.4" marker-end="url(#torqueHead-s3)"/>
+            <defs><marker id="torqueHead-s3" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0L10,5L0,10Z" fill="#26303d"/></marker></defs>
+            <line x1="352" y1="152" x2="410" y2="190" stroke="#c9d0d6" stroke-width="1"/>
+            <text x="474" y="193" text-anchor="end" font-family="IBM Plex Mono" font-size="12" font-weight="600" fill="#e7edf5">W_motor = 45 N</text>
+            <line x1="356" y1="86" x2="410" y2="70" stroke="#c9d0d6" stroke-width="1"/>
+            <text x="474" y="68" text-anchor="end" font-family="IBM Plex Mono" font-size="12" font-weight="600" fill="#e7edf5">T_motor = 12 N·m</text>
+            <text x="474" y="82" text-anchor="end" font-family="IBM Plex Mono" font-size="10" fill="#c9d0d6">reaction torque, clockwise</text>
+            <text x="474" y="94" text-anchor="end" font-family="IBM Plex Mono" font-size="10" fill="#c9d0d6">(shaft points toward viewer)</text>
+            <line x1="250" y1="169" x2="250" y2="210" stroke="#c9d0d6" stroke-width="1"/>
+            <text x="250" y="225" text-anchor="middle" font-family="IBM Plex Mono" font-size="12" font-weight="600" fill="#e7edf5">w = 10 N/m</text>
+            <text x="250" y="239" text-anchor="middle" font-family="IBM Plex Mono" font-size="10" fill="#c9d0d6">bracket self-weight, over 0.5 m</text>
+            <text x="159" y="212" text-anchor="middle" font-family="IBM Plex Mono" font-size="11" fill="#e7edf5">Bolted flange</text>
+            <text x="159" y="224" text-anchor="middle" font-family="IBM Plex Mono" font-size="11" fill="#e7edf5">(fixed)</text>
+          </svg>
+          <table class="given">
+            <tr><th>Symbol</th><th>Value</th><th>Description</th></tr>
+            <tr><td class="sym">W_motor</td><td class="val">45 N</td><td class="desc">Weight of the motor, acting at its mounting point</td></tr>
+            <tr><td class="sym">T_motor</td><td class="val">12 N·m, CW</td><td class="desc">Reaction torque the spinning motor exerts on its mount</td></tr>
+            <tr><td class="sym">w</td><td class="val">10 N/m</td><td class="desc">Self-weight of the 0.5 m bracket, distributed along its length</td></tr>
+          </table>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-body">
+          <h3>Free body diagram</h3>
+          <svg class="ghost" id="ghost-s3" viewBox="0 0 440 300" width="440" height="300"></svg>
+          <div class="toolbar" data-scenario="s3" style="margin-top:12px;">
+            <button class="tool-btn" data-tool="force">+ Point Force</button>
+            <button class="tool-btn" data-tool="distributed">+ Distributed Load</button>
+            <button class="tool-btn" data-tool="moment">+ Moment</button>
+            <span class="hint" id="hint-s3"></span>
+          </div>
+          <ul class="itemlist" id="itemlist-s3"></ul>
+          <div class="actions">
+            <button class="btn primary check-btn" data-scenario="s3">Check diagram</button>
+            <button class="btn answer-btn" id="answerBtn-s3" data-scenario="s3">Show answer</button>
+            <button class="btn reset-btn" data-scenario="s3">Reset</button>
+            <button class="btn export-btn" data-scenario="s3">Export PNG</button>
+          </div>
+          <div class="feedback" id="feedback-s3" hidden></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <footer class="note">
+    Reactions may be drawn in either sense — the point of this exercise is identifying which components a fixed support supplies (horizontal force, vertical force, and moment) and where, not solving for their signs. Applied loads are graded against the direction shown in the photo.
+  </footer>
+</div>
+
+<div class="popup" id="popup" hidden>
+  <div class="popup-row" id="popupDirRow">
+    <button data-dir="up">↑</button><button data-dir="down">↓</button><button data-dir="left">←</button><button data-dir="right">→</button>
+  </div>
+  <div class="popup-row" id="popupSenseRow" hidden>
+    <button data-dir="ccw">⟲ CCW</button><button data-dir="cw">⟳ CW</button>
+  </div>
+  <input id="popupLabel" placeholder="label (optional), e.g. Ay" maxlength="12" />
+  <div class="popup-actions">
+    <button id="popupAdd" class="btn primary">Add</button>
+    <button id="popupCancel" class="btn">Cancel</button>
+  </div>
+</div>
+
+<script>
+(function () {
+  "use strict";
+
+  const DIRV = { up: [0, -1], down: [0, 1], left: [-1, 0], right: [1, 0] };
+  const HINTS = {
+    force: "Click a point on the diagram, then choose a direction.",
+    moment: "Click a point on the diagram, then choose CW or CCW.",
+    distributed: "Click and drag along the beam to mark the loaded span."
+  };
+  const TIP = { x: 380, y: 150, tol: 55 };
+  const SUPPORT = { x: 54, y: 150, tol: 55 };
+  const SPAN = { x1: 90, x2: 350, tol: 55 };
+  const CENTER = { x: 220, y: 150, tol: 55 };
+
+  const SCENARIOS = {
+    s1: {
+      accessory: null,
+      supportStyle: "none",
+      connectionLabel: "Fixed connection (bolted flange)",
+      requirements: [
+        { type: "force", zone: TIP, axis: "vertical", require: "down", label: "Applied load — pot weight (down)", hint: "Add the pot's weight at the tip, pointing straight down." },
+        { type: "force", zone: CENTER, axis: "vertical", require: "down", label: "Applied load — plank weight at its center of gravity (down)", hint: "Add the plank's weight as a single point force at its center of gravity, pointing down." },
+        { type: "force", zone: SUPPORT, axis: "vertical", require: "any", label: "Vertical reaction at the wall", hint: "The wall must supply a vertical reaction — add a vertical arrow at the support." },
+        { type: "force", zone: SUPPORT, axis: "horizontal", require: "any", label: "Horizontal reaction at the wall", hint: "A fixed support resists sliding in every direction — add a horizontal reaction at the support too, even with no horizontal load (it will simply work out to zero)." },
+        { type: "moment", zone: SUPPORT, require: "any", label: "Reaction moment at the wall", hint: "A fixed support also resists rotation — add a curved moment arrow at the support." }
+      ]
+    },
+    s2: {
+      accessory: null,
+      supportStyle: "none",
+      connectionLabel: "",
+      requirements: [
+        { type: "force", zone: TIP, axis: "vertical", require: "down", label: "Applied load — signal head weight (down)", hint: "Add the signal head's weight at the tip, pointing down." },
+        { type: "force", zone: TIP, axis: "horizontal", require: "right", label: "Applied load — wind on the signal head (→)", hint: "The photo shows wind pushing the signal outward, away from the pole — add a horizontal arrow at the tip in that direction." },
+        { type: "force", zone: CENTER, axis: "vertical", require: "down", label: "Applied load — arm weight at its center of gravity (down)", hint: "Add the arm's weight as a single point force at its center of gravity, pointing down." },
+        { type: "force", zone: SUPPORT, axis: "vertical", require: "any", label: "Vertical reaction at the pole", hint: "Add a vertical reaction at the pole connection to balance the signal's weight and the arm's self-weight." },
+        { type: "force", zone: SUPPORT, axis: "horizontal", require: "any", label: "Horizontal reaction at the pole", hint: "The wind load pulls horizontally on the arm, so the connection must supply a matching horizontal reaction — add it at the support." },
+        { type: "moment", zone: SUPPORT, require: "any", label: "Reaction moment at the pole", hint: "The joint is welded (fixed), so it also resists rotation — add a reaction moment at the support." }
+      ]
+    },
+    s3: {
+      accessory: null,
+      supportStyle: "none",
+      connectionLabel: "Bolted flange (fixed)",
+      requirements: [
+        { type: "force", zone: TIP, axis: "vertical", require: "down", label: "Applied load — motor weight (down)", hint: "Add the motor's weight at its mounting point, pointing down." },
+        { type: "moment", zone: TIP, require: "cw", label: "Applied moment — motor reaction torque (CW)", hint: "The spinning motor pushes back on its mount with a torque — add a clockwise moment arrow at the motor location, matching the photo." },
+        { type: "distributed", zone: SPAN, require: "any", label: "Distributed self-weight of the bracket (down)", hint: "Mark the bracket's self-weight as a distributed load along its length, pointing down." },
+        { type: "force", zone: SUPPORT, axis: "vertical", require: "any", label: "Vertical reaction at the flange", hint: "Add a vertical reaction at the flange to balance the motor's weight and the bracket's self-weight." },
+        { type: "force", zone: SUPPORT, axis: "horizontal", require: "any", label: "Horizontal reaction at the flange", hint: "Even with no horizontal load here, the bolted flange still resists horizontal force — add it at the support." },
+        { type: "moment", zone: SUPPORT, require: "any", label: "Reaction moment at the flange", hint: "The flange is rigidly bolted, so it must also react against rotation — including the motor's torque. Add a reaction moment at the support." }
+      ]
+    }
+  };
+
+  const state = {
+    items: { s1: [], s2: [], s3: [] },
+    showAnswer: { s1: false, s2: false, s3: false },
+    tool: { s1: null, s2: null, s3: null },
+    dragging: null,
+    dragPreview: null
+  };
+  let uid = 1;
+  let pending = null;
+  let pendingDir = null;
+
+  function cssVar(name) {
+    return getComputedStyle(document.documentElement).getPropertyValue(name).trim() || "#26303d";
+  }
+  function escapeXML(s) {
+    return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+  }
+  function axisOf(dir) { return (dir === "up" || dir === "down") ? "vertical" : "horizontal"; }
+  function roleOf(x) { return x < 110 ? "reaction" : "applied"; }
+
+  function toSvgPoint(svg, evt) {
+    const pt = svg.createSVGPoint();
+    pt.x = evt.clientX; pt.y = evt.clientY;
+    return pt.matrixTransform(svg.getScreenCTM().inverse());
+  }
+
+  // ---------- rendering ----------
+
+  function defsBlock(id) {
+    return `<defs>
+      <marker id="arrow-${id}" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6.4" markerHeight="6.4" orient="auto-start-reverse">
+        <path d="M0,0 L10,5 L0,10 Z" fill="context-stroke"/>
+      </marker>
+      <pattern id="dots-${id}" width="22" height="22" patternUnits="userSpaceOnUse">
+        <circle cx="1" cy="1" r="1" fill="${cssVar('--rule')}" opacity=".6"/>
+      </pattern>
+    </defs>`;
+  }
+
+  function staticGeometry(id, ink) {
+    const sc = SCENARIOS[id];
+    let out = `<rect width="440" height="300" fill="url(#dots-${id})"/>`;
+    if (sc.supportStyle === "pole") {
+      out += `<rect x="18" y="30" width="36" height="238" fill="${ink}" fill-opacity=".16" stroke="${ink}" stroke-width="1.4" opacity=".85"/>`;
+    } else if (sc.supportStyle !== "none") {
+      let hatch = "";
+      for (let y = 34; y < 268; y += 14) {
+        hatch += `<line x1="18" y1="${y}" x2="34" y2="${y + 14}" stroke="${ink}" stroke-width="1.4" opacity=".55"/>`;
+      }
+      out += `<rect x="18" y="30" width="36" height="238" fill="none" stroke="${ink}" stroke-width="1.4" opacity=".6"/>${hatch}`;
+    }
+    if (sc.supportStyle !== "none") out += `<line x1="54" y1="26" x2="54" y2="272" stroke="${ink}" stroke-width="2.6"/>`;
+    if (sc.connectionLabel) out += `<text x="4" y="284" font-size="9.5" class="small-label" fill="${ink}">${escapeXML(sc.connectionLabel)}</text>`;
+    out += `<rect x="54" y="132" width="326" height="36" rx="6" fill="${ink}" fill-opacity=".12" stroke="${ink}" stroke-width="2" stroke-dasharray="7 5"/>`;
+    out += accessory(sc.accessory, ink);
+    return out;
+  }
+
+  function accessory(kind, ink) {
+    if (kind === "pot") {
+      return `<path d="M366,132 C360,116 353,106 361,92 C369,106 373,118 378,132 Z" fill="${ink}" opacity=".22"/>`;
+    }
+    if (kind === "signal") {
+      return `<line x1="380" y1="150" x2="380" y2="176" stroke="${ink}" stroke-width="3" opacity=".3"/>
+              <rect x="366" y="176" width="28" height="46" rx="4" fill="${ink}" opacity=".22"/>`;
+    }
+    if (kind === "motor") {
+      return `<rect x="368" y="128" width="46" height="30" rx="5" fill="${ink}" opacity=".22"/>
+              <ellipse cx="416" cy="143" rx="5" ry="15" fill="${ink}" opacity=".22"/>`;
+    }
+    return "";
+  }
+
+  function forcePath(it) {
+    const v = DIRV[it.dir];
+    const tx = it.x - v[0] * 23, ty = it.y - v[1] * 23;
+    const hx = it.x + v[0] * 23, hy = it.y + v[1] * 23;
+    return { tx, ty, hx, hy };
+  }
+
+  function renderForce(it, id, color, extraClass) {
+    const p = forcePath(it);
+    const lx = it.x + (it.dir === "left" ? -36 : it.dir === "right" ? 36 : 14);
+    const ly = it.y + (it.dir === "up" ? -28 : it.dir === "down" ? 34 : -12);
+    return `<g class="item ${extraClass || ''}" onclick="window.__fbd.removeItem('${id}', ${it.id})">
+      <line x1="${p.tx}" y1="${p.ty}" x2="${p.hx}" y2="${p.hy}" stroke="${color}" stroke-width="4" marker-end="url(#arrow-${id})"/>
+      ${it.label ? `<text x="${lx}" y="${ly}" class="item-label" fill="${color}">${escapeXML(it.label)}</text>` : ""}
+    </g>`;
+  }
+
+  function renderMoment(it, id, color, extraClass) {
+    const d = it.dir === "cw"
+      ? `M ${it.x - 7},${it.y - 20} A20,20 0 1,1 ${it.x - 20},${it.y + 7}`
+      : `M ${it.x + 7},${it.y - 20} A20,20 0 1,0 ${it.x + 20},${it.y + 7}`;
+    return `<g class="item ${extraClass || ''}" onclick="window.__fbd.removeItem('${id}', ${it.id})">
+      <path d="${d}" fill="none" stroke="${color}" stroke-width="4" marker-end="url(#arrow-${id})"/>
+      ${it.label ? `<text x="${it.x + 26}" y="${it.y + 4}" class="item-label" fill="${color}">${escapeXML(it.label)}</text>` : ""}
+    </g>`;
+  }
+
+  function renderDistributed(it, id, color, extraClass) {
+    const n = 5; let arrows = "";
+    for (let i = 0; i < n; i++) {
+      const x = it.x1 + (it.x2 - it.x1) * (i / (n - 1));
+      arrows += `<line x1="${x}" y1="${it.y - 16}" x2="${x}" y2="${it.y - 2}" stroke="${color}" stroke-width="3" marker-end="url(#arrow-${id})"/>`;
+    }
+    return `<g class="item ${extraClass || ''}" onclick="window.__fbd.removeItem('${id}', ${it.id})">
+      <line x1="${it.x1}" y1="${it.y - 16}" x2="${it.x2}" y2="${it.y - 16}" stroke="${color}" stroke-width="2.5"/>
+      ${arrows}
+      ${it.label ? `<text x="${(it.x1 + it.x2) / 2}" y="${it.y - 22}" text-anchor="middle" class="item-label" fill="${color}">${escapeXML(it.label)}</text>` : ""}
+    </g>`;
+  }
+
+  function renderItem(it, id, appliedColor, reactionColor, successColor) {
+    const role = it.type === "distributed" ? "applied" : roleOf(it.x);
+    let color = role === "applied" ? appliedColor : reactionColor;
+    let extraClass = "";
+    if (it.justChecked === "correct") { extraClass = "checked-ok"; }
+    let g;
+    if (it.type === "force") g = renderForce(it, id, color, extraClass);
+    else if (it.type === "moment") g = renderMoment(it, id, color, extraClass);
+    else g = renderDistributed(it, id, color, extraClass);
+    if (it.justChecked === "correct") {
+      g = g.replace('<g class="item', `<g style="filter:drop-shadow(0 0 4px ${successColor})" class="item`);
+    }
+    return g;
+  }
+
+  function canonicalDir(req) {
+    if (req.require && req.require !== "any") return req.require;
+    if (req.type === "moment") return "ccw";
+    if (req.axis === "vertical") return "up";
+    if (req.axis === "horizontal") return "right";
+    return "down";
+  }
+
+  function renderAnswer(id, ink) {
+    const sc = SCENARIOS[id];
+    let out = "";
+    sc.requirements.forEach(req => {
+      const dir = canonicalDir(req);
+      let it;
+      if (req.type === "distributed") it = { type: "distributed", x1: req.zone.x1 + 14, x2: req.zone.x2 - 14, y: 150, label: "(answer)" };
+      else it = { type: req.type, x: req.zone.x, y: req.zone.y, dir, label: "(answer)" };
+      let g;
+      if (it.type === "force") g = renderForce(it, id, ink, "");
+      else if (it.type === "moment") g = renderMoment(it, id, ink, "");
+      else g = renderDistributed(it, id, ink, "");
+      out += g.replace('stroke-width="4"', 'stroke-width="3" stroke-dasharray="2 4" opacity=".85"')
+              .replace('stroke-width="2.5"', 'stroke-width="2" stroke-dasharray="2 4" opacity=".85"')
+              .replace('stroke-width="3" marker', 'stroke-width="2" stroke-dasharray="2 4" opacity=".85" marker');
+    });
+    return out;
+  }
+
+  function renderGhost(id) {
+    const svg = document.getElementById("ghost-" + id);
+    const applied = cssVar("--applied"), reaction = cssVar("--reaction"), ink = cssVar("--ink"), success = cssVar("--success");
+    let parts = [];
+    parts.push(defsBlock(id));
+    parts.push(staticGeometry(id, ink));
+    if (state.showAnswer[id]) parts.push(renderAnswer(id, ink));
+    state.items[id].forEach(it => parts.push(renderItem(it, id, applied, reaction, success)));
+    if (state.dragPreview && state.dragPreview.id === id) {
+      const dp = state.dragPreview;
+      parts.push(`<line x1="${dp.x1}" y1="150" x2="${dp.x2}" y2="150" stroke="${applied}" stroke-width="2" stroke-dasharray="4 3" opacity=".6"/>`);
+    }
+    svg.innerHTML = parts.join("");
+    renderList(id);
+  }
+
+  function renderList(id) {
+    const ul = document.getElementById("itemlist-" + id);
+    const items = state.items[id];
+    if (!items.length) { ul.innerHTML = '<li class="empty">No items placed yet.</li>'; return; }
+    ul.innerHTML = items.map(it => {
+      const desc = it.type === "distributed" ? "Distributed load (down)" : it.type === "moment" ? `Moment (${it.dir.toUpperCase()})` : `Force (${it.dir})`;
+      return `<li><span>${desc}${it.label ? ` — "${escapeXML(it.label)}"` : ""}</span><button onclick="window.__fbd.removeItem('${id}', ${it.id})" aria-label="Delete item">×</button></li>`;
+    }).join("");
+  }
+
+  // ---------- interaction ----------
+
+  function openPopup(clientX, clientY, scenario, type, a, b) {
+    pending = type === "distributed"
+      ? { scenario, type, x1: Math.min(a, b), x2: Math.max(a, b) }
+      : { scenario, type, x: a, y: b };
+    pendingDir = null;
+    document.getElementById("popupDirRow").hidden = type !== "force";
+    document.getElementById("popupSenseRow").hidden = type !== "moment";
+    document.querySelectorAll("#popup [data-dir]").forEach(b2 => b2.classList.remove("selected"));
+    const label = document.getElementById("popupLabel");
+    label.value = "";
+    const popup = document.getElementById("popup");
+    popup.hidden = false;
+    const left = Math.min(Math.max(8, clientX), window.innerWidth - 224);
+    const top = Math.min(Math.max(8, clientY), window.innerHeight - 190);
+    popup.style.left = left + "px";
+    popup.style.top = top + "px";
+    if (type !== "distributed") setTimeout(() => label.focus(), 0);
+  }
+
+  function closePopup() {
+    document.getElementById("popup").hidden = true;
+    pending = null; pendingDir = null;
+  }
+
+  function initCanvas(id) {
+    const svg = document.getElementById("ghost-" + id);
+    svg.addEventListener("mousedown", e => {
+      if (state.tool[id] === "distributed") {
+        const p = toSvgPoint(svg, e);
+        state.dragging = { id, x1: p.x };
+        e.preventDefault();
+      }
+    });
+    svg.addEventListener("mousemove", e => {
+      if (state.dragging && state.dragging.id === id) {
+        const p = toSvgPoint(svg, e);
+        state.dragPreview = { id, x1: state.dragging.x1, x2: p.x };
+        renderGhost(id);
+      }
+    });
+    window.addEventListener("mouseup", e => {
+      if (state.dragging && state.dragging.id === id) {
+        const p = toSvgPoint(svg, e);
+        const x1 = state.dragging.x1, x2 = p.x;
+        state.dragging = null; state.dragPreview = null;
+        if (Math.abs(x2 - x1) < 12) { renderGhost(id); return; }
+        openPopup(e.clientX, e.clientY, id, "distributed", Math.max(56, Math.min(378, x1)), Math.max(56, Math.min(378, x2)));
+        renderGhost(id);
+      }
+    });
+    svg.addEventListener("click", e => {
+      const tool = state.tool[id];
+      if (tool === "force" || tool === "moment") {
+        const p = toSvgPoint(svg, e);
+        openPopup(e.clientX, e.clientY, id, tool, p.x, p.y);
+      }
+    });
+  }
+
+  document.querySelectorAll(".tool-btn").forEach(btn => {
+    btn.addEventListener("click", () => {
+      const scenario = btn.closest(".toolbar").dataset.scenario;
+      state.tool[scenario] = btn.dataset.tool;
+      document.querySelectorAll(`.toolbar[data-scenario="${scenario}"] .tool-btn`).forEach(b => b.classList.remove("active"));
+      btn.classList.add("active");
+      document.getElementById("hint-" + scenario).textContent = HINTS[btn.dataset.tool];
+      document.getElementById("ghost-" + scenario).classList.add("placing");
+    });
+  });
+
+  document.querySelectorAll("#popup [data-dir]").forEach(b => {
+    b.addEventListener("click", () => {
+      document.querySelectorAll("#popup [data-dir]").forEach(x => x.classList.remove("selected"));
+      b.classList.add("selected");
+      pendingDir = b.dataset.dir;
+    });
+  });
+  document.getElementById("popupCancel").addEventListener("click", closePopup);
+  document.getElementById("popupAdd").addEventListener("click", () => {
+    if (!pending) return;
+    if (pending.type !== "distributed" && !pendingDir) { document.getElementById("popupLabel").focus(); return; }
+    const label = document.getElementById("popupLabel").value.trim();
+    const scenario = pending.scenario;
+    const item = { id: uid++, type: pending.type, label };
+    if (pending.type === "distributed") { item.x1 = pending.x1; item.x2 = pending.x2; item.y = 150; item.dir = "down"; }
+    else { item.x = pending.x; item.y = pending.y; item.dir = pendingDir; }
+    state.items[scenario].push(item);
+    closePopup();
+    document.getElementById("feedback-" + scenario).hidden = true;
+    renderGhost(scenario);
+  });
+  document.addEventListener("keydown", e => { if (e.key === "Escape") closePopup(); });
+
+  function removeItem(scenario, id) {
+    state.items[scenario] = state.items[scenario].filter(it => it.id !== id);
+    document.getElementById("feedback-" + scenario).hidden = true;
+    renderGhost(scenario);
+  }
+
+  function resetScenario(id) {
+    state.items[id] = [];
+    state.showAnswer[id] = false;
+    document.getElementById("answerBtn-" + id).textContent = "Show answer";
+    document.getElementById("feedback-" + id).hidden = true;
+    renderGhost(id);
+  }
+
+  function toggleAnswer(id) {
+    state.showAnswer[id] = !state.showAnswer[id];
+    document.getElementById("answerBtn-" + id).textContent = state.showAnswer[id] ? "Hide answer" : "Show answer";
+    renderGhost(id);
+  }
+
+  // ---------- grading ----------
+
+  function findBest(items, used, req) {
+    const candidates = [];
+    items.forEach((it, idx) => {
+      if (used.has(idx) || it.type !== req.type) return;
+      let d;
+      if (req.type === "distributed") {
+        const mid = (it.x1 + it.x2) / 2, zm = (req.zone.x1 + req.zone.x2) / 2;
+        d = Math.abs(mid - zm);
+        if (d >= req.zone.tol) return;
+        if ((it.x2 - it.x1) < (req.zone.x2 - req.zone.x1) * 0.4) { candidates.push({ idx, d, matches: false }); return; }
+      } else {
+        d = Math.hypot(it.x - req.zone.x, it.y - req.zone.y);
+        if (d >= req.zone.tol) return;
+      }
+      let matches = true;
+      if (req.axis) matches = axisOf(it.dir) === req.axis;
+      if (matches && req.require && req.require !== "any") matches = it.dir === req.require;
+      candidates.push({ idx, d, matches });
+    });
+    if (!candidates.length) return null;
+    const exact = candidates.filter(c => c.matches).sort((a, b) => a.d - b.d)[0];
+    if (exact) return { idx: exact.idx, status: "correct" };
+    const any = candidates.sort((a, b) => a.d - b.d)[0];
+    return { idx: any.idx, status: "close" };
+  }
+
+  function grade(id) {
+    const sc = SCENARIOS[id];
+    const items = state.items[id];
+    items.forEach(it => { it.justChecked = null; });
+    const used = new Set();
+    const results = sc.requirements.map(req => {
+      const m = findBest(items, used, req);
+      if (!m) return { req, status: "missing" };
+      used.add(m.idx);
+      const it = items[m.idx];
+      if (m.status === "correct") { it.justChecked = "correct"; return { req, status: "correct", it }; }
+      if (req.axis && axisOf(it.dir) !== req.axis) return { req, status: "wrong-axis", it };
+      return { req, status: "wrong-direction", it };
+    });
+    const extras = items.filter((_, idx) => !used.has(idx));
+    return { results, extras };
+  }
+
+  function runCheck(id) {
+    const { results, extras } = grade(id);
+    const correct = results.filter(r => r.status === "correct").length;
+    const list = document.getElementById("feedback-" + id);
+    let html = `<div class="score">Score: ${correct} / ${results.length}</div><ul class="feedback-list">`;
+    results.forEach(r => {
+      if (r.status === "correct") html += `<li class="ok">&#10003; ${escapeXML(r.req.label)}</li>`;
+      else if (r.status === "missing") html += `<li class="bad">&#10007; Missing — ${escapeXML(r.req.hint)}</li>`;
+      else html += `<li class="warn">&#9651; Close, but check the direction — ${escapeXML(r.req.hint)}</li>`;
+    });
+    if (extras.length) html += `<li class="warn">&#9651; You have ${extras.length} extra item${extras.length > 1 ? "s" : ""} that don't match anything expected here — double-check them.</li>`;
+    html += "</ul>";
+    list.innerHTML = html;
+    list.hidden = false;
+    renderGhost(id);
+  }
+
+  // ---------- export ----------
+
+  function svgToImage(svgEl) {
+    return new Promise((resolve, reject) => {
+      const s = new XMLSerializer().serializeToString(svgEl);
+      const uri = "data:image/svg+xml;charset=utf-8," + encodeURIComponent(s);
+      const img = new Image();
+      img.onload = () => resolve(img);
+      img.onerror = reject;
+      img.src = uri;
+    });
+  }
+
+  async function getDownloads() {
+    try { return (window.claude && window.claude.use) ? await window.claude.use("downloads") : null; }
+    catch (e) { return null; }
+  }
+
+  async function exportPNG(id) {
+    const realSvg = document.getElementById("real-" + id);
+    const ghostSvg = document.getElementById("ghost-" + id);
+    const scale = 2;
+    const rw = realSvg.viewBox.baseVal.width, rh = realSvg.viewBox.baseVal.height;
+    const gw = ghostSvg.viewBox.baseVal.width, gh = ghostSvg.viewBox.baseVal.height;
+    const gap = 26, padTop = 46, padSide = 18;
+    const totalW = rw + gap + gw + padSide * 2;
+    const totalH = Math.max(rh, gh) + padTop + padSide;
+    const canvas = document.createElement("canvas");
+    canvas.width = totalW * scale; canvas.height = totalH * scale;
+    const ctx = canvas.getContext("2d");
+    ctx.scale(scale, scale);
+    ctx.fillStyle = "#f7f1e4";
+    ctx.fillRect(0, 0, totalW, totalH);
+    ctx.fillStyle = "#26303d";
+    ctx.font = "700 18px Archivo, sans-serif";
+    const titles = { s1: "Shelf Bracket", s2: "Traffic Signal Mast Arm", s3: "Motor Mounting Bracket" };
+    ctx.fillText((titles[id] || "Scenario") + " — Free Body Diagram", padSide, 28);
+    try {
+      const [img1, img2] = await Promise.all([svgToImage(realSvg), svgToImage(ghostSvg)]);
+      ctx.drawImage(img1, padSide, padTop, rw, rh);
+      ctx.drawImage(img2, padSide + rw + gap, padTop, gw, gh);
+    } catch (e) {
+      alert("Could not render the diagram for export.");
+      return;
+    }
+    canvas.toBlob(async blob => {
+      if (!blob) return;
+      const downloads = await getDownloads();
+      if (!downloads) { alert("Export isn't available in this view."); return; }
+      try { await downloads.save({ filename: `fbd-${id}.png`, data: blob }); }
+      catch (err) { if (!err || err.code !== "declined") alert("Could not export: " + ((err && (err.message || err.code)) || "unknown error")); }
+    }, "image/png");
+  }
+
+  // ---------- boot ----------
+
+  window.showScenario = function (id) {
+    document.querySelectorAll(".scenario-panel").forEach(p => { p.hidden = p.dataset.scenario !== id; });
+    document.querySelectorAll(".tab-btn").forEach(b => b.classList.toggle("active", b.dataset.scenario === id));
+  };
+  window.__fbd = { removeItem };
+
+  document.querySelectorAll(".check-btn").forEach(b => b.addEventListener("click", () => runCheck(b.dataset.scenario)));
+  document.querySelectorAll(".reset-btn").forEach(b => b.addEventListener("click", () => resetScenario(b.dataset.scenario)));
+  document.querySelectorAll(".answer-btn").forEach(b => b.addEventListener("click", () => toggleAnswer(b.dataset.scenario)));
+  document.querySelectorAll(".export-btn").forEach(b => b.addEventListener("click", () => exportPNG(b.dataset.scenario)));
+
+  ["s1", "s2", "s3"].forEach(id => { initCanvas(id); renderGhost(id); });
+
+  if (window.matchMedia) {
+    window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", () => {
+      ["s1", "s2", "s3"].forEach(renderGhost);
+    });
+  }
+})();
+</script>

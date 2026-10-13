@@ -1,3 +1,38 @@
+"""
+Normal-incidence acoustic impedance and absorption of rigid-frame porous
+absorbers, via three models: Johnson-Champoux-Allard (JCA), the exact
+Zwikker-Kosten circular-pore solution, and the Delany-Bazley-Miki
+empirical fit.
+
+References
+----------
+Johnson-Champoux-Allard (JCA) equivalent-fluid model:
+    D. L. Johnson, J. Koplik, and R. Dashen, "Theory of dynamic
+    permeability and tortuosity in fluid-saturated porous media,"
+    J. Fluid Mech. 176, 379-402 (1987).
+    Y. Champoux and J.-F. Allard, "Dynamic tortuosity and bulk modulus
+    in air-saturated porous media," J. Appl. Phys. 70(4), 1975-1979
+    (1991).
+
+Zwikker-Kosten exact circular-pore solution:
+    C. Zwikker and C. W. Kosten, Sound Absorbing Materials, Elsevier
+    (1949).
+
+Delany-Bazley-Miki empirical model:
+    M. E. Delany and E. N. Bazley, "Acoustical properties of fibrous
+    absorbent materials," Appl. Acoust. 3(2), 105-116 (1970).
+    Y. Miki, "Acoustical properties of porous materials - Modifications
+    of Delany-Bazley models," J. Acoust. Soc. Jpn. (E) 11(1), 19-24
+    (1990).
+
+General reference tying the above together:
+    J. F. Allard and N. Atalla, Propagation of Sound in Porous Media:
+    Modelling Sound Absorbing Materials, 2nd ed., Wiley (2009).
+
+Flow resistivity measurement standard:
+    ISO 9053-1:2018, Acoustics - Determination of airflow resistance -
+    Part 1: Static airflow method.
+"""
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy.special import jv

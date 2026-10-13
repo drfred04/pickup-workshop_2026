@@ -1,0 +1,96 @@
+Misc
+NASA
+PER Laboratories
+Physics Department
+picup-workshop
+Program Reviews
+research
+SelfStudy
+Students
+thread_article.py
+VeX
+welcome_vid_fall2020.mov
+carlfrederickson@Carls-MacBook-Pro Work % cd picup-workshop 
+carlfrederickson@Carls-MacBook-Pro picup-workshop % l
+zsh: command not found: l
+carlfrederickson@Carls-MacBook-Pro picup-workshop % lw
+zsh: command not found: lw
+carlfrederickson@Carls-MacBook-Pro picup-workshop % ls
+2607.15518v1.pdf
+bb-offline-interactive-dashboard-main.zip
+exercises
+Gemini
+LJ-gas
+Notes from PICUP Workshop.docx
+requirements.txt
+venv
+carlfrederickson@Carls-MacBook-Pro picup-workshop % claude 
+
+Resume this session with:
+claude --resume 042b2725-c899-445f-8037-e275bd1d1e16
+carlfrederickson@Carls-MacBook-Pro picup-workshop % clear all
+
+carlfrederickson@Carls-MacBook-Pro picup-workshop % claude
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  exercises/new-FB/cantilever-studio.html; next step is your call on how to fix the motor-torque physics before 
+  re-enabling sheet 3. (disable recaps in /config)
+▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔
+   Settings  Status   Config   Usage   Stats
+     
+   Current session                                                                                             ↑
+   ████████████▌                                      25% used
+   Resets 12:10am (America/Chicago)
+   
+   Current week (all models)
+   █▌                                                 3% used
+   Resets Sep 21 at 7am (America/Chicago)
+   
+   What's contributing to your limits usage?
+   Approximate, based on local sessions on this machine — does not include other devices or claude.ai
+   
+   Last 24h · these are independent characteristics of your usage, not a breakdown
+   
+   77% of your usage was at >150k context
+    Longer sessions are more expensive even when cached. /compact mid-task, /clear 
+    when switching to new tasks.
+    
+   Skills                  % of usage
+   /artifact-design                7%
+   /artifact-capabilities          2%
+   
+   d to day · w to week
+    
+   Usage credits
+   Usage credits are off · /usage-credits to turn them on
+   
+   Esc to cancel
