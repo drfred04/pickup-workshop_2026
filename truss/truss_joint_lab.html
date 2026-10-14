@@ -1,0 +1,2364 @@
+<meta charset="utf-8" />
+<title>Truss Joint Lab</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@600;700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --paper: #eef0e8;
+    --surface: #f8f9f4;
+    --surface-2: #ffffff;
+    --ink: #22252b;
+    --ink-soft: #595f6b;
+    --rule: #c6c9b8;
+    --accent: #3b4f8a;
+    --member: #3a3f4a;
+    --applied: #b4502a;
+    --reaction: #3b4f8a;
+    --force: #6a3d8f;
+    --zero: #93650c;
+    --zero-bg: #f5e6c8;
+    --success: #2f7d4f;
+    --success-bg: #dcefdf;
+    --danger: #a8341f;
+    --danger-bg: #f3ded9;
+    --shadow: 0 1px 2px rgba(34,37,43,.08), 0 6px 20px rgba(34,37,43,.08);
+    color-scheme: light;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --paper: #141821; --surface: #1b2130; --surface-2: #151a26;
+      --ink: #e8eaf0; --ink-soft: #a7adba; --rule: #333b50;
+      --accent: #8fa3e0; --member: #c9cdd8; --applied: #ff9a6b; --reaction: #8fa3e0; --force: #c69bef;
+      --zero: #e0b64a; --zero-bg: #33280f;
+      --success: #79d99a; --success-bg: #123222; --danger: #ff7a6b; --danger-bg: #341313;
+      --shadow: 0 1px 2px rgba(0,0,0,.4), 0 8px 24px rgba(0,0,0,.35);
+      color-scheme: dark;
+    }
+  }
+  :root[data-theme="dark"] {
+    --paper: #141821; --surface: #1b2130; --surface-2: #151a26;
+    --ink: #e8eaf0; --ink-soft: #a7adba; --rule: #333b50;
+    --accent: #8fa3e0; --member: #c9cdd8; --applied: #ff9a6b; --reaction: #8fa3e0; --force: #c69bef;
+    --zero: #e0b64a; --zero-bg: #33280f;
+    --success: #79d99a; --success-bg: #123222; --danger: #ff7a6b; --danger-bg: #341313;
+    --shadow: 0 1px 2px rgba(0,0,0,.4), 0 8px 24px rgba(0,0,0,.35);
+    color-scheme: dark;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--paper); color: var(--ink); font-family: "Inter", system-ui, sans-serif; padding-inline: 20px; padding-block: 28px 70px; }
+  @media (max-width: 520px) { body { padding-inline: 16px; } }
+  h1, h2, h3 { font-family: "Fraunces", Georgia, serif; text-wrap: balance; margin: 0; }
+  .wrap { max-width: 1180px; margin: 0 auto; }
+  header.top { margin-bottom: 18px; }
+  .eyebrow { font-family: "IBM Plex Mono", monospace; font-size: .72rem; letter-spacing: .12em; text-transform: uppercase; color: var(--accent); font-weight: 600; margin-bottom: 6px; display: block; }
+  h1 { font-size: clamp(1.6rem, 3vw, 2.1rem); font-weight: 700; }
+  .lede { max-width: 72ch; color: var(--ink-soft); font-size: 1rem; line-height: 1.6; margin-top: 10px; }
+
+  .givens { display: flex; flex-wrap: wrap; gap: 10px; margin: 16px 0 20px; }
+  .given-chip { background: var(--surface); border: 1px solid var(--rule); border-radius: 8px; padding: 8px 12px; font-size: .88rem; display: flex; gap: 8px; align-items: baseline; }
+  .given-chip b { font-family: "IBM Plex Mono", monospace; color: var(--accent); }
+
+  .stage { background: var(--surface); border: 1px solid var(--rule); border-radius: 12px; padding: 18px 20px; margin-bottom: 18px; box-shadow: var(--shadow); }
+  .stage h2 { font-size: 1.15rem; font-weight: 700; margin-bottom: 4px; }
+  .stage .sub { color: var(--ink-soft); font-size: .92rem; margin: 0 0 14px; line-height: 1.55; max-width: 80ch; }
+  .panel { background: var(--surface-2); border: 1px solid var(--rule); border-radius: 10px; padding: 10px; }
+  .panel h3 { font-size: .78rem; font-family: "IBM Plex Mono", monospace; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; color: var(--ink-soft); margin-bottom: 6px; }
+  svg { display: block; width: 100%; height: auto; }
+
+  /* svg classes */
+  .s-member { stroke: var(--member); stroke-width: 5; stroke-linecap: round; }
+  .s-member.zf { stroke: var(--zero); stroke-dasharray: 10 7; }
+  .s-member.dim { opacity: .35; }
+  .s-member.hl { stroke: var(--accent); stroke-width: 6; opacity: 1; }
+  .s-hit { stroke: transparent; stroke-width: 24; cursor: pointer; }
+  .s-hit:hover + .s-hover { opacity: 1; }
+  .s-joint { fill: var(--surface-2); stroke: var(--member); stroke-width: 2.5; }
+  .s-joint.hl { fill: var(--accent); stroke: var(--accent); }
+  .s-label { fill: var(--ink); font: 600 17px "IBM Plex Mono", monospace; }
+  .s-small { fill: var(--ink-soft); font: 500 13px "IBM Plex Mono", monospace; }
+  .s-load { fill: var(--applied); font: 600 15px "IBM Plex Mono", monospace; }
+  .s-ground { stroke: var(--ink-soft); stroke-width: 1.6; fill: none; }
+  .s-support { fill: var(--surface-2); stroke: var(--ink-soft); stroke-width: 2; }
+  .s-dim { stroke: var(--ink-soft); stroke-width: 1; fill: none; }
+  .s-ghost { stroke: var(--ink-soft); stroke-width: 7; stroke-dasharray: 3 6; stroke-linecap: round; opacity: .55; }
+  .s-cut { stroke: var(--ink-soft); stroke-width: 2; }
+  .s-pin { fill: var(--surface-2); stroke: var(--ink); stroke-width: 2.5; }
+  .s-ar-applied { stroke: var(--applied); fill: var(--applied); }
+  .s-ar-reaction { stroke: var(--reaction); fill: var(--reaction); }
+  .s-ar-force { stroke: var(--force); fill: var(--force); }
+  .s-ar-unlab { stroke: var(--ink-soft); fill: var(--ink-soft); }
+  .s-t-applied { fill: var(--applied); font: 600 15px "IBM Plex Mono", monospace; }
+  .s-t-reaction { fill: var(--reaction); font: 600 15px "IBM Plex Mono", monospace; }
+  .s-t-force { fill: var(--force); font: 600 15px "IBM Plex Mono", monospace; }
+  .s-t-unlab { fill: var(--ink-soft); font: 500 13px "IBM Plex Mono", monospace; font-style: italic; }
+  .s-zero-badge { fill: var(--zero-bg); stroke: var(--zero); stroke-width: 2; }
+  .s-zero-t { fill: var(--zero); font: 700 14px "IBM Plex Mono", monospace; }
+  .s-force-val { font: 600 13px "IBM Plex Mono", monospace; paint-order: stroke; stroke: var(--surface-2); stroke-width: 4px; }
+  .s-force-val.t { fill: var(--success); }
+  .s-force-val.c { fill: var(--danger); }
+  .s-force-val.z { fill: var(--zero); }
+
+  /* member chips */
+  .chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 12px; }
+  .chip { font-family: "IBM Plex Mono", monospace; font-size: .85rem; font-weight: 600; border: 1px solid var(--rule); background: var(--surface); color: var(--ink); border-radius: 999px; padding: 5px 12px; cursor: pointer; }
+  .chip:hover { border-color: var(--accent); }
+  .chip.sel { background: var(--zero-bg); border-color: var(--zero); color: var(--zero); }
+
+  .zf-list { margin-top: 14px; display: flex; flex-direction: column; gap: 8px; }
+  .zf-row { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; font-size: .9rem; padding: 8px 10px; background: var(--surface-2); border: 1px solid var(--rule); border-radius: 8px; }
+  .zf-row b { font-family: "IBM Plex Mono", monospace; min-width: 44px; }
+  select, input[type=text] { font-family: "Inter", sans-serif; font-size: .88rem; padding: 6px 8px; border: 1px solid var(--rule); border-radius: 6px; background: var(--surface-2); color: var(--ink); }
+  .empty-note { color: var(--ink-soft); font-size: .88rem; font-style: italic; }
+
+  button.action { font-family: "IBM Plex Mono", monospace; font-weight: 600; font-size: .82rem; letter-spacing: .02em; background: var(--accent); color: var(--surface-2); border: none; border-radius: 8px; padding: 10px 16px; cursor: pointer; }
+  button.action:hover { opacity: .9; }
+  button.action.secondary { background: transparent; color: var(--accent); border: 1px solid var(--accent); }
+  button.action:disabled { opacity: .4; cursor: not-allowed; }
+  .btn-row { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 14px; align-items: center; }
+
+  .feedback { margin: 12px 0 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 6px; }
+  .feedback li { font-size: .88rem; line-height: 1.5; padding: 8px 12px; border-radius: 8px; }
+  .feedback li.ok { background: var(--success-bg); color: var(--success); font-weight: 600; }
+  .feedback li.bad { background: var(--danger-bg); color: var(--danger); }
+  .feedback li.note { background: var(--surface-2); color: var(--ink-soft); border: 1px solid var(--rule); }
+
+  details.hint { margin-top: 12px; font-size: .88rem; }
+  details.hint summary { cursor: pointer; color: var(--accent); font-weight: 600; }
+  details.hint p, details.hint li { color: var(--ink-soft); line-height: 1.55; }
+  details.hint p { margin: 6px 0 0; }
+
+  textarea.reflect { width: 100%; min-height: 64px; font-family: "Inter", sans-serif; font-size: .88rem; padding: 8px 10px; border: 1px solid var(--rule); border-radius: 6px; background: var(--surface-2); color: var(--ink); resize: vertical; margin-top: 6px; }
+  label.reflect-label { display: block; font-size: .88rem; font-weight: 600; margin-top: 16px; }
+
+  /* Part 2 */
+  .joint-tabs { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 14px; }
+  .joint-tab { font-family: "IBM Plex Mono", monospace; font-weight: 600; font-size: .9rem; min-width: 64px; padding: 8px 12px; border-radius: 8px; border: 1px solid var(--rule); background: var(--surface-2); color: var(--ink); cursor: pointer; display: flex; align-items: center; gap: 6px; justify-content: center; }
+  .joint-tab.active { border-color: var(--accent); box-shadow: inset 0 0 0 1px var(--accent); }
+  .joint-tab .dot { width: 9px; height: 9px; border-radius: 50%; background: var(--rule); }
+  .joint-tab.ok .dot { background: var(--success); }
+  .joint-tab.bad .dot { background: var(--danger); }
+  .fbd-grid { display: grid; grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr); gap: 16px; }
+  @media (max-width: 860px) { .fbd-grid { grid-template-columns: minmax(0, 1fr); } }
+  .ctl-section { margin-top: 12px; }
+  .ctl-section:first-child { margin-top: 0; }
+  .ctl-section h4 { font-size: .8rem; font-family: "IBM Plex Mono", monospace; letter-spacing: .04em; text-transform: uppercase; color: var(--ink-soft); margin: 0 0 8px; }
+  .m-row { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin-bottom: 8px; font-size: .85rem; }
+  .m-row .m-name { font-family: "IBM Plex Mono", monospace; font-weight: 600; min-width: 92px; }
+  .seg { display: inline-flex; border: 1px solid var(--rule); border-radius: 7px; overflow: hidden; flex-wrap: wrap; }
+  .seg button { border: none; border-right: 1px solid var(--rule); background: var(--surface); color: var(--ink); font-size: .8rem; padding: 6px 9px; cursor: pointer; font-family: "Inter", sans-serif; }
+  .seg button:last-child { border-right: none; }
+  .seg button:hover { background: var(--surface-2); }
+  .seg button.sel { background: var(--accent); color: var(--surface-2); }
+  .seg button.sel.z { background: var(--zero); }
+  .ext-row { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; margin-bottom: 8px; }
+  .x-btn { border: 1px solid var(--rule); background: var(--surface); color: var(--danger); border-radius: 6px; padding: 5px 9px; cursor: pointer; font-size: .82rem; }
+  .overall { margin-top: 14px; }
+
+  /* Part 3 */
+  .eq-block { margin-bottom: 14px; }
+  .eq-line { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+  .eq-line .eq-lab { font-family: "IBM Plex Mono", monospace; font-weight: 600; font-size: .95rem; min-width: 46px; }
+  .eq-line input { flex: 1 1 220px; min-width: 0; font-family: "IBM Plex Mono", monospace; font-size: .92rem; padding: 8px 10px; }
+  .eq-line .eq-zero { font-family: "IBM Plex Mono", monospace; color: var(--ink-soft); font-size: .9rem; }
+  .eq-line .chk { font-size: 1.05rem; min-width: 20px; text-align: center; font-weight: 700; }
+  .chk.ok { color: var(--success); } .chk.bad { color: var(--danger); } .chk.neutral { color: var(--ink-soft); }
+  .eq-msg { font-size: .84rem; line-height: 1.5; margin-top: 6px; color: var(--ink-soft); }
+  .eq-msg.bad { color: var(--danger); } .eq-msg.ok { color: var(--success); }
+  .sym-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 14px; }
+  .sym-chip { font-family: "IBM Plex Mono", monospace; font-size: .82rem; border: 1px solid var(--rule); background: var(--surface); color: var(--ink); border-radius: 6px; padding: 4px 9px; cursor: pointer; }
+  .sym-chip:hover { border-color: var(--accent); }
+  .sym-chip.zero { color: var(--zero); }
+  code.k { font-family: "IBM Plex Mono", monospace; font-size: .86em; background: var(--surface-2); border: 1px solid var(--rule); border-radius: 4px; padding: 0 4px; }
+
+  /* Part 4 */
+  .eq-cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 10px; margin-bottom: 18px; }
+  .eq-card { background: var(--surface-2); border: 1px solid var(--rule); border-radius: 10px; padding: 10px 12px; }
+  .eq-card h4 { margin: 0 0 6px; font-family: "IBM Plex Mono", monospace; font-size: .78rem; letter-spacing: .04em; text-transform: uppercase; color: var(--ink-soft); }
+  .eq-card .eqn { font-family: "IBM Plex Mono", monospace; font-size: .86rem; line-height: 1.7; overflow-wrap: anywhere; }
+  .eq-card .eqn .ax { color: var(--ink-soft); margin-right: 6px; }
+  .q-block { background: var(--surface-2); border: 1px solid var(--rule); border-radius: 10px; padding: 12px 14px; margin-bottom: 12px; }
+  .q-block p.q { margin: 0 0 10px; font-weight: 600; font-size: .93rem; line-height: 1.5; }
+  .q-block .opts { display: flex; flex-direction: column; gap: 6px; }
+  .q-block label.opt { display: flex; gap: 8px; align-items: flex-start; font-size: .9rem; line-height: 1.45; cursor: pointer; }
+  .q-block label.opt input { margin-top: 3px; }
+  .q-msg { font-size: .86rem; line-height: 1.5; margin-top: 8px; }
+  .q-msg.ok { color: var(--success); } .q-msg.bad { color: var(--danger); }
+
+  /* Part 5 */
+  .s-member.ghost { stroke: var(--ink-soft); stroke-width: 4; stroke-dasharray: 9 7; opacity: .6; }
+  .substep { border-top: 1px dashed var(--rule); padding-top: 16px; margin-top: 18px; }
+  .substep:first-of-type { border-top: none; padding-top: 0; margin-top: 0; }
+  .substep > h3 { font-size: 1rem; margin-bottom: 4px; }
+  .val-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(290px, 100%), 1fr)); gap: 10px; }
+  .val-grid .eq-line input { flex: 1 1 80px; }
+
+  /* Part 6 */
+  .known-row { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 12px; }
+  .mf-list { display: flex; flex-direction: column; gap: 8px; }
+  .mf-row { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; padding: 8px 10px; background: var(--surface-2); border: 1px solid var(--rule); border-radius: 8px; }
+  .mf-row .mf-name { font-family: "IBM Plex Mono", monospace; font-weight: 600; min-width: 56px; }
+  .mf-row .mf-assume { font-size: .8rem; color: var(--ink-soft); width: 190px; }
+  .mf-row .mf-val { display: flex; align-items: center; gap: 6px; flex: 1 1 170px; }
+  .mf-row .mf-val input { flex: 1 1 90px; min-width: 0; font-family: "IBM Plex Mono", monospace; }
+  .mf-row .mf-unit { font-family: "IBM Plex Mono", monospace; font-size: .85rem; color: var(--ink-soft); }
+  .mf-row .chk { font-size: 1.05rem; min-width: 20px; text-align: center; font-weight: 700; }
+  .mf-msg { flex-basis: 100%; font-size: .84rem; line-height: 1.5; color: var(--danger); }
+  .mf-msg:empty { display: none; }
+
+  .s-pivot { fill: none; stroke: var(--success); stroke-width: 2.5; }
+  .name-input { width: min(320px, 100%); }
+  textarea.report { width: 100%; min-height: 180px; font-family: "IBM Plex Mono", monospace; font-size: .8rem; padding: 10px; border: 1px solid var(--rule); border-radius: 6px; background: var(--surface-2); color: var(--ink); margin-top: 10px; }
+  .copy-note { font-size: .8rem; color: var(--ink-soft); }
+  .locked { color: var(--ink-soft); font-size: .88rem; font-style: italic; margin-top: 10px; }
+</style>
+
+<div class="wrap">
+  <header class="top">
+    <span class="eyebrow">Statics &middot; Method of Joints &middot; <span data-fill="variant"></span></span>
+    <h1>Truss Joint Lab: Zero-Force Members &amp; Joint FBDs</h1>
+    <p class="lede">The plane truss below is pinned at <span data-fill="pin"></span> and supported on a roller at <span data-fill="roller"></span>. It carries two loads at joints. Find every zero-force member by inspection, draw a free-body diagram of each joint, write the equilibrium equations, and solve for the support reactions and every member force.</p>
+  </header>
+
+  <div class="givens" id="givens"></div>
+
+  <!-- ================= PART 1 ================= -->
+  <section class="stage" id="part1">
+    <h2>Part 1 &middot; Find the zero-force members</h2>
+    <p class="sub">Tap a member in the drawing (or use the chips below it) to mark it as a zero-force member. For each one you mark, pick the joint whose equilibrium proves the member carries no force. Treat the members as weightless, so the only loads are the ones shown.</p>
+    <div class="panel">
+      <h3>Truss</h3>
+      <svg id="truss-main" viewBox="0 0 900 410" role="img" aria-label="Truss diagram"></svg>
+      <div class="chips" id="member-chips"></div>
+    </div>
+    <div class="zf-list" id="zf-list"></div>
+    <div class="btn-row">
+      <button class="action" id="btn-check-zf">Check zero-force members</button>
+    </div>
+    <ul class="feedback" id="zf-feedback"></ul>
+    <details class="hint">
+      <summary>Hint: the two inspection rules</summary>
+      <p><b>Rule 1 (two members):</b> If an unloaded joint connects only two members that are not collinear, both members are zero-force.</p>
+      <p><b>Rule 2 (three members, two collinear):</b> If an unloaded joint connects three members and two of them are collinear, the third (non-collinear) member is zero-force.</p>
+      <p>"Unloaded" means no applied load <i>and</i> no support reaction acts at the joint.</p>
+    </details>
+    <label class="reflect-label" for="reflect-zf">In your own words, explain how you identified each zero-force member. (Not graded, but included in your report.)</label>
+    <textarea class="reflect" id="reflect-zf"></textarea>
+  </section>
+
+  <!-- ================= PART 2 ================= -->
+  <section class="stage" id="part2">
+    <h2>Part 2 &middot; Draw a free-body diagram for each joint</h2>
+    <p class="sub">Each diagram shows one joint (the pin) with its members cut just beyond it. Show the force each cut member exerts on the pin, along that member. You may assume an unknown member is in <b>tension</b> (arrow pulling away from the joint) or <b>compression</b> (arrow pushing toward it), but a member has to have the same sense at both of its joints. Mark the zero-force members from Part 1 as <b>0</b>. Then add any applied loads and support reactions acting at the joint. You can tap a member stub in the diagram to cycle its state.</p>
+    <div class="joint-tabs" id="joint-tabs"></div>
+    <div class="fbd-grid">
+      <div class="panel">
+        <h3 id="fbd-title">Joint FBD</h3>
+        <svg id="fbd-svg" viewBox="0 22 460 366" role="img" aria-label="Free-body diagram of the selected joint"></svg>
+      </div>
+      <div>
+        <div class="panel" style="margin-bottom:12px">
+          <h3>Where this joint is</h3>
+          <svg id="truss-mini" viewBox="0 0 900 340" aria-hidden="true"></svg>
+        </div>
+        <div class="panel">
+          <div class="ctl-section">
+            <h4>Member forces</h4>
+            <div id="member-ctl"></div>
+          </div>
+          <div class="ctl-section">
+            <h4>Applied loads &amp; support reactions</h4>
+            <div id="ext-ctl"></div>
+            <button class="action secondary" id="btn-add-ext" style="margin-top:2px">+ Add external force</button>
+          </div>
+          <div class="btn-row">
+            <button class="action" id="btn-check-joint">Check this joint</button>
+            <button class="action secondary" id="btn-clear-joint">Clear joint</button>
+          </div>
+          <ul class="feedback" id="joint-feedback"></ul>
+        </div>
+      </div>
+    </div>
+    <div class="overall">
+      <div class="btn-row">
+        <button class="action" id="btn-check-all">Check all joints + Newton's third law</button>
+      </div>
+      <ul class="feedback" id="all-feedback"></ul>
+    </div>
+  </section>
+
+  <!-- ================= PART 3 ================= -->
+  <section class="stage" id="part3">
+    <h2>Part 3 &middot; Write the equilibrium equations for each joint</h2>
+    <p class="sub">For each joint, write &Sigma;F<sub>x</sub> = 0 and &Sigma;F<sub>y</sub> = 0 so they match <b>your</b> free-body diagram from Part 2. Take +x to the right and +y upward. A force drawn in the negative direction gets a minus sign, and that includes member forces you drew as compression. Use the sign of the arrow you drew, whatever value the force turns out to have.</p>
+    <details class="hint" style="margin:-4px 0 14px">
+      <summary>How to type your equations</summary>
+      <p>Use your FBD labels: <code class="k">F_AB</code> (or <code class="k">FAB</code>), <span data-fill="react-codes"></span>. Write applied loads as plain numbers in kN, with no units. Example: <code class="k">F_BC - F_AB = 0</code>.</p>
+      <p data-fill="geom-hint"></p>
+      <p>The &ldquo;= 0&rdquo; is optional, and you may move terms to the right-hand side. Zero-force members can be included or left out, except at a joint where they are the only forces in that direction. There, the equation is what proves them zero.</p>
+    </details>
+    <div id="p3-locked" class="locked">Part 3 unlocks when every joint FBD passes and &ldquo;Check all joints + Newton's third law&rdquo; reports no mismatches.</div>
+    <div id="p3-body" hidden>
+      <div class="joint-tabs" id="eq-tabs"></div>
+      <div class="fbd-grid">
+        <div class="panel">
+          <h3 id="eq-fbd-title">Your FBD</h3>
+          <svg id="eq-fbd" viewBox="0 22 460 366" role="img" aria-label="Your free-body diagram for the selected joint"></svg>
+        </div>
+        <div class="panel">
+          <div class="ctl-section">
+            <h4>Forces on this joint (tap to insert)</h4>
+            <div class="sym-chips" id="sym-chips"></div>
+          </div>
+          <div class="eq-block">
+            <div class="eq-line"><span class="eq-lab">&Sigma;F<sub>x</sub>:</span><input type="text" id="eq-x" autocomplete="off" spellcheck="false" aria-label="Sum of x forces"><span class="eq-zero" id="zero-x">= 0</span><span class="chk neutral" id="chk-x">&middot;</span></div>
+            <div class="eq-msg" id="msg-x"></div>
+          </div>
+          <div class="eq-block">
+            <div class="eq-line"><span class="eq-lab">&Sigma;F<sub>y</sub>:</span><input type="text" id="eq-y" autocomplete="off" spellcheck="false" aria-label="Sum of y forces"><span class="eq-zero" id="zero-y">= 0</span><span class="chk neutral" id="chk-y">&middot;</span></div>
+            <div class="eq-msg" id="msg-y"></div>
+          </div>
+          <div class="btn-row" style="margin-top:4px">
+            <button class="action" id="btn-check-eq">Check equations</button>
+          </div>
+        </div>
+      </div>
+      <div class="overall">
+        <div class="btn-row">
+          <button class="action" id="btn-check-all-eq">Check all <span data-fill="neq"></span> equations</button>
+        </div>
+        <ul class="feedback" id="eq-all-feedback"></ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= PART 4 ================= -->
+  <section class="stage" id="part4">
+    <h2>Part 4 &middot; Can you start solving?</h2>
+    <p class="sub">Here are the equilibrium equations you wrote for every joint. Before solving anything, look at what each joint's equations contain and decide whether you have enough information to start. Remember that the zero-force members from Part 1 are already known.</p>
+    <div id="p4-locked" class="locked">Part 4 unlocks when all <span data-fill="neq"></span> equations in Part 3 match your free-body diagrams.</div>
+    <div id="p4-body" hidden>
+      <div class="eq-cards" id="eq-cards"></div>
+
+      <div class="q-block">
+        <p class="q">1. Using these joint equations (and the zero-force members you already know), is there enough information to start solving them one joint at a time?</p>
+        <div class="opts">
+          <label class="opt"><input type="radio" name="p4q1" value="yes"> Yes, there is a joint where I could solve for the unknowns right away.</label>
+          <label class="opt"><input type="radio" name="p4q1" value="no"> No, something else has to be determined first.</label>
+        </div>
+        <div id="p4-yes" hidden style="margin-top:10px">
+          <label style="font-size:.9rem">Which joint would you start at? <select id="p4-q1joint"><option value="">choose…</option></select></label>
+        </div>
+        <div class="q-msg" id="p4-msg1"></div>
+      </div>
+
+      <div id="p4-no" hidden>
+        <div class="q-block">
+          <p class="q">2. What needs to be determined before you can start solving the joint equations?</p>
+          <div class="opts" id="p4-q2"></div>
+          <div class="q-msg" id="p4-msg2"></div>
+        </div>
+        <div class="q-block">
+          <p class="q">3. How can you determine them?</p>
+          <div class="opts" id="p4-q3"></div>
+          <div class="q-msg" id="p4-msg3"></div>
+        </div>
+        <div class="q-block">
+          <p class="q">4. Once those are known, at which joint could you begin the method of joints?</p>
+          <select id="p4-q4"><option value="">choose…</option></select>
+          <div class="q-msg" id="p4-msg4"></div>
+        </div>
+      </div>
+
+      <label class="reflect-label" for="p4-reflect">Explain your reasoning: why can (or can't) you start solving with the joint equations alone? (Not graded, but included in your report.)</label>
+      <textarea class="reflect" id="p4-reflect"></textarea>
+      <div class="btn-row">
+        <button class="action" id="btn-check-p4">Check answers</button>
+      </div>
+      <ul class="feedback" id="p4-feedback"></ul>
+    </div>
+  </section>
+
+  <!-- ================= PART 5 ================= -->
+  <section class="stage" id="part5">
+    <h2>Part 5 &middot; Solve for the support reactions</h2>
+    <p class="sub">To find <span data-fill="react-html"></span>, treat the entire truss as a single rigid body. Remove the supports, replace them with the forces they exert, and apply the three equilibrium equations for a rigid body.</p>
+    <div id="p5-locked" class="locked">Part 5 unlocks when Part 4 is complete.</div>
+    <div id="p5-body" hidden>
+
+      <div class="substep">
+        <h3>5a &middot; Free-body diagram of the entire truss</h3>
+        <p class="sub">The truss is shown as an isolated body, with the pin and roller removed and the applied loads in place. Add the support reactions. Each one is the same force that acts on joint <span data-fill="pin"></span> or joint <span data-fill="roller"></span> in Part 2, so draw it in the same direction you chose there.</p>
+        <div>
+          <div class="panel" style="margin-bottom:12px">
+            <h3>Entire truss FBD</h3>
+            <svg id="whole-fbd" viewBox="0 0 900 410" role="img" aria-label="Free-body diagram of the entire truss"></svg>
+          </div>
+          <div class="panel">
+            <div class="ctl-section">
+              <h4>Support reactions</h4>
+              <div id="p5-ext"></div>
+              <button class="action secondary" id="btn-p5-add">+ Add reaction</button>
+            </div>
+            <div class="btn-row"><button class="action" id="btn-p5-fbd">Check FBD</button></div>
+            <ul class="feedback" id="p5-fbd-feedback"></ul>
+          </div>
+        </div>
+      </div>
+
+      <div class="substep">
+        <h3>5b &middot; Equilibrium equations for the entire truss</h3>
+        <div id="p5b-locked" class="locked">Complete 5a first.</div>
+        <div id="p5b-body" hidden>
+          <p class="sub">Write the equations to match your whole-truss FBD, with +x to the right and +y up. For the moment equation, choose a point and take counterclockwise moments as positive (clockwise-positive is also accepted, as long as you are consistent). Use <span data-fill="react-codes"></span>, and write loads and distances as plain numbers (kN and m).</p>
+          <div class="eq-block">
+            <div class="eq-line"><span class="eq-lab">&Sigma;F<sub>x</sub>:</span><input type="text" id="p5-eq-x" autocomplete="off" spellcheck="false" aria-label="Sum of x forces, entire truss"><span class="eq-zero" id="p5-zero-x">= 0</span><span class="chk neutral" id="p5-chk-x">&middot;</span></div>
+            <div class="eq-msg" id="p5-msg-x"></div>
+          </div>
+          <div class="eq-block">
+            <div class="eq-line"><span class="eq-lab">&Sigma;F<sub>y</sub>:</span><input type="text" id="p5-eq-y" autocomplete="off" spellcheck="false" aria-label="Sum of y forces, entire truss"><span class="eq-zero" id="p5-zero-y">= 0</span><span class="chk neutral" id="p5-chk-y">&middot;</span></div>
+            <div class="eq-msg" id="p5-msg-y"></div>
+          </div>
+          <div class="eq-block">
+            <div style="font-size:.88rem;display:flex;flex-wrap:wrap;gap:8px;align-items:center"><span class="eq-lab">&Sigma;M:</span> Take moments about <select id="p5-pivot"></select>
+              <span id="p5-pt" hidden>x = <input type="text" id="p5-pt-x" autocomplete="off" aria-label="Moment point x in m" style="width:72px"> m, y = <input type="text" id="p5-pt-y" autocomplete="off" aria-label="Moment point y in m" style="width:72px"> m <span style="color:var(--ink-soft)">(from joint <span data-fill="pin"></span>, x right, y up)</span></span></div>
+            <div class="eq-line" id="p5-mline" style="margin-top:8px" hidden><span class="eq-lab">&Sigma;M<sub id="p5-piv-sub"></sub>:</span><input type="text" id="p5-eq-m" autocomplete="off" spellcheck="false" aria-label="Sum of moments, entire truss"><span class="eq-zero" id="p5-zero-m">= 0</span><span class="chk neutral" id="p5-chk-m">&middot;</span></div>
+            <div class="eq-msg" id="p5-msg-m"></div>
+          </div>
+          <div class="btn-row"><button class="action" id="btn-p5-eq">Check equations</button></div>
+          <details class="hint">
+            <summary>Hint: choosing the moment point</summary>
+            <p>Two of the three unknown reactions act at <span data-fill="pin"></span>. Their moments about <span data-fill="pin"></span> are zero, so &Sigma;M<sub data-fill="pin"></sub> = 0 contains only one unknown. Any other point works too, including one off the truss: the moment equation will then contain more than one reaction, and you solve it together with &Sigma;F<sub>x</sub> and &Sigma;F<sub>y</sub>.</p>
+          </details>
+        </div>
+      </div>
+
+      <div class="substep">
+        <h3>5c &middot; Solve</h3>
+        <div id="p5c-locked" class="locked">Complete 5b first.</div>
+        <div id="p5c-body" hidden>
+          <p class="sub">Solve your three equations, then report each reaction as a <b>positive magnitude</b> in kN and the <b>direction it actually acts</b>. If an equation gives a negative value, the reaction acts opposite to the arrow you drew. You can type a number or an arithmetic expression such as <code class="k">144/12</code>.</p>
+          <div class="val-grid" id="p5-val-grid"></div>
+          <div class="btn-row"><button class="action" id="btn-p5-val">Check values</button></div>
+          <ul class="feedback" id="p5-val-feedback"></ul>
+          <label class="reflect-label" for="p5-reflect"><span data-fill="react-reflect"></span> (Not graded, but included in your report.)</label>
+          <textarea class="reflect" id="p5-reflect"></textarea>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= PART 6 ================= -->
+  <section class="stage" id="part6">
+    <h2>Part 6 &middot; Solve for the member forces</h2>
+    <p class="sub">With the reactions known, work through the truss joint by joint, starting at a joint with no more than two unknowns. Report each member's force the way engineers do: a <b>positive magnitude</b> in kN and its <b>sense</b>, tension or compression (or zero-force). Your equations use the senses you assumed on your FBDs, so a member you guessed wrong will come out negative. That sign tells you the actual sense; leave it out of the reported magnitude.</p>
+    <div id="p6-locked" class="locked">Part 6 unlocks when the support reactions in Part 5 are correct.</div>
+    <div id="p6-body" hidden>
+      <div class="panel" style="margin-bottom:14px">
+        <h3>What you know so far</h3>
+        <div class="known-row" id="p6-known"></div>
+        <div class="eq-cards" id="p6-eq-cards" style="margin-bottom:0"></div>
+      </div>
+      <details class="hint" style="margin:0 0 14px">
+        <summary>Hint: a solving order that works</summary>
+        <p data-fill="order-hint"></p>
+      </details>
+      <div class="mf-list" id="mf-list"></div>
+      <div class="btn-row"><button class="action" id="btn-p6">Check member forces</button></div>
+      <ul class="feedback" id="p6-feedback"></ul>
+      <label class="reflect-label" for="p6-reflect">You had <span data-fill="neq"></span> joint equations plus 3 whole-truss equations, but only <span data-fill="nunk"></span> unknowns. Which equations did you not need, and what did they let you check? (Not graded, but included in your report.)</label>
+      <textarea class="reflect" id="p6-reflect"></textarea>
+      <div id="reveal-wrap"></div>
+    </div>
+  </section>
+
+  <!-- ================= REPORT ================= -->
+  <section class="stage" id="report-stage">
+    <h2>Submission report</h2>
+    <p class="sub">Generate a plain-text summary of your progress to paste into your course's submission dropbox. Your work is saved in this browser as you go.</p>
+    <input type="text" class="name-input" id="student-name" placeholder="Full name, as it appears on your roster">
+    <div class="btn-row">
+      <button class="action" id="btn-report">Generate report</button>
+      <button class="action secondary" id="btn-copy">Copy report</button>
+      <button class="action secondary" id="btn-reset">Start over</button>
+      <span class="copy-note" id="copy-note"></span>
+    </div>
+    <textarea class="report" id="report-out" readonly placeholder="Your report will appear here."></textarea>
+  </section>
+</div>
+
+<script>
+(function () {
+  "use strict";
+
+  /* ---------- truss library ---------- */
+  // Five trusses. Each was checked offline: statically determinate, every zero-force member is found by the
+  // two inspection rules, and no joint can be solved before the reactions are known. Every answer the page
+  // grades against is computed below from this geometry. Coordinates in m (x right, y up); loads in kN.
+  const TRUSSES = [
+    { J: { A: [0, 0], B: [4, 0], C: [8, 0], D: [12, 0], E: [4, 3], F: [8, 3], G: [12, 3] },
+      M: ["AB", "BC", "CD", "EF", "FG", "AE", "BE", "CF", "DG", "CE", "DF"],
+      pin: "A", roller: "D", loads: [{ at: "E", dir: "down", mag: 6 }, { at: "C", dir: "down", mag: 15 }] },
+    { J: { A: [0, 0], B: [3, 0], C: [6, 0], D: [9, 0], E: [12, 0], F: [3, 4], G: [6, 4], H: [9, 4] },
+      M: ["AB", "BC", "CD", "DE", "FG", "GH", "AF", "EH", "BF", "CG", "DH", "CF", "CH"],
+      pin: "A", roller: "E", loads: [{ at: "F", dir: "down", mag: 12 }, { at: "H", dir: "right", mag: 3 }] },
+    { J: { A: [0, 0], B: [3, 0], C: [6, 0], D: [9, 0], E: [0, 3], F: [3, 3], G: [6, 3], H: [9, 3] },
+      M: ["AB", "BC", "CD", "EF", "FG", "GH", "AE", "BF", "CG", "DH", "AF", "BG", "DG"],
+      pin: "A", roller: "D", loads: [{ at: "F", dir: "down", mag: 9 }, { at: "G", dir: "down", mag: 6 }] },
+    { J: { A: [0, 0], B: [4, 0], C: [8, 0], D: [12, 0], E: [16, 0], F: [4, 3], G: [8, 6], H: [12, 3] },
+      M: ["AB", "BC", "CD", "DE", "AF", "FG", "GH", "EH", "BF", "CG", "DH", "CF", "CH"],
+      pin: "A", roller: "E", loads: [{ at: "F", dir: "down", mag: 12 }, { at: "H", dir: "down", mag: 6 }] },
+    { J: { A: [0, 0], B: [3, 0], C: [6, 0], D: [9, 0], E: [0, 4], F: [3, 4], G: [6, 4] },
+      M: ["AB", "BC", "CD", "EF", "FG", "AE", "BF", "CG", "AF", "CF", "DG"],
+      pin: "A", roller: "D", loads: [{ at: "F", dir: "right", mag: 12 }, { at: "C", dir: "down", mag: 4 }] }
+  ];
+
+  /* ---------- which truss: #truss-N previews one; otherwise a random one is assigned and remembered ---------- */
+  const STORE_PREFIX = "truss-joint-lab-v2";
+  const ASSIGN_KEY = STORE_PREFIX + "-assigned";
+  const HASH_VI = (() => { const m = location.hash.match(/^#truss-([1-9])$/); return m && TRUSSES[+m[1] - 1] ? +m[1] - 1 : null; })();
+  function pickVariant() {
+    if (HASH_VI !== null) return HASH_VI;
+    try {
+      const a = localStorage.getItem(ASSIGN_KEY);
+      if (a !== null && TRUSSES[+a]) return +a;
+      // work saved by the single-truss version of this page belongs to truss 1
+      const v = localStorage.getItem("truss-joint-lab-v1") ? 0 : Math.floor(Math.random() * TRUSSES.length);
+      localStorage.setItem(ASSIGN_KEY, String(v));
+      return v;
+    } catch (e) { return Math.floor(Math.random() * TRUSSES.length); }
+  }
+  const VI = pickVariant(), T = TRUSSES[VI];
+
+  /* ---------- derived truss data ---------- */
+  const DIRS = { up: [0, -1], down: [0, 1], left: [-1, 0], right: [1, 0] }; // screen coords (y down)
+  const DIR_TXT = { up: "↑ up", down: "↓ down", left: "← left", right: "→ right" };
+  const J = T.J, JOINTS = Object.keys(J), MEMBERS = T.M, PIN = T.pin, ROLLER = T.roller;
+  const PX = PIN + "x", PY = PIN + "y", RY = ROLLER + "y", RX = ROLLER + "x";
+  const REACTS = [PX, PY, RY];
+  const LOADS = T.loads.map(L => ({ at: L.at, dir: L.dir, mag: L.mag, label: L.mag + " kN",
+    f: [DIRS[L.dir][0] * L.mag, -DIRS[L.dir][1] * L.mag] })); // force vector, y up
+  const NEQ = 2 * JOINTS.length, NUNK = MEMBERS.length + 3;
+
+  const membersAt = j => MEMBERS.filter(m => m.includes(j));
+  const other = (m, j) => (m[0] === j ? m[1] : m[0]);
+  const fname = m => "F_" + m;
+  const isSupport = j => j === PIN || j === ROLLER;
+  const loadsAt = j => LOADS.filter(L => L.at === j);
+  const reactsAt = j => REACTS.filter(r => r[0] === j);
+  function uvec(j, m) { // unit vector from j along member m, y up
+    const o = other(m, j), dx = J[o][0] - J[j][0], dy = J[o][1] - J[j][1], L = Math.hypot(dx, dy);
+    return [dx / L, dy / L];
+  }
+  const collinear = (j, a, c) => { const u = uvec(j, a), v = uvec(j, c); return Math.abs(u[0] * v[1] - u[1] * v[0]) < 1e-9; };
+
+  // member forces (+ tension) and reactions from the 2n × 2n joint-equilibrium system
+  function solveTruss() {
+    const nm = MEMBERS.length, A = [], b = [];
+    JOINTS.forEach(j => {
+      const rx = new Array(nm + 3).fill(0), ry = new Array(nm + 3).fill(0);
+      MEMBERS.forEach((m, k) => { if (m.includes(j)) { const u = uvec(j, m); rx[k] = u[0]; ry[k] = u[1]; } });
+      if (j === PIN) { rx[nm] = 1; ry[nm + 1] = 1; }
+      if (j === ROLLER) ry[nm + 2] = 1;
+      let fx = 0, fy = 0;
+      loadsAt(j).forEach(L => { fx += L.f[0]; fy += L.f[1]; });
+      A.push(rx); b.push(-fx); A.push(ry); b.push(-fy);
+    });
+    const N = A.length;
+    for (let c = 0; c < N; c++) {
+      let piv = c;
+      for (let r = c + 1; r < N; r++) if (Math.abs(A[r][c]) > Math.abs(A[piv][c])) piv = r;
+      [A[c], A[piv]] = [A[piv], A[c]]; [b[c], b[piv]] = [b[piv], b[c]];
+      for (let r = 0; r < N; r++) {
+        if (r === c || !A[r][c]) continue;
+        const f = A[r][c] / A[c][c];
+        for (let k = c; k < N; k++) A[r][k] -= f * A[c][k];
+        b[r] -= f * b[c];
+      }
+    }
+    const x = b.map((v, i) => v / A[i][i]);
+    const clean = v => (Math.abs(v) < 1e-7 ? 0 : Math.round(v * 1e4) / 1e4);
+    const F = {}, R = {};
+    MEMBERS.forEach((m, k) => { F[m] = clean(x[k]); });
+    R[PX] = clean(x[nm]); R[PY] = clean(x[nm + 1]); R[RY] = clean(x[nm + 2]);
+    return { F, R };
+  }
+  const SOLN = solveTruss(), FORCE = SOLN.F, REACT = SOLN.R;
+
+  // zero-force members by the two inspection rules: member → proving joint, plus an explanation per joint
+  const ZERO = {}, ZERO_WHY = {};
+  JOINTS.forEach(j => {
+    if (loadsAt(j).length || isSupport(j)) return;
+    const ms = membersAt(j);
+    if (ms.length === 2 && !collinear(j, ms[0], ms[1])) {
+      ms.forEach(m => { ZERO[m] = j; });
+      ZERO_WHY[j] = `${ms[0]} and ${ms[1]} are both zero by Rule 1 at ${j} (an unloaded joint with only two non-collinear members).`;
+    }
+    if (ms.length === 3) [[0, 1], [0, 2], [1, 2]].forEach(([p, q]) => {
+      if (!collinear(j, ms[p], ms[q])) return;
+      const t = ms[3 - p - q];
+      ZERO[t] = j;
+      ZERO_WHY[j] = `${t} is zero by Rule 2 at ${j} (${ms[p]} and ${ms[q]} are collinear).`;
+    });
+  });
+
+  // required external forces at each joint: label → allowed directions
+  const EXT_SPEC = {};
+  JOINTS.forEach(j => { EXT_SPEC[j] = {}; });
+  EXT_SPEC[PIN][PX] = ["left", "right"];
+  EXT_SPEC[PIN][PY] = ["up", "down"];
+  EXT_SPEC[ROLLER][RY] = ["up", "down"];
+  LOADS.forEach(L => { EXT_SPEC[L.at][L.label] = [L.dir]; });
+  const EXT_LABELS = [PX, PY, RX, RY].concat(LOADS.map(L => L.label));
+
+  // unknowns in a joint's equations (zero-force members count as known), and how many of its equations are useful
+  function jointUnknowns(j, reactionsKnown, known) {
+    const unk = membersAt(j).filter(m => !(m in ZERO) && !(known && known.has(m))).map(fname);
+    if (!reactionsKnown) unk.push(...reactsAt(j));
+    return unk;
+  }
+  function usefulEquations(j, unk) {
+    const cols = unk.map(q => (q[0] === "F" && q.length === 4 ? uvec(j, q.slice(2)) : q[1] === "x" ? [1, 0] : [0, 1]));
+    const nz = cols.filter(c => Math.abs(c[0]) > 1e-9 || Math.abs(c[1]) > 1e-9);
+    if (!nz.length) return 0;
+    return nz.some(c => Math.abs(nz[0][0] * c[1] - nz[0][1] * c[0]) > 1e-9) ? 2 : 1;
+  }
+  const solvableAt = (j, reactionsKnown, known) => {
+    const unk = jointUnknowns(j, reactionsKnown, known);
+    return unk.length > 0 && unk.length <= 2 && usefulEquations(j, unk) === unk.length;
+  };
+  // a joint-by-joint order once the reactions are known; any joint never used is left over as a check
+  const SOLVE_STEPS = [], SOLVE_AT = {};
+  (() => {
+    const known = new Set();
+    for (let guard = 0; guard < JOINTS.length; guard++) {
+      const j = JOINTS.find(q => solvableAt(q, true, known) && !SOLVE_STEPS.some(s => s.j === q));
+      if (!j) break;
+      const unk = jointUnknowns(j, true, known).map(f => f.slice(2));
+      SOLVE_STEPS.push({ j, unk });
+      unk.forEach(m => { known.add(m); SOLVE_AT[m] = j; });
+    }
+  })();
+  const CHECK_JOINT = JOINTS.find(j => !SOLVE_STEPS.some(s => s.j === j) && membersAt(j).some(m => !(m in ZERO)))
+    || SOLVE_STEPS[SOLVE_STEPS.length - 1].j;
+  const START_JOINTS = JOINTS.filter(j => solvableAt(j, true));
+
+  /* ---------- small text helpers ---------- */
+  const fmt = v => String(+(+v).toFixed(3));
+  const sub = lab => lab[0] + "<sub>" + lab.slice(1) + "</sub>";
+  const listAnd = a => (a.length < 2 ? a.join("") : a.slice(0, -1).join(", ") + " and " + a[a.length - 1]);
+  // how a member's force splits into components, for hints and feedback
+  function memberGeom(m) {
+    const dx = Math.abs(J[m[1]][0] - J[m[0]][0]), dy = Math.abs(J[m[1]][1] - J[m[0]][1]), L = Math.hypot(dx, dy);
+    const Ltxt = Math.abs(L - Math.round(L)) < 1e-9 ? String(Math.round(L)) : `${fmt(L)}`;
+    const ratio = a => (Math.abs(L - Math.round(L)) < 1e-9 ? `${a}/${Math.round(L)} (${fmt(a / L)})` : fmt(a / L));
+    return { dx, dy, L, Ltxt, hx: ratio(dx), hy: ratio(dy), ang: fmt(Math.atan2(dy, dx) * 180 / Math.PI) };
+  }
+  const GEOM_GROUPS = (() => {
+    const seen = {};
+    MEMBERS.forEach(m => {
+      const g = memberGeom(m);
+      if (!g.dx || !g.dy) return;
+      const key = g.dx + ":" + g.dy;
+      (seen[key] = seen[key] || { g, ms: [] }).ms.push(m);
+    });
+    return Object.values(seen);
+  })();
+
+  /* ---------- state (saved per truss, per browser) ---------- */
+  const STORE_KEY = STORE_PREFIX + "-t" + (VI + 1);
+  function freshState() {
+    const fbd = {};
+    JOINTS.forEach(j => { fbd[j] = { m: {}, ext: [] }; });
+    const eq = {};
+    JOINTS.forEach(j => { eq[j] = { x: "", y: "" }; });
+    const val = {};
+    REACTS.forEach(r => { val[r] = ""; });
+    return { zfm: {}, fbd, pass: {}, zfPass: false, consistent: false, reflect: "", name: "", cur: "A", eq, eqPass: {}, cur3: "A",
+      p4: { q1: "", q1joint: "", q2: "", q3: "", q4: "", reflect: "", pass: false },
+      p5: { ext: [], fbdPass: false, pivot: "", pt: { x: "", y: "" }, eq: { x: "", y: "", m: "" }, eqPass: {}, val, dir: {}, valPass: false, reflect: "" },
+      p6: { val: {}, res: {}, pass: false, reflect: "" } };
+  }
+  let state = freshState();
+  try {
+    let raw = localStorage.getItem(STORE_KEY);
+    if (!raw && VI === 0) raw = localStorage.getItem("truss-joint-lab-v1");
+    if (raw) {
+      const s = JSON.parse(raw);
+      if (s && s.fbd && s.zfm) state = Object.assign(freshState(), s);
+    }
+  } catch (e) { /* storage unavailable */ }
+  if (!state.p5.pt) state.p5.pt = { x: "", y: "" };
+  if (!state.p5.dir) state.p5.dir = {};
+  function save() { try { localStorage.setItem(STORE_KEY, JSON.stringify(state)); } catch (e) { /* ignore */ } }
+
+  /* ---------- svg helpers ---------- */
+  const NS = "http://www.w3.org/2000/svg";
+  function el(tag, attrs, parent) {
+    const e = document.createElementNS(NS, tag);
+    for (const k in attrs) e.setAttribute(k, attrs[k]);
+    if (parent) parent.appendChild(e);
+    return e;
+  }
+  function text(parent, x, y, s, cls, anchor) {
+    const t = el("text", { x, y, class: cls, "text-anchor": anchor || "middle", "dominant-baseline": "middle" }, parent);
+    t.textContent = s;
+    return t;
+  }
+  function arrow(parent, x1, y1, x2, y2, cls, head) {
+    head = head || 13;
+    const dx = x2 - x1, dy = y2 - y1, L = Math.hypot(dx, dy), ux = dx / L, uy = dy / L;
+    const bx = x2 - ux * head, by = y2 - uy * head;
+    const g = el("g", { class: cls }, parent);
+    el("line", { x1, y1, x2: bx, y2: by, "stroke-width": 3.5 }, g);
+    el("polygon", {
+      points: `${x2},${y2} ${bx - uy * head * 0.45},${by + ux * head * 0.45} ${bx + uy * head * 0.45},${by - ux * head * 0.45}`,
+      stroke: "none"
+    }, g);
+    return g;
+  }
+
+  /* ---------- truss drawing (scaled to fit a 900-wide viewBox) ---------- */
+  const XS = JOINTS.map(j => J[j][0]), YS = JOINTS.map(j => J[j][1]);
+  const W = Math.max(...XS) - Math.min(...XS), H = Math.max(...YS) - Math.min(...YS);
+  const S = Math.min(720 / W, 260 / H, 70);
+  const X0 = 90 + (720 - W * S) / 2 - Math.min(...XS) * S, Y0 = 90 + H * S + Math.min(...YS) * S;
+  const P = j => [X0 + J[j][0] * S, Y0 - J[j][1] * S];
+  const VB_FULL = `0 0 900 ${Math.round(Y0 + 125)}`, VB_MINI = `0 0 900 ${Math.round(Y0 + 90)}`;
+  const svgU = (j, m) => { const u = uvec(j, m); return [u[0], -u[1]]; };
+
+  function drawSupports(svg) {
+    const [ax, ay] = P(PIN);
+    el("polygon", { points: `${ax},${ay} ${ax - 18},${ay + 32} ${ax + 18},${ay + 32}`, class: "s-support" }, svg);
+    hatch(svg, ax, ay + 32, 30);
+    const [dx, dy] = P(ROLLER);
+    el("polygon", { points: `${dx},${dy} ${dx - 16},${dy + 26} ${dx + 16},${dy + 26}`, class: "s-support" }, svg);
+    el("circle", { cx: dx - 9, cy: dy + 32, r: 5.5, class: "s-support" }, svg);
+    el("circle", { cx: dx + 9, cy: dy + 32, r: 5.5, class: "s-support" }, svg);
+    hatch(svg, dx, dy + 38, 30);
+  }
+  function hatch(svg, cx, y, half) {
+    el("line", { x1: cx - half, y1: y, x2: cx + half, y2: y, class: "s-ground" }, svg);
+    for (let x = cx - half + 4; x <= cx + half; x += 9) el("line", { x1: x, y1: y, x2: x - 8, y2: y + 9, class: "s-ground" }, svg);
+  }
+  // where an applied-load arrow sits: head on the joint when that side is clear of members, otherwise tail on the joint
+  function loadGeom(L) {
+    const [jx, jy] = P(L.at), d = DIRS[L.dir], us = membersAt(L.at).map(m => svgU(L.at, m));
+    const behind = us.some(u => -u[0] * d[0] - u[1] * d[1] > 0.95), ahead = us.some(u => u[0] * d[0] + u[1] * d[1] > 0.95);
+    const off = behind && ahead ? 12 : 0, ox = d[1] * off, oy = -d[0] * off;
+    if (!behind) return { x1: jx - d[0] * 70 + ox, y1: jy - d[1] * 70 + oy, x2: jx - d[0] * 9 + ox, y2: jy - d[1] * 9 + oy, side: [-d[0], -d[1]], far: 1, d };
+    return { x1: jx + d[0] * 9 + ox, y1: jy + d[1] * 9 + oy, x2: jx + d[0] * 72 + ox, y2: jy + d[1] * 72 + oy, side: d, far: 2, d };
+  }
+  // joint letter goes in the widest open gap around the joint
+  function labelPos(j) {
+    const occ = membersAt(j).map(m => svgU(j, m));
+    loadsAt(j).forEach(L => occ.push(loadGeom(L).side));
+    if (isSupport(j)) occ.push([0, 1], [J[j][0] * 2 < Math.min(...XS) + Math.max(...XS) ? -1 : 1, 0]); // support below, reaction arrows outside
+    const ang = occ.map(v => Math.atan2(v[1], v[0])).map(a => (a + 2 * Math.PI) % (2 * Math.PI)).sort((p, q) => p - q);
+    let best = -Math.PI / 2, gap = -1;
+    ang.forEach((a, i) => { const b = i + 1 < ang.length ? ang[i + 1] : ang[0] + 2 * Math.PI; if (b - a > gap) { gap = b - a; best = (a + b) / 2; } });
+    const [x, y] = P(j);
+    return [x + Math.cos(best) * 22, y + Math.sin(best) * 20];
+  }
+  function dimChain(svg, vals, horizontal, at) {
+    const u = [...new Set(vals.map(v => +v.toFixed(6)))].sort((p, q) => p - q);
+    const pos = v => (horizontal ? X0 + v * S : Y0 - v * S);
+    if (horizontal) el("line", { x1: pos(u[0]), y1: at, x2: pos(u[u.length - 1]), y2: at, class: "s-dim" }, svg);
+    else el("line", { x1: at, y1: pos(u[0]), x2: at, y2: pos(u[u.length - 1]), class: "s-dim" }, svg);
+    u.forEach((v, i) => {
+      const c = pos(v);
+      if (horizontal) el("line", { x1: c, y1: at - 7, x2: c, y2: at + 7, class: "s-dim" }, svg);
+      else el("line", { x1: at - 7, y1: c, x2: at + 7, y2: c, class: "s-dim" }, svg);
+      if (i + 1 < u.length) {
+        const mid = (c + pos(u[i + 1])) / 2, len = fmt(u[i + 1] - v) + " m";
+        if (horizontal) text(svg, mid, at - 12, len, "s-small"); else text(svg, at + 10, mid, len, "s-small", "start");
+      }
+    });
+  }
+
+  function drawTruss(svg, opts) {
+    svg.innerHTML = "";
+    const mini = !!opts.mini;
+    svg.setAttribute("viewBox", mini ? VB_MINI : VB_FULL);
+    if (!opts.ghost) drawSupports(svg);
+    MEMBERS.forEach(m => {
+      const [x1, y1] = P(m[0]), [x2, y2] = P(m[1]);
+      let cls = "s-member" + (opts.ghost ? " ghost" : "");
+      if (opts.zfSel && opts.zfSel[m] !== undefined) cls += " zf";
+      if (mini) cls += m.includes(opts.joint) ? " hl" : " dim";
+      el("line", { x1, y1, x2, y2, class: cls }, svg);
+      if (opts.onMember) {
+        const hit = el("line", { x1, y1, x2, y2, class: "s-hit" }, svg);
+        const t = el("title", {}, hit); t.textContent = "Member " + m;
+        hit.addEventListener("click", () => opts.onMember(m));
+      }
+    });
+    if (opts.showForces) MEMBERS.forEach(m => {
+      const [x1, y1] = P(m[0]), [x2, y2] = P(m[1]), f = FORCE[m];
+      const v = !f ? "0" : fmt(Math.abs(f).toFixed(2)) + (f > 0 ? " T" : " C");
+      const c = !f ? "z" : (f > 0 ? "t" : "c");
+      let mx = (x1 + x2) / 2, my = (y1 + y2) / 2;
+      if (Math.abs(y1 - y2) < 1) my += 16;                                // horizontal: just below the member, clear of loads drawn above
+      else if (Math.abs(x1 - x2) < 1) mx += 28;                          // vertical: beside it
+      text(svg, mx, my, v, "s-force-val " + c);
+    });
+    LOADS.forEach(L => {
+      const g = loadGeom(L);
+      arrow(svg, g.x1, g.y1, g.x2, g.y2, "s-ar-applied");
+      if (mini) return;
+      const [fx, fy] = g.far === 1 ? [g.x1, g.y1] : [g.x2, g.y2];
+      if (g.d[0] === 0) text(svg, fx + 12, fy + (fy < P(L.at)[1] ? 16 : -14), L.label, "s-load", "start");
+      else text(svg, fx, fy - 14, L.label, "s-load", "middle");
+    });
+    JOINTS.forEach(j => {
+      const [x, y] = P(j);
+      el("circle", { cx: x, cy: y, r: 7, class: "s-joint" + (mini && j === opts.joint ? " hl" : "") }, svg);
+      const [lx, ly] = labelPos(j);
+      text(svg, lx, ly, j, "s-label");
+    });
+    if (!mini) {
+      dimChain(svg, XS, true, Y0 + 112);
+      dimChain(svg, YS, false, X0 + Math.max(...XS) * S + 52);
+    }
+    if (opts.reactions) drawReactions(svg, opts.reactions);
+  }
+  // support reactions on the whole-truss FBD, always drawn on the outside of the truss
+  function drawReactions(svg, list) {
+    const midX = X0 + (Math.min(...XS) + Math.max(...XS)) / 2 * S;
+    const LEN = 72, counts = {};
+    list.forEach(x => {
+      if (!x.dir || !x.label) return;
+      const at = x.label[0];
+      if (!J[at]) return;
+      const [jx, jy] = P(at), d = DIRS[x.dir], o = [jx < midX ? -1 : 1, 1];
+      const key = at + x.dir, k = counts[key] = (counts[key] || 0) + 1, sh = (k - 1) * 12;
+      const ox = -d[1] * sh, oy = d[0] * sh;
+      const outward = d[0] * o[0] + d[1] * o[1] > 0;
+      let x1, y1, x2, y2;
+      if (outward) { x1 = jx + d[0] * 10 + ox; y1 = jy + d[1] * 10 + oy; x2 = jx + d[0] * (10 + LEN) + ox; y2 = jy + d[1] * (10 + LEN) + oy; }
+      else { x1 = jx - d[0] * (10 + LEN) + ox; y1 = jy - d[1] * (10 + LEN) + oy; x2 = jx - d[0] * 10 + ox; y2 = jy - d[1] * 10 + oy; }
+      arrow(svg, x1, y1, x2, y2, "s-ar-reaction");
+      const far = outward ? [x2, y2] : [x1, y1];
+      let tx, ty, anchor;
+      if (d[0] === 0) { tx = far[0] + 10; ty = far[1] + (far[1] > jy ? -8 : 8); anchor = "start"; }
+      else { tx = (x1 + x2) / 2; ty = y1 + 18; anchor = "middle"; } // below a horizontal arrow, clear of the joint letter
+      const t = text(svg, tx, ty, x.label[0], "s-t-reaction", anchor);
+      const sb = el("tspan", { dy: 5, "font-size": "11" }, t); sb.textContent = x.label[1];
+    });
+  }
+
+  /* ---------- Part 1 ---------- */
+  function renderPart1() {
+    drawTruss(document.getElementById("truss-main"), { zfSel: state.zfm, onMember: toggleZf });
+    const chips = document.getElementById("member-chips");
+    chips.innerHTML = "";
+    MEMBERS.forEach(m => {
+      const b = document.createElement("button");
+      b.className = "chip" + (state.zfm[m] !== undefined ? " sel" : "");
+      b.textContent = m;
+      b.setAttribute("aria-pressed", state.zfm[m] !== undefined);
+      b.addEventListener("click", () => toggleZf(m));
+      chips.appendChild(b);
+    });
+    const list = document.getElementById("zf-list");
+    list.innerHTML = "";
+    const sel = MEMBERS.filter(m => state.zfm[m] !== undefined);
+    if (!sel.length) {
+      list.innerHTML = '<div class="empty-note">No members marked as zero-force yet.</div>';
+      return;
+    }
+    sel.forEach(m => {
+      const row = document.createElement("div");
+      row.className = "zf-row";
+      row.innerHTML = `<b>${m}</b><span>is zero-force, shown by equilibrium of joint</span>`;
+      const s = document.createElement("select");
+      s.innerHTML = `<option value="">choose…</option><option value="${m[0]}">${m[0]}</option><option value="${m[1]}">${m[1]}</option>`;
+      s.value = state.zfm[m] || "";
+      s.addEventListener("change", () => { state.zfm[m] = s.value; state.zfPass = false; save(); });
+      row.appendChild(s);
+      list.appendChild(row);
+    });
+  }
+  function toggleZf(m) {
+    if (state.zfm[m] !== undefined) delete state.zfm[m]; else state.zfm[m] = "";
+    state.zfPass = false;
+    save();
+    renderPart1();
+    if (state.cur) drawMini();
+  }
+
+  // why joint j does not show that member m is zero-force
+  function noRuleAt(j, m) {
+    const ld = loadsAt(j), ms = membersAt(j);
+    if (ld.length) return `joint ${j} carries the ${ld[0].label} load, so it is not an unloaded joint`;
+    if (isSupport(j)) return `joint ${j} has a support reaction, so it is not an unloaded joint`;
+    if (ms.length === 3) {
+      const pair = [[0, 1], [0, 2], [1, 2]].find(([p, q]) => collinear(j, ms[p], ms[q]));
+      if (pair && (ms[pair[0]] === m || ms[pair[1]] === m)) return `at joint ${j}, ${m} is one of the two collinear members; it is the third member there that must be zero`;
+      if (!pair) return `joint ${j} has three members and no two are collinear, so neither rule applies`;
+    }
+    return `joint ${j} connects ${ms.length} members, so neither rule applies`;
+  }
+  const cap = t => t[0].toUpperCase() + t.slice(1);
+
+  document.getElementById("btn-check-zf").addEventListener("click", () => {
+    const fb = document.getElementById("zf-feedback");
+    fb.innerHTML = "";
+    const sel = MEMBERS.filter(m => state.zfm[m] !== undefined);
+    const msgs = [];
+    const wrong = sel.filter(m => !(m in ZERO));
+    const right = sel.filter(m => m in ZERO);
+    wrong.forEach(m => msgs.push(["bad", `${m} is not a zero-force member. ${cap(noRuleAt(m[0], m))}, and ${noRuleAt(m[1], m)}.`]));
+    right.forEach(m => {
+      const jj = state.zfm[m];
+      if (!jj) msgs.push(["bad", `${m}: correct member. Now choose the joint whose equilibrium proves it.`]);
+      else if (jj !== ZERO[m]) msgs.push(["bad", `${m}: correct member, but joint ${jj} doesn't prove it: ${noRuleAt(jj, m)}. Check the other end.`]);
+    });
+    const missing = Object.keys(ZERO).filter(m => !sel.includes(m)).length;
+    if (missing) msgs.push(["bad", `You have found ${right.length} of the zero-force members. ${missing === 1 ? "One more is" : missing + " more are"} still unmarked. Look for unloaded joints with only two or three members.`]);
+    const pass = !msgs.length;
+    state.zfPass = pass;
+    if (pass) msgs.push(["ok", "Correct. " + Object.values(ZERO_WHY).join(" ")]);
+    msgs.forEach(([c, t]) => { const li = document.createElement("li"); li.className = c; li.textContent = t; fb.appendChild(li); });
+    save();
+  });
+  document.getElementById("reflect-zf").addEventListener("input", e => { state.reflect = e.target.value; save(); });
+
+  /* ---------- Part 2 ---------- */
+  const C0 = [230, 205], STUB = 135;
+  function unit(j, m) {
+    const o = other(m, j);
+    const dx = J[o][0] - J[j][0], dy = -(J[o][1] - J[j][1]);
+    const L = Math.hypot(dx, dy);
+    return [dx / L, dy / L];
+  }
+
+  function renderJointTabs() {
+    const wrap = document.getElementById("joint-tabs");
+    wrap.innerHTML = "";
+    JOINTS.forEach(j => {
+      const b = document.createElement("button");
+      const p = state.pass[j];
+      b.className = "joint-tab" + (j === state.cur ? " active" : "") + (p === true ? " ok" : p === false ? " bad" : "");
+      b.innerHTML = `<span class="dot"></span>Joint ${j}`;
+      b.addEventListener("click", () => { state.cur = j; save(); renderPart2(); document.getElementById("joint-feedback").innerHTML = ""; });
+      wrap.appendChild(b);
+    });
+  }
+
+  function drawMini() {
+    drawTruss(document.getElementById("truss-mini"), { mini: true, joint: state.cur, zfSel: {} });
+  }
+
+  // text like F_CD with a real subscript, optionally followed by a suffix (" = 0")
+  function subText(parent, x, y, sub, cls, suffix) {
+    const t = el("text", { x, y, class: cls, "text-anchor": "middle", "dominant-baseline": "middle" }, parent);
+    t.appendChild(document.createTextNode("F"));
+    const s = el("tspan", { dy: 5, "font-size": "11" }, t);
+    s.textContent = sub;
+    if (suffix) { const r = el("tspan", { dy: -5 }, t); r.textContent = suffix; }
+    return t;
+  }
+  const angOf = v => Math.atan2(v[1], v[0]);
+  const wrap2pi = a => ((a % (2 * Math.PI)) + 2 * Math.PI) % (2 * Math.PI);
+
+  function drawFBD(svg, j, interactive) {
+    const st = state.fbd[j];
+    svg.innerHTML = "";
+    const [cx, cy] = C0;
+    const stubs = membersAt(j).map(m => ({ m, u: unit(j, m) }));
+
+    // lay out external arrows first so labels can avoid them
+    const counts = {}, exts = [];
+    st.ext.forEach(x => {
+      if (!x.dir) return;
+      const d = DIRS[x.dir];
+      const k = counts[x.dir] = (counts[x.dir] || 0) + 1;
+      const blockedBehind = stubs.some(({ u }) => u[0] * -d[0] + u[1] * -d[1] > 0.95);
+      const blockedAhead = stubs.some(({ u }) => u[0] * d[0] + u[1] * d[1] > 0.95);
+      const perp = [-d[1], d[0]];
+      const off = (blockedBehind && blockedAhead ? 14 : 0) + (k - 1) * 14;
+      const ox = perp[0] * off, oy = perp[1] * off;
+      const side = blockedBehind ? d : [-d[0], -d[1]]; // which side of the pin the arrow occupies
+      let x1, y1, x2, y2;
+      if (!blockedBehind) { // head touches the pin
+        x1 = cx - d[0] * 105 + ox; y1 = cy - d[1] * 105 + oy; x2 = cx - d[0] * 14 + ox; y2 = cy - d[1] * 14 + oy;
+      } else { // tail at the pin
+        x1 = cx + d[0] * 14 + ox; y1 = cy + d[1] * 14 + oy; x2 = cx + d[0] * 105 + ox; y2 = cy + d[1] * 105 + oy;
+      }
+      const far = blockedBehind ? [x2, y2] : [x1, y1];
+      exts.push({ x, d, side, x1, y1, x2, y2, far });
+    });
+
+    const occupied = stubs.map(s => angOf(s.u)).concat(exts.map(e => angOf(e.side)));
+    // +1 → label on the counter-clockwise-on-screen side (increasing svg angle), −1 → the other side
+    function freeSide(a) {
+      let plus = 2 * Math.PI, minus = 2 * Math.PI;
+      occupied.forEach(b => {
+        const dp = wrap2pi(b - a), dm = wrap2pi(a - b);
+        if (dp > 1e-6) plus = Math.min(plus, dp);
+        if (dm > 1e-6) minus = Math.min(minus, dm);
+      });
+      return plus >= minus ? 1 : -1;
+    }
+
+    stubs.forEach(({ m, u }) => {
+      const ex = cx + u[0] * STUB, ey = cy + u[1] * STUB;
+      el("line", { x1: cx, y1: cy, x2: ex, y2: ey, class: "s-ghost" }, svg);
+      el("line", { x1: ex - u[1] * 11, y1: ey + u[0] * 11, x2: ex + u[1] * 11, y2: ey - u[0] * 11, class: "s-cut" }, svg);
+      text(svg, cx + u[0] * (STUB + 22), cy + u[1] * (STUB + 22), "to " + other(m, j), "s-small");
+      const s = st.m[m];
+      const side = freeSide(angOf(u));
+      const n = [-u[1] * side, u[0] * side];
+      if (s === "T" || s === "C") {
+        if (s === "T") arrow(svg, cx + u[0] * 16, cy + u[1] * 16, cx + u[0] * 118, cy + u[1] * 118, "s-ar-force");
+        else arrow(svg, cx + u[0] * 118, cy + u[1] * 118, cx + u[0] * 15, cy + u[1] * 15, "s-ar-force");
+        subText(svg, cx + u[0] * 80 + n[0] * 22, cy + u[1] * 80 + n[1] * 22, m, "s-t-force");
+      } else if (s === "0") {
+        el("circle", { cx: cx + u[0] * 70, cy: cy + u[1] * 70, r: 12, class: "s-zero-badge" }, svg);
+        text(svg, cx + u[0] * 70, cy + u[1] * 70 + 1, "0", "s-zero-t");
+        subText(svg, cx + u[0] * 80 + n[0] * 42, cy + u[1] * 80 + n[1] * 42, m, "s-zero-t", " = 0");
+      }
+      if (!interactive) return;
+      const hit = el("line", { x1: cx + u[0] * 14, y1: cy + u[1] * 14, x2: ex, y2: ey, class: "s-hit" }, svg);
+      const t = el("title", {}, hit); t.textContent = "Tap to cycle F" + m;
+      hit.addEventListener("click", () => {
+        const order = [undefined, "T", "C", "0"];
+        const nxt = order[(order.indexOf(st.m[m]) + 1) % order.length];
+        if (nxt === undefined) delete st.m[m]; else st.m[m] = nxt;
+        changed();
+      });
+    });
+
+    exts.forEach(({ x, d, x1, y1, x2, y2, far }) => {
+      const kind = !x.label ? "unlab" : (x.label.indexOf("kN") >= 0 ? "applied" : "reaction");
+      arrow(svg, x1, y1, x2, y2, "s-ar-" + kind);
+      let tx = far[0], ty = far[1], anchor = "middle";
+      if (d[0] === 0) { tx += 12; ty += (far[1] < cy ? 10 : -10); anchor = "start"; } // beside a vertical arrow's far end
+      else { ty -= 14; }
+      const lab = text(svg, tx, ty, x.label || "label?", "s-t-" + kind, anchor);
+      if (x.label && x.label.indexOf("kN") < 0) { // Ax → A with subscript x
+        lab.textContent = x.label[0];
+        const sb = el("tspan", { dy: 5, "font-size": "11" }, lab); sb.textContent = x.label[1];
+      }
+    });
+
+    el("circle", { cx, cy, r: 10, class: "s-pin" }, svg);
+    // joint letter goes in the widest open gap around the pin
+    const sorted = occupied.map(wrap2pi).sort((a, b) => a - b);
+    let best = -Math.PI / 4, bestGap = -1;
+    sorted.forEach((a, i) => {
+      const b = i + 1 < sorted.length ? sorted[i + 1] : sorted[0] + 2 * Math.PI;
+      if (b - a > bestGap) { bestGap = b - a; best = (a + b) / 2; }
+    });
+    text(svg, cx + Math.cos(best) * 30, cy + Math.sin(best) * 30, j, "s-label");
+  }
+
+  function renderControls() {
+    const j = state.cur, st = state.fbd[j];
+    const mc = document.getElementById("member-ctl");
+    mc.innerHTML = "";
+    membersAt(j).forEach(m => {
+      const row = document.createElement("div");
+      row.className = "m-row";
+      row.innerHTML = `<span class="m-name">F<sub>${m}</sub> <span style="color:var(--ink-soft);font-weight:500">(to ${other(m, j)})</span></span>`;
+      const seg = document.createElement("div");
+      seg.className = "seg";
+      [[undefined, "not drawn"], ["T", "tension (away)"], ["C", "compression (toward)"], ["0", "zero (0)"]].forEach(([v, lab]) => {
+        const b = document.createElement("button");
+        b.textContent = lab;
+        if (st.m[m] === v) b.className = "sel" + (v === "0" ? " z" : "");
+        b.addEventListener("click", () => { if (v === undefined) delete st.m[m]; else st.m[m] = v; changed(); });
+        seg.appendChild(b);
+      });
+      row.appendChild(seg);
+      mc.appendChild(row);
+    });
+    const ec = document.getElementById("ext-ctl");
+    ec.innerHTML = "";
+    if (!st.ext.length) ec.innerHTML = '<div class="empty-note" style="margin-bottom:8px">No external forces drawn at this joint.</div>';
+    st.ext.forEach((x, i) => {
+      const row = document.createElement("div");
+      row.className = "ext-row";
+      const ds = document.createElement("select");
+      ds.setAttribute("aria-label", "Direction");
+      ds.innerHTML = '<option value="">direction…</option>' + Object.keys(DIRS).map(k => `<option value="${k}">${DIR_TXT[k]}</option>`).join("");
+      ds.value = x.dir || "";
+      ds.addEventListener("change", () => { x.dir = ds.value; changed(); });
+      const ls = document.createElement("select");
+      ls.setAttribute("aria-label", "Label");
+      ls.innerHTML = '<option value="">label…</option>' + EXT_LABELS.map(l => `<option value="${l}">${l}${l.indexOf("kN") >= 0 ? " (applied load)" : " (reaction)"}</option>`).join("");
+      ls.value = x.label || "";
+      ls.addEventListener("change", () => { x.label = ls.value; changed(); });
+      const rm = document.createElement("button");
+      rm.className = "x-btn"; rm.textContent = "Remove";
+      rm.addEventListener("click", () => { st.ext.splice(i, 1); changed(); });
+      row.append(ds, ls, rm);
+      ec.appendChild(row);
+    });
+    document.getElementById("btn-add-ext").disabled = st.ext.length >= 4;
+  }
+
+  function changed() {
+    delete state.pass[state.cur];
+    state.consistent = false;
+    state.eqPass = {};
+    save();
+    renderPart2();
+    renderPart3();
+  }
+  function renderPart2() {
+    renderJointTabs();
+    drawFBD(document.getElementById("fbd-svg"), state.cur, true);
+    document.getElementById("fbd-title").textContent = "Free-body diagram · Joint " + state.cur;
+    drawMini();
+    renderControls();
+  }
+  document.getElementById("btn-add-ext").addEventListener("click", () => {
+    state.fbd[state.cur].ext.push({ dir: "", label: "" });
+    changed();
+  });
+  document.getElementById("btn-clear-joint").addEventListener("click", () => {
+    state.fbd[state.cur] = { m: {}, ext: [] };
+    document.getElementById("joint-feedback").innerHTML = "";
+    changed();
+  });
+
+  function gradeJoint(j) {
+    const st = state.fbd[j], msgs = [];
+    membersAt(j).forEach(m => {
+      const s = st.m[m], isZero = m in ZERO;
+      if (s === undefined) msgs.push(`${fname(m)} is missing. Every member cut at joint ${j} has to appear on its FBD, even a zero-force one (mark it 0).`);
+      else if (isZero && s !== "0") msgs.push(`${m} is a zero-force member (Part 1), so mark ${fname(m)} as 0 rather than drawing an unknown arrow.`);
+      else if (!isZero && s === "0") msgs.push(`${m} is not a zero-force member, so ${fname(m)} needs an arrow along the member (tension or compression).`);
+    });
+    const spec = EXT_SPEC[j], seen = {};
+    st.ext.forEach(x => {
+      if (!x.dir || !x.label) { msgs.push("One external force is missing a direction or a label. Finish it or remove it."); return; }
+      if (seen[x.label]) { msgs.push(`${x.label} is drawn more than once at joint ${j}.`); return; }
+      seen[x.label] = true;
+      if (!(x.label in spec)) {
+        const ld = LOADS.find(L => L.label === x.label);
+        if (x.label === RX) msgs.push(`A roller can only push perpendicular to the surface it rolls on, so there is no horizontal reaction ${RX} at ${ROLLER}.`);
+        else if (ld) msgs.push(`The ${ld.label} load acts at joint ${ld.at}, not here.`);
+        else if (x.label[0] === PIN) msgs.push(`${x.label} is a reaction from the pin at ${PIN}, so it only appears on joint ${PIN}'s FBD.`);
+        else msgs.push(`${x.label} is a reaction from the roller at ${ROLLER}, so it only appears on joint ${ROLLER}'s FBD.`);
+        return;
+      }
+      if (!spec[x.label].includes(x.dir)) {
+        if (x.label.indexOf("kN") >= 0) msgs.push(`The ${x.label} load points ${spec[x.label][0]}. Check its direction.`);
+        else if (x.label[1] === "x") msgs.push(`${x.label} is the horizontal reaction component, so it should point left or right.`);
+        else msgs.push(`${x.label} is the vertical reaction component, so it should point up or down.`);
+      }
+    });
+    Object.keys(spec).forEach(l => {
+      if (!seen[l]) {
+        if (l.indexOf("kN") >= 0) msgs.push(`The ${l} applied load at joint ${j} is missing.`);
+        else if (l === PX) msgs.push(`A pin can push or pull in any direction, so joint ${PIN} needs both reaction components, ${PX} and ${PY}. Include ${PX} even if you suspect it is zero.`);
+        else msgs.push(`The support reaction ${l} is missing.`);
+      }
+    });
+    if (!Object.keys(spec).length && st.ext.length === 0 && !msgs.length) { /* clean unloaded joint */ }
+    return msgs;
+  }
+
+  function showFeedback(ul, items) {
+    ul.innerHTML = "";
+    items.forEach(([c, t]) => { const li = document.createElement("li"); li.className = c; li.textContent = t; ul.appendChild(li); });
+  }
+
+  document.getElementById("btn-check-joint").addEventListener("click", () => {
+    const j = state.cur, msgs = gradeJoint(j);
+    state.pass[j] = !msgs.length;
+    const items = msgs.map(t => ["bad", t]);
+    if (!msgs.length) {
+      items.push(["ok", `Joint ${j}: FBD complete.`]);
+      const notes = [];
+      if (j === PIN && state.fbd[PIN].ext.some(x => x.label === PY && x.dir === "down")) notes.push(`You drew ${PY} downward. That's fine for an unknown; if it really acts upward, your answer will come out negative.`);
+      if (j === ROLLER && state.fbd[ROLLER].ext.some(x => x.label === RY && x.dir === "down")) notes.push(`You drew ${RY} downward. A roller can only push up on the truss, so expect a negative answer (or redraw it upward).`);
+      notes.forEach(n => items.push(["note", n]));
+    }
+    showFeedback(document.getElementById("joint-feedback"), items);
+    save();
+    renderJointTabs();
+  });
+
+  function consistencyIssues() {
+    const out = [];
+    MEMBERS.forEach(m => {
+      if (m in ZERO) return;
+      const a = state.fbd[m[0]].m[m], b = state.fbd[m[1]].m[m];
+      if ((a === "T" || a === "C") && (b === "T" || b === "C") && a !== b) {
+        out.push(`Member ${m}: drawn as ${a === "T" ? "tension" : "compression"} at ${m[0]} but ${b === "T" ? "tension" : "compression"} at ${m[1]}. A two-force member pushes or pulls equally on both of its joints, so the sense has to match.`);
+      }
+    });
+    return out;
+  }
+
+  document.getElementById("btn-check-all").addEventListener("click", () => {
+    const items = [];
+    JOINTS.forEach(j => {
+      const msgs = gradeJoint(j);
+      state.pass[j] = !msgs.length;
+      if (msgs.length) items.push(["bad", `Joint ${j}: ${msgs.length} issue${msgs.length > 1 ? "s" : ""}. Open its tab and check it for details.`]);
+    });
+    const inc = consistencyIssues();
+    inc.forEach(t => items.push(["bad", t]));
+    state.consistent = !inc.length && JOINTS.every(j => state.pass[j]);
+    if (state.consistent) items.push(["ok", "All seven joint FBDs are complete and consistent with Newton's third law."]);
+    if (state.consistent) items.push(["note", "Part 3 is now unlocked below."]);
+    showFeedback(document.getElementById("all-feedback"), items);
+    save();
+    renderJointTabs();
+    renderPart3();
+  });
+
+  function renderReveal() {
+    const wrap = document.getElementById("reveal-wrap");
+    wrap.innerHTML = "";
+    if (!(state.consistent && state.zfPass && allEqPass() && state.p4.pass && state.p5.valPass && state.p6.pass)) return;
+    const d = document.createElement("details");
+    d.className = "hint";
+    d.open = true;
+    d.innerHTML = `<summary>Your completed truss</summary>
+      <p>Reactions: ${REACTS.map(reactWords).join(", ")}. Member forces (T = tension, C = compression):</p>
+      <div class="panel" style="margin-top:8px"><svg id="truss-solved" viewBox="0 0 900 410" aria-label="Truss with solved member forces"></svg></div>`;
+    wrap.appendChild(d);
+    drawTruss(d.querySelector("#truss-solved"), { showForces: true, zfSel: ZERO });
+  }
+
+  /* ---------- Part 3: equation parser ---------- */
+  function tokenize(str) {
+    const toks = []; let i = 0;
+    str = str.replace(/[−–]/g, "-").replace(/[·×]/g, "*").replace(/Σ/g, "");
+    while (i < str.length) {
+      const c = str[i];
+      if (/\s/.test(c)) { i++; continue; }
+      if (/[0-9.]/.test(c)) {
+        let k = i; while (k < str.length && /[0-9.]/.test(str[k])) k++;
+        const v = parseFloat(str.slice(i, k));
+        if (isNaN(v)) throw new Error("Couldn't read the number '" + str.slice(i, k) + "'.");
+        toks.push({ t: "num", v }); i = k; continue;
+      }
+      if (/[A-Za-z_]/.test(c)) {
+        let k = i; while (k < str.length && /[A-Za-z0-9_{}]/.test(str[k])) k++;
+        toks.push({ t: "id", v: str.slice(i, k) }); i = k; continue;
+      }
+      if ("+-*/^()=".indexOf(c) >= 0) { toks.push({ t: c }); i++; continue; }
+      throw new Error("Unrecognized character '" + c + "'.");
+    }
+    return toks;
+  }
+  const FUNCS = {
+    sin: a => Math.sin(a * Math.PI / 180), cos: a => Math.cos(a * Math.PI / 180), tan: a => Math.tan(a * Math.PI / 180),
+    asin: a => Math.asin(a) * 180 / Math.PI, acos: a => Math.acos(a) * 180 / Math.PI, atan: a => Math.atan(a) * 180 / Math.PI,
+    sqrt: Math.sqrt
+  };
+  function parseExprToks(toks) {
+    let pos = 0;
+    const peek = () => toks[pos], next = () => toks[pos++];
+    const startsPrimary = tk => tk && (tk.t === "num" || tk.t === "id" || tk.t === "(");
+    function expr() {
+      let n = term();
+      while (peek() && (peek().t === "+" || peek().t === "-")) { const op = next().t; n = { type: "bin", op, l: n, r: term() }; }
+      return n;
+    }
+    function term() {
+      let n = unary();
+      for (;;) {
+        const tk = peek();
+        if (tk && (tk.t === "*" || tk.t === "/")) { next(); n = { type: "bin", op: tk.t, l: n, r: unary() }; }
+        else if (startsPrimary(tk)) n = { type: "bin", op: "*", l: n, r: pow() }; // implicit: 0.8 F_AE, 4/5(F_AE)
+        else return n;
+      }
+    }
+    function unary() {
+      if (peek() && peek().t === "-") { next(); return { type: "neg", v: unary() }; }
+      if (peek() && peek().t === "+") { next(); return unary(); }
+      return pow();
+    }
+    function pow() {
+      const n = primary();
+      if (peek() && peek().t === "^") { next(); return { type: "bin", op: "^", l: n, r: unary() }; }
+      return n;
+    }
+    function primary() {
+      const tk = next();
+      if (!tk) throw new Error("The expression ends too early.");
+      if (tk.t === "num") return { type: "num", v: tk.v };
+      if (tk.t === "(") { const e = expr(); if (!peek() || next().t !== ")") throw new Error("A parenthesis isn't closed."); return e; }
+      if (tk.t === "id") {
+        const fn = tk.v.toLowerCase();
+        if (FUNCS[fn] && peek() && peek().t === "(") { next(); const a = expr(); if (!peek() || next().t !== ")") throw new Error("A parenthesis isn't closed."); return { type: "call", f: fn, a }; }
+        return { type: "var", name: tk.v };
+      }
+      throw new Error("Unexpected '" + tk.t + "'.");
+    }
+    if (!toks.length) throw new Error("Part of the equation is empty.");
+    const n = expr();
+    if (pos < toks.length) throw new Error("Couldn't read the equation near '" + (toks[pos].v !== undefined ? toks[pos].v : toks[pos].t) + "'.");
+    return n;
+  }
+  // "lhs = rhs" or just "lhs" (meaning lhs = 0) → AST of lhs − rhs
+  function parseEquation(str) {
+    const toks = tokenize(str), eqs = [];
+    toks.forEach((t, i) => { if (t.t === "=") eqs.push(i); });
+    if (eqs.length > 1) throw new Error("Use at most one '='.");
+    if (!eqs.length) return parseExprToks(toks);
+    return { type: "bin", op: "-", l: parseExprToks(toks.slice(0, eqs[0])), r: parseExprToks(toks.slice(eqs[0] + 1)) };
+  }
+  // map what a student types to a canonical force symbol: F_AE, FAE, F_EA, F_{AE} → F_AE; A_x, Ax → Ax
+  function canonSym(name) {
+    const k = name.replace(/[_{}]/g, "").toUpperCase();
+    if (k.length === 3 && k[0] === "F") {
+      const m = MEMBERS.find(mm => mm === k.slice(1) || mm === k[2] + k[1]);
+      if (m) return "F_" + m;
+    }
+    const r = [PX, PY, RY, RX].find(q => q.toUpperCase() === k);
+    if (r) return r;
+    return null;
+  }
+  function collectVars(ast, out) {
+    if (ast.type === "var") out.add(ast.name);
+    else if (ast.type === "neg") collectVars(ast.v, out);
+    else if (ast.type === "call") collectVars(ast.a, out);
+    else if (ast.type === "bin") { collectVars(ast.l, out); collectVars(ast.r, out); }
+    return out;
+  }
+  function evalAst(ast, env) {
+    switch (ast.type) {
+      case "num": return ast.v;
+      case "var": return env[canonSym(ast.name)];
+      case "neg": return -evalAst(ast.v, env);
+      case "call": return FUNCS[ast.f](evalAst(ast.a, env));
+      case "bin": {
+        const a = evalAst(ast.l, env), b = evalAst(ast.r, env);
+        if (ast.op === "+") return a + b;
+        if (ast.op === "-") return a - b;
+        if (ast.op === "*") return a * b;
+        if (ast.op === "/") return a / b;
+        return Math.pow(a, b);
+      }
+    }
+    return NaN;
+  }
+  // reduce a linear expression to { constant "1": c0, symbol: coefficient }; null if not linear
+  function linearCoefs(ast, syms) {
+    const rnd = () => 1 + Math.random() * 4;
+    const base = {}; syms.forEach(s => { base[s] = rnd(); });
+    const f0 = evalAst(ast, base), co = {};
+    if (!isFinite(f0)) return null;
+    let c0 = f0;
+    for (const s of syms) {
+      const e = Object.assign({}, base); e[s] += 1;
+      co[s] = evalAst(ast, e) - f0;
+      c0 -= co[s] * base[s];
+    }
+    co["1"] = c0;
+    for (let t = 0; t < 4; t++) {
+      const e = {}; syms.forEach(s => { e[s] = rnd() * (Math.random() < 0.5 ? -3 : 3); });
+      const v = evalAst(ast, e);
+      let lin = c0; syms.forEach(s => { lin += co[s] * e[s]; });
+      const scale = 1 + Math.abs(v) + Math.abs(lin);
+      if (!isFinite(v) || Math.abs(v - lin) > 1e-7 * scale) return null;
+    }
+    Object.keys(co).forEach(k => { if (Math.abs(co[k]) < 1e-9) co[k] = 0; });
+    return co;
+  }
+
+  /* ---------- Part 3: what the equation must be, built from the student's own FBD ---------- */
+  function mathUnit(j, m) { const u = unit(j, m); return [u[0], -u[1]]; } // y up
+  function expectedEq(j, axis) {
+    const st = state.fbd[j], ix = axis === "x" ? 0 : 1;
+    const E = {}, Z = {}, info = {};
+    membersAt(j).forEach(m => {
+      const s = st.m[m], c = mathUnit(j, m)[ix], sym = "F_" + m;
+      info[sym] = { kind: "member", m, state: s, comp: c };
+      if (Math.abs(c) < 1e-9) return;
+      if (s === "0") Z[sym] = Math.abs(c);
+      else if (s === "T") E[sym] = c;
+      else if (s === "C") E[sym] = -c;
+    });
+    st.ext.forEach(x => {
+      if (!x.dir || !x.label) return;
+      const d = DIRS[x.dir], c = ix === 0 ? d[0] : -d[1];
+      if (x.label.indexOf("kN") >= 0) {
+        if (c) E["1"] = (E["1"] || 0) + c * parseFloat(x.label);
+        info["1"] = { kind: "load", label: x.label, dir: x.dir };
+      } else {
+        info[x.label] = { kind: "reaction", dir: x.dir, comp: c };
+        if (c) E[x.label] = c;
+      }
+    });
+    return { E, Z, info };
+  }
+
+  const AX_WORD = { x: "horizontal (x)", y: "vertical (y)" };
+  function dirWords(v) {
+    const h = v[0] > 0.1 ? "to the right" : v[0] < -0.1 ? "to the left" : "";
+    const vv = v[1] > 0.1 ? "up" : v[1] < -0.1 ? "down" : "";
+    return vv && h ? vv + " and " + h : (vv || h);
+  }
+  function senseDesc(j, sym, info) {
+    const it = info[sym];
+    if (!it) return "";
+    if (it.kind === "member") {
+      const u = mathUnit(j, it.m), v = it.state === "C" ? [-u[0], -u[1]] : u;
+      return `On your FBD, ${sym} ${it.state === "C" ? "pushes toward" : "pulls away from"} joint ${j}, pointing ${dirWords(v)}.`;
+    }
+    if (it.kind === "reaction") return `On your FBD, ${sym} points ${it.dir}.`;
+    return `The ${it.label} load points ${it.dir}.`;
+  }
+
+  function gradeEquation(j, axis, text) {
+    const A = axis, msgs = [];
+    if (!text.trim()) return { ok: false, msgs: ["Enter an equation."] };
+    let ast;
+    try { ast = parseEquation(text); } catch (e) { return { ok: false, msgs: [e.message] }; }
+    const used = [...collectVars(ast, new Set())];
+    for (const name of used) {
+      if (/^kn$/i.test(name) || /^n$/i.test(name)) return { ok: false, msgs: [`Leave units out. Write loads as plain numbers in kN (for example, ${LOADS[0].mag} rather than ${LOADS[0].label}).`] };
+      const c = canonSym(name);
+      if (!c) return { ok: false, msgs: [`'${name}' isn't one of your force labels. Use the labels from your FBD, like F_${MEMBERS[0]}, ${PX}, ${PY} or ${RY}, and write loads as numbers.`] };
+      if (c === RX) return { ok: false, msgs: [`There is no ${RX}. The roller at ${ROLLER} only has the vertical reaction ${RY}.`] };
+    }
+    const syms = [...new Set(used.map(canonSym))];
+    const S = linearCoefs(ast, syms);
+    if (!S) return { ok: false, msgs: ["Each force should appear once to the first power, multiplied by a number (for example 0.8 F_AE or (4/5) F_AE). Check for a force multiplied by another force, or divided by one."] };
+    const { E, Z, info } = expectedEq(j, A);
+    const tol = 0.012; // ~1% so cos(37) ≈ 0.799 is accepted for 4/5
+    const eKeys = Object.keys(E).filter(k => Math.abs(E[k]) > 1e-9).sort((a, b) => (a === "1") - (b === "1"));
+    const close = (a, b, ref) => Math.abs(a - b) <= tol * ref;
+
+    // pick the scale factor k (student may multiply through by −1, 5, …) that matches the most terms
+    let k = null, bestCount = -1;
+    if (eKeys.length) {
+      eKeys.forEach(key => {
+        if (!S[key]) return;
+        const cand = S[key] / E[key];
+        const ref = Math.abs(cand);
+        const count = eKeys.filter(q => close(S[q] || 0, cand * E[q], ref * Math.max(1, Math.abs(E[q])))).length;
+        if (count > bestCount) { bestCount = count; k = cand; }
+      });
+    } else {
+      const zk = Object.keys(Z).find(q => S[q]);
+      if (zk) k = Math.abs(S[zk]) / Z[zk];
+    }
+    const nonzero = Object.keys(S).filter(q => S[q]);
+    if (!nonzero.length) {
+      const zs = Object.keys(Z);
+      return { ok: false, msgs: [zs.length
+        ? `This equation is the one that shows ${zs.join(" and ")} = 0, so write it with ${zs.length > 1 ? "those forces" : "that force"} in it rather than as 0 = 0.`
+        : "Your equation has no forces in it."] };
+    }
+    if (k === null) {
+      if (!eKeys.length) {
+        const zs = Object.keys(Z);
+        return { ok: false, msgs: [`Only ${zs.join(" and ")} ${zs.length > 1 ? "have" : "has"} a ${AX_WORD[A]} component at joint ${j}. Write the sum of ${A}-components using ${zs.length > 1 ? "those forces" : "that force"}.`] };
+      }
+      return { ok: false, msgs: [`None of the terms match your FBD. List every force on joint ${j} with a ${AX_WORD[A]} component and write each one's ${A}-component.`] };
+    }
+    // when no scale factor fits a majority of terms, we can't tell which sign is the wrong one
+    if (eKeys.length >= 2 && bestCount * 2 <= eKeys.length && eKeys.every(q => S[q] && close(Math.abs(S[q]), Math.abs(k * E[q]), Math.abs(k) * Math.max(1, Math.abs(E[q]))))) {
+      return { ok: false, msgs: ["The signs in this equation don't agree with each other. Compare each term with its arrow on your FBD: " +
+        eKeys.map(q => q === "1" ? `the ${info["1"].label} load points ${info["1"].dir}` : senseDesc(j, q, info).replace("On your FBD, ", "").replace(/\.$/, "")).join("; ") + "."] };
+    }
+    const ref = Math.abs(k);
+    const keys = new Set([...Object.keys(S), ...eKeys, ...Object.keys(Z)]);
+    keys.forEach(q => {
+      const s = S[q] || 0;
+      const label = q === "1" ? "The load term" : q;
+      if (q in E && Math.abs(E[q]) > 1e-9) {
+        const e = E[q] * k, r = ref * Math.max(1, Math.abs(E[q]));
+        if (close(s, e, r)) return;
+        if (!s) msgs.push(q === "1" ? `The applied load at joint ${j} is missing from this equation.` : `${q} is missing. It is on your FBD and has a ${AX_WORD[A]} component.`);
+        else if (close(s, -e, r)) msgs.push(`Check the sign of ${q === "1" ? "the load term" : "the " + q + " term"}. ${senseDesc(j, q, info)}`);
+        else if (q === "1") msgs.push(`The load term has the wrong size. Check the magnitude of the load at joint ${j}.`);
+        else if (info[q] && info[q].kind === "member" && Math.abs(Math.abs(info[q].comp) - 1) > 1e-6) {
+          const g = memberGeom(info[q].m);
+          msgs.push(`${q} has the wrong component size. Member ${info[q].m} runs ${fmt(g.dx)} m across and ${fmt(g.dy)} m vertically over a length of ${g.Ltxt} m, so its horizontal component is ${g.hx} of the force and its vertical component is ${g.hy}.`);
+        }
+        else msgs.push(`${q} has the wrong size. It lies along the ${A}-axis, so its whole magnitude counts.`);
+        return;
+      }
+      if (q in Z) {
+        if (!s || close(Math.abs(s), Z[q] * ref, ref)) return;
+        msgs.push(`${q} has the wrong component size for member ${q.slice(2)}. (It's zero-force, so you may also leave it out.)`);
+        return;
+      }
+      if (!s) return;
+      if (q === "1") { msgs.push(`There's a constant (load) term, but no applied load acts in the ${A}-direction at joint ${j}.`); return; }
+      const it = info[q];
+      if (it && it.kind === "member") msgs.push(`${q} has no ${AX_WORD[A]} component: member ${it.m} is ${A === "x" ? "vertical" : "horizontal"}.`);
+      else if (it && it.kind === "reaction") msgs.push(`${q} has no ${AX_WORD[A]} component: it points ${it.dir}.`);
+      else msgs.push(`${q} doesn't act on joint ${j}. Use only the forces on this joint's FBD.`);
+    });
+    return { ok: !msgs.length, msgs };
+  }
+
+  /* ---------- Part 3: UI ---------- */
+  const allEqPass = () => JOINTS.every(j => state.eqPass[j] && state.eqPass[j].x && state.eqPass[j].y);
+  function symbolsAt(j) {
+    const st = state.fbd[j], out = [];
+    membersAt(j).forEach(m => out.push({ s: "F_" + m, zero: st.m[m] === "0" }));
+    st.ext.forEach(x => { if (x.label && x.label.indexOf("kN") < 0) out.push({ s: x.label }); });
+    return out;
+  }
+  function eqTabStatus(j) {
+    const p = state.eqPass[j];
+    if (!p) return "";
+    return p.x && p.y ? " ok" : (p.x === false || p.y === false) ? " bad" : "";
+  }
+  function renderPart3() {
+    const unlocked = state.consistent;
+    document.getElementById("p3-locked").hidden = unlocked;
+    document.getElementById("p3-body").hidden = !unlocked;
+    if (!unlocked) { renderReveal(); renderPart4(); return; }
+    if (!JOINTS.includes(state.cur3)) state.cur3 = "A";
+    const j = state.cur3;
+    const tabs = document.getElementById("eq-tabs");
+    tabs.innerHTML = "";
+    JOINTS.forEach(q => {
+      const b = document.createElement("button");
+      b.className = "joint-tab" + (q === j ? " active" : "") + eqTabStatus(q);
+      b.innerHTML = `<span class="dot"></span>Joint ${q}`;
+      b.addEventListener("click", () => { state.cur3 = q; save(); renderPart3(); });
+      tabs.appendChild(b);
+    });
+    drawFBD(document.getElementById("eq-fbd"), j, false);
+    document.getElementById("eq-fbd-title").textContent = "Your FBD · Joint " + j;
+    const chips = document.getElementById("sym-chips");
+    chips.innerHTML = "";
+    symbolsAt(j).forEach(({ s, zero }) => {
+      const b = document.createElement("button");
+      b.className = "sym-chip" + (zero ? " zero" : "");
+      b.textContent = s;
+      b.title = zero ? "Zero-force member" : "Insert " + s;
+      b.addEventListener("mousedown", e => e.preventDefault()); // keep focus in the equation box
+      b.addEventListener("click", () => insertSym(s));
+      chips.appendChild(b);
+    });
+    ["x", "y"].forEach(a => {
+      const inp = document.getElementById("eq-" + a);
+      inp.value = state.eq[j][a];
+      document.getElementById("zero-" + a).hidden = inp.value.includes("=");
+      const p = state.eqPass[j] && state.eqPass[j][a];
+      const chk = document.getElementById("chk-" + a), msg = document.getElementById("msg-" + a);
+      chk.className = "chk " + (p === true ? "ok" : p === false ? "bad" : "neutral");
+      chk.textContent = p === true ? "✓" : p === false ? "✗" : "·";
+      if (p !== false) { msg.className = "eq-msg"; msg.textContent = ""; }
+    });
+    renderReveal();
+    renderPart4();
+  }
+  let lastEqInput = "x";
+  function insertSym(s) {
+    const inp = document.getElementById("eq-" + lastEqInput);
+    const a = inp.selectionStart ?? inp.value.length, b = inp.selectionEnd ?? inp.value.length;
+    const before = inp.value.slice(0, a), pad = before && !/[\s(+\-*/=]$/.test(before) ? " + " : "";
+    inp.value = before + pad + s + inp.value.slice(b);
+    const pos = (before + pad + s).length;
+    inp.focus(); inp.setSelectionRange(pos, pos);
+    inp.dispatchEvent(new Event("input"));
+  }
+  ["x", "y"].forEach(a => {
+    const inp = document.getElementById("eq-" + a);
+    inp.addEventListener("focus", () => { lastEqInput = a; });
+    inp.addEventListener("input", () => {
+      const j = state.cur3;
+      state.eq[j][a] = inp.value;
+      document.getElementById("zero-" + a).hidden = inp.value.includes("=");
+      if (state.eqPass[j]) delete state.eqPass[j][a];
+      const chk = document.getElementById("chk-" + a);
+      chk.className = "chk neutral"; chk.textContent = "·";
+      save();
+    });
+    inp.addEventListener("keydown", e => { if (e.key === "Enter") checkEqs(state.cur3, true); });
+  });
+  function checkEqs(j, show) {
+    const res = {};
+    state.eqPass[j] = state.eqPass[j] || {};
+    ["x", "y"].forEach(a => {
+      const r = gradeEquation(j, a, state.eq[j][a] || "");
+      state.eqPass[j][a] = r.ok;
+      res[a] = r;
+    });
+    save();
+    renderPart3();
+    if (show) ["x", "y"].forEach(a => {
+      const msg = document.getElementById("msg-" + a), r = res[a];
+      msg.className = "eq-msg " + (r.ok ? "ok" : "bad");
+      msg.textContent = r.ok ? "Matches your FBD." : r.msgs.join(" ");
+    });
+    return res;
+  }
+  document.getElementById("btn-check-eq").addEventListener("click", () => checkEqs(state.cur3, true));
+  document.getElementById("btn-check-all-eq").addEventListener("click", () => {
+    const items = [];
+    JOINTS.forEach(j => {
+      const r = checkEqs(j, j === state.cur3);
+      const bad = ["x", "y"].filter(a => !r[a].ok).map(a => "ΣF" + a);
+      if (bad.length) items.push(["bad", `Joint ${j}: ${bad.join(" and ")} ${bad.length > 1 ? "need" : "needs"} work.`]);
+    });
+    if (!items.length) items.push(["ok", `All ${NEQ} equilibrium equations match your free-body diagrams. ${NEQ} equations, ${NUNK} unknowns (${MEMBERS.length} member forces + ${listAnd(REACTS)}): the truss is statically determinate.`]);
+    showFeedback(document.getElementById("eq-all-feedback"), items);
+    renderPart3();
+  });
+
+
+  /* ---------- Part 4: can you start solving? ---------- */
+  const VERT_LOAD = LOADS.reduce((t, L) => t - L.f[1], 0);
+  const P4_Q2 = [
+    ["reactions", `The support reactions ${listAnd(REACTS)}`],
+    ["AB", `The force in member ${membersAt(PIN)[0]}, since it connects the pin to the rest of the truss`],
+    ["angles", "The angles of the diagonal members"],
+    ["indeterminate", "Nothing will help: there are more unknowns than equations, so the truss is statically indeterminate"]
+  ];
+  const P4_Q3 = [
+    ["whole", `Treat the entire truss as one rigid body and apply ΣFx = 0, ΣFy = 0 and ΣM = 0 about a point (for example, about ${PIN})`],
+    ["jointA", `Solve joint ${PIN}'s two equations for ${PX} and ${PY}`],
+    ["half", `Each support carries half of the total vertical load, so ${PY} = ${RY} = ${fmt(VERT_LOAD / 2)} kN`],
+    ["zfm", "Use more zero-force member rules until every member is found"]
+  ];
+  // why a joint can't be the starting point (before or after the reactions are known)
+  function whyNotStart(j, reactionsKnown) {
+    const unk = jointUnknowns(j, reactionsKnown), zs = membersAt(j).filter(m => m in ZERO);
+    if (!unk.length) return `Joint ${j} only involves the zero-force member${zs.length > 1 ? "s" : ""} ${listAnd(zs)}, so it tells you nothing about the other forces.`;
+    const useful = usefulEquations(j, unk), lead = zs.length ? `Even with ${listAnd(zs.map(m => "F_" + m))} = 0, joint ${j}'s` : `Joint ${j}'s`;
+    if (unk.length <= 2 && useful < unk.length) return `Joint ${j} gives no values. Its equations contain ${unk.length} unknowns (${listAnd(unk)}) but only ${useful} useful equation, so they only relate the unknowns to each other.`;
+    return `${lead} equations contain ${unk.length} unknowns (${listAnd(unk)}) but there are only two equations.`;
+  }
+  function prettyEq(t) {
+    const esc = t.trim().replace(/[&<>]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;" }[c]));
+    const body = esc.replace(/[A-Za-z_][A-Za-z0-9_{}]*/g, w => {
+      const c = canonSym(w);
+      if (!c) return w;
+      return c[0] === "F" ? "F<sub>" + c.slice(2) + "</sub>" : c[0] + "<sub>" + c[1] + "</sub>";
+    }).replace(/\*/g, "·").replace(/-/g, "−");
+    return body + (t.includes("=") ? "" : " = 0");
+  }
+  function buildRadios(id, name, opts) {
+    const wrap = document.getElementById(id);
+    wrap.innerHTML = "";
+    opts.forEach(([v, lab]) => {
+      const l = document.createElement("label");
+      l.className = "opt";
+      l.innerHTML = `<input type="radio" name="${name}" value="${v}"> <span>${lab}</span>`;
+      wrap.appendChild(l);
+    });
+  }
+  buildRadios("p4-q2", "p4q2", P4_Q2);
+  buildRadios("p4-q3", "p4q3", P4_Q3);
+  ["p4-q1joint", "p4-q4"].forEach(id => {
+    const s = document.getElementById(id);
+    JOINTS.forEach(j => { const o = document.createElement("option"); o.value = j; o.textContent = "Joint " + j; s.appendChild(o); });
+  });
+
+  function p4Unlocked() { return state.consistent && allEqPass(); }
+  function renderPart4() {
+    const un = p4Unlocked();
+    document.getElementById("p4-locked").hidden = un;
+    document.getElementById("p4-body").hidden = !un;
+    if (!un) { renderPart5(); return; }
+    const cards = document.getElementById("eq-cards");
+    cards.innerHTML = "";
+    JOINTS.forEach(j => {
+      const c = document.createElement("div");
+      c.className = "eq-card";
+      c.innerHTML = `<h4>Joint ${j}</h4>` + ["x", "y"].map(a =>
+        `<div class="eqn"><span class="ax">ΣF<sub>${a}</sub>:</span>${prettyEq(state.eq[j][a])}</div>`).join("");
+      cards.appendChild(c);
+    });
+    const p = state.p4;
+    document.querySelectorAll('input[name="p4q1"]').forEach(r => { r.checked = r.value === p.q1; });
+    document.querySelectorAll('input[name="p4q2"]').forEach(r => { r.checked = r.value === p.q2; });
+    document.querySelectorAll('input[name="p4q3"]').forEach(r => { r.checked = r.value === p.q3; });
+    document.getElementById("p4-q1joint").value = p.q1joint;
+    document.getElementById("p4-q4").value = p.q4;
+    document.getElementById("p4-reflect").value = p.reflect;
+    document.getElementById("p4-yes").hidden = p.q1 !== "yes";
+    document.getElementById("p4-no").hidden = p.q1 !== "no";
+    renderPart5();
+  }
+  function p4Changed() {
+    state.p4.pass = false;
+    save();
+    renderPart4();
+    renderReveal();
+  }
+  [["p4q1", "q1"], ["p4q2", "q2"], ["p4q3", "q3"]].forEach(([name, key]) => {
+    document.querySelectorAll(`input[name="${name}"]`).forEach(r => r.addEventListener("change", () => { state.p4[key] = r.value; p4Changed(); }));
+  });
+  document.getElementById("p4-q1joint").addEventListener("change", e => { state.p4.q1joint = e.target.value; p4Changed(); });
+  document.getElementById("p4-q4").addEventListener("change", e => { state.p4.q4 = e.target.value; p4Changed(); });
+  document.getElementById("p4-reflect").addEventListener("input", e => { state.p4.reflect = e.target.value; save(); });
+
+  function setMsg(id, ok, t) { const m = document.getElementById(id); m.className = "q-msg " + (ok ? "ok" : "bad"); m.textContent = t; }
+  function gradePart4(show) {
+    const p = state.p4;
+    ["p4-msg1", "p4-msg2", "p4-msg3", "p4-msg4"].forEach(id => { const m = document.getElementById(id); m.textContent = ""; m.className = "q-msg"; });
+    let ok = true;
+    if (!p.q1) { ok = false; if (show) setMsg("p4-msg1", false, "Choose an answer."); }
+    else if (p.q1 === "yes") {
+      ok = false;
+      if (show) setMsg("p4-msg1", false, p.q1joint
+        ? whyNotStart(p.q1joint, false) + " To solve at a joint you need no more than two unknowns and two useful equations. Check whether any joint qualifies."
+        : "Pick the joint you would start at, then check again.");
+    } else {
+      if (show) setMsg("p4-msg1", true, "Correct. Every joint has more unknowns than its equations can determine, so you can't start yet.");
+      const q2 = { reactions: [true, `Correct. The reactions appear in the equations at ${PIN} and ${ROLLER}, and those are the joints that could otherwise be solved first.`],
+        AB: [false, `F_${membersAt(PIN)[0]} is one of the unknowns, but you can't find it without first knowing the reactions at ${PIN}. What else is unknown at the supports?`],
+        angles: [false, "The angles are already known from the geometry (the dimensions on the drawing). The missing information is a set of unknown forces."],
+        indeterminate: [false, `Count again: ${NEQ} equations and ${NUNK} unknowns (${MEMBERS.length} member forces plus ${listAnd(REACTS)}). The truss is statically determinate; you just can't start the solution at a joint.`] }[p.q2];
+      if (!q2) { ok = false; if (show) setMsg("p4-msg2", false, "Choose an answer."); }
+      else { ok = ok && q2[0]; if (show) setMsg("p4-msg2", q2[0], q2[1]); }
+      const q3 = { whole: [true, `Correct. The whole truss is a rigid body with only three unknown external reactions, which its three equilibrium equations can solve. Taking moments about ${PIN} gives ${RY} directly.`],
+        jointA: [false, `Joint ${PIN}'s equations also contain ${listAnd(jointUnknowns(PIN, true))}, so there are more unknowns than equations. You need a free-body diagram where the member forces don't appear.`],
+        half: [false, "That is only true when the loads are placed symmetrically between the supports. These loads aren't, so the supports don't share the load equally. Use moment equilibrium."],
+        zfm: [false, "There are no more zero-force members to find, and inspection rules never give the reactions."] }[p.q3];
+      if (!q3) { ok = false; if (show) setMsg("p4-msg3", false, "Choose an answer."); }
+      else { ok = ok && q3[0]; if (show) setMsg("p4-msg3", q3[0], q3[1]); }
+      if (!p.q4) { ok = false; if (show) setMsg("p4-msg4", false, "Choose a joint."); }
+      else {
+        const q4j = p.q4, rk = reactsAt(q4j);
+        const r = START_JOINTS.includes(q4j)
+          ? [true, `Correct. With ${listAnd(rk)} known, joint ${q4j} has only ${jointUnknowns(q4j, true).length} unknowns, ${listAnd(jointUnknowns(q4j, true))}, and two equations.`]
+          : [false, whyNotStart(q4j, true) + (rk.length || !jointUnknowns(q4j, true).length || usefulEquations(q4j, jointUnknowns(q4j, true)) < jointUnknowns(q4j, true).length ? "" : " Knowing the reactions doesn't change that, because this joint has no support.")];
+        ok = ok && r[0];
+        if (show) setMsg("p4-msg4", r[0], r[1]);
+      }
+    }
+    p.pass = ok;
+    return ok;
+  }
+  document.getElementById("btn-check-p4").addEventListener("click", () => {
+    const ok = gradePart4(true);
+    showFeedback(document.getElementById("p4-feedback"), ok
+      ? [["ok", `Part 4 complete. Next step: draw an FBD of the entire truss, find ${listAnd(REACTS)}, then work joint by joint starting at ${START_JOINTS.join(" or ")}.`],
+         ["note", `Strictly speaking, all ${NEQ} equations together have ${NUNK} unknowns and could be solved at once as a matrix system. By hand, though, the method of joints needs a joint with at most two unknowns, and none exists until the reactions are known.`]]
+      : [["bad", "Not quite yet. See the notes under each question."]]);
+    save();
+    renderPart5();
+  });
+
+
+  /* ---------- Part 5: support reactions ---------- */
+  const REACT_LABELS = [PX, PY, RX, RY];
+  // value inputs for the three reactions
+  (() => {
+    const grid = document.getElementById("p5-val-grid");
+    REACTS.forEach(r => {
+      const d = document.createElement("div");
+      d.className = "eq-line";
+      d.innerHTML = `<span class="eq-lab">${sub(r)} =</span><input type="text" id="p5-val-${r}" autocomplete="off" aria-label="Magnitude of ${r} in kN"><span class="eq-zero">kN</span>` +
+        `<select id="p5-dir-${r}" aria-label="Direction of ${r}"><option value="">direction…</option>${(r[1] === "x" ? ["right", "left"] : ["up", "down"]).map(k => `<option value="${k}">${DIR_TXT[k]}</option>`).join("")}</select>` +
+        `<span class="chk neutral" id="p5-vchk-${r}">&middot;</span>`;
+      grid.appendChild(d);
+    });
+  })();
+  const p5Unlocked = () => p4Unlocked() && state.p4.pass;
+  const vecUp = dir => [DIRS[dir][0], -DIRS[dir][1]]; // y up
+  // moment point for the whole-truss equation: a joint, or any point the student types (m, measured from the pin)
+  function pivotXY() {
+    const p = state.p5;
+    if (!p.pivot) return null;
+    if (p.pivot !== "pt") return J[p.pivot];
+    const x = evalNumber(p.pt.x), y = evalNumber(p.pt.y);
+    return isFinite(x) && isFinite(y) ? [x, y] : null;
+  }
+  const pivName = () => (!state.p5.pivot ? "(no point chosen)" : state.p5.pivot === "pt" ? `the point (${fmt(evalNumber(state.p5.pt.x))}, ${fmt(evalNumber(state.p5.pt.y))})` : state.p5.pivot);
+  function drawPivotRing(svg) {
+    const q = pivotXY();
+    if (!q) return;
+    const x = X0 + q[0] * S, y = Y0 - q[1] * S;
+    el("circle", { cx: x, cy: y, r: 14, class: "s-pivot" }, svg);
+    el("circle", { cx: x, cy: y, r: 4, class: "s-pivot" }, svg);
+  }
+  const p5Dir = lab => { const x = state.p5.ext.find(e => e.label === lab); return x && x.dir; };
+  const jointDir = (j, lab) => { const x = state.fbd[j].ext.find(e => e.label === lab); return x && x.dir; };
+
+  function renderPart5() {
+    const un = p5Unlocked(), p = state.p5;
+    document.getElementById("p5-locked").hidden = un;
+    document.getElementById("p5-body").hidden = !un;
+    if (!un) { renderPart6(); return; }
+    drawTruss(document.getElementById("whole-fbd"), { ghost: true, reactions: p.ext });
+    if (p.fbdPass) drawPivotRing(document.getElementById("whole-fbd"));
+    const ec = document.getElementById("p5-ext");
+    ec.innerHTML = "";
+    if (!p.ext.length) ec.innerHTML = '<div class="empty-note" style="margin-bottom:8px">No reactions drawn yet.</div>';
+    p.ext.forEach((x, i) => {
+      const row = document.createElement("div");
+      row.className = "ext-row";
+      const ls = document.createElement("select");
+      ls.setAttribute("aria-label", "Reaction");
+      ls.innerHTML = '<option value="">reaction…</option>' + REACT_LABELS.map(l => `<option value="${l}">${l} (at ${l[0]})</option>`).join("");
+      ls.value = x.label || "";
+      ls.addEventListener("change", () => { x.label = ls.value; p5FbdChanged(); });
+      const ds = document.createElement("select");
+      ds.setAttribute("aria-label", "Direction");
+      ds.innerHTML = '<option value="">direction…</option>' + Object.keys(DIRS).map(k => `<option value="${k}">${DIR_TXT[k]}</option>`).join("");
+      ds.value = x.dir || "";
+      ds.addEventListener("change", () => { x.dir = ds.value; p5FbdChanged(); });
+      const rm = document.createElement("button");
+      rm.className = "x-btn"; rm.textContent = "Remove";
+      rm.addEventListener("click", () => { p.ext.splice(i, 1); p5FbdChanged(); });
+      row.append(ls, ds, rm);
+      ec.appendChild(row);
+    });
+    document.getElementById("btn-p5-add").disabled = p.ext.length >= 4;
+
+    document.getElementById("p5b-locked").hidden = p.fbdPass;
+    document.getElementById("p5b-body").hidden = !p.fbdPass;
+    const piv = document.getElementById("p5-pivot");
+    if (!piv.options.length) {
+      const o0 = document.createElement("option"); o0.value = ""; o0.textContent = "choose a point…"; piv.appendChild(o0);
+      JOINTS.forEach(j => { const o = document.createElement("option"); o.value = j; o.textContent = "joint " + j; piv.appendChild(o); });
+      const o = document.createElement("option"); o.value = "pt"; o.textContent = "another point…"; piv.appendChild(o);
+    }
+    piv.value = p.pivot;
+    document.getElementById("p5-piv-sub").textContent = p.pivot === "pt" ? "P" : p.pivot;
+    document.getElementById("p5-mline").hidden = !p.pivot;
+    document.getElementById("p5-pt").hidden = p.pivot !== "pt";
+    ["x", "y"].forEach(a => { const i = document.getElementById("p5-pt-" + a); if (i.value !== p.pt[a]) i.value = p.pt[a]; });
+    ["x", "y", "m"].forEach(a => {
+      const inp = document.getElementById("p5-eq-" + a);
+      inp.value = p.eq[a];
+      document.getElementById("p5-zero-" + a).hidden = inp.value.includes("=");
+      const ok = p.eqPass[a], chk = document.getElementById("p5-chk-" + a);
+      chk.className = "chk " + (ok === true ? "ok" : ok === false ? "bad" : "neutral");
+      chk.textContent = ok === true ? "✓" : ok === false ? "✗" : "·";
+    });
+    const eqOk = p.fbdPass && ["x", "y", "m"].every(a => p.eqPass[a]);
+    document.getElementById("p5c-locked").hidden = eqOk;
+    document.getElementById("p5c-body").hidden = !eqOk;
+    REACTS.forEach(r => {
+      document.getElementById("p5-val-" + r).value = p.val[r] || "";
+      document.getElementById("p5-dir-" + r).value = (p.dir || {})[r] || "";
+    });
+    document.getElementById("p5-reflect").value = p.reflect;
+    renderPart6();
+  }
+  function p5FbdChanged() {
+    const p = state.p5;
+    p.fbdPass = false; p.eqPass = {}; p.valPass = false;
+    document.getElementById("p5-fbd-feedback").innerHTML = "";
+    save();
+    renderPart5();
+  }
+  document.getElementById("btn-p5-add").addEventListener("click", () => { state.p5.ext.push({ dir: "", label: "" }); p5FbdChanged(); });
+
+  function gradeWholeFBD() {
+    const msgs = [], seen = {};
+    state.p5.ext.forEach(x => {
+      if (!x.dir || !x.label) { msgs.push("One reaction is missing a label or a direction. Finish it or remove it."); return; }
+      if (seen[x.label]) { msgs.push(`${x.label} is drawn more than once.`); return; }
+      seen[x.label] = true;
+      if (x.label === RX) { msgs.push(`There is no ${RX}. A roller only pushes perpendicular to the surface it rolls on.`); return; }
+      const horiz = x.label[1] === "x";
+      if (horiz !== (x.dir === "left" || x.dir === "right")) { msgs.push(`${x.label} is the ${horiz ? "horizontal" : "vertical"} component, so it should point ${horiz ? "left or right" : "up or down"}.`); return; }
+      const j = x.label[0], prev = jointDir(j, x.label);
+      if (prev && prev !== x.dir) msgs.push(`On your joint ${j} FBD in Part 2, ${x.label} points ${prev}. It is the same support force, so draw it ${prev} here too (or change both).`);
+    });
+    REACTS.forEach(l => { if (!seen[l]) msgs.push(l === PX ? `${PX} is missing. The pin at ${PIN} can exert a horizontal force, so include it even if you suspect it is zero.` : `${l} is missing.`); });
+    return msgs;
+  }
+  document.getElementById("btn-p5-fbd").addEventListener("click", () => {
+    const msgs = gradeWholeFBD(), p = state.p5;
+    p.fbdPass = !msgs.length;
+    const items = msgs.map(t => ["bad", t]);
+    if (p.fbdPass) items.push(["ok", "Whole-truss FBD complete."],
+      ["note", "No member forces appear here. Each member pulls (or pushes) equally and oppositely on the two joints it connects, so inside a single body made of the whole truss they cancel in pairs. Only external forces remain: three unknown reactions, which three equilibrium equations can solve."]);
+    save();
+    renderPart5();
+    showFeedback(document.getElementById("p5-fbd-feedback"), items);
+  });
+
+  // expected linear form for the whole truss, built from the student's reaction directions
+  function expectedWhole(kind) {
+    const E = {}, piv = pivotXY() || [0, 0]; // force equations don't use the point; ΣM is refused earlier when it's missing
+    REACTS.forEach(r => {
+      const d = p5Dir(r); if (!d) return;
+      const v = vecUp(d), pos = J[r[0]];
+      if (kind === "x") E[r] = v[0];
+      else if (kind === "y") E[r] = v[1];
+      else E[r] = (pos[0] - piv[0]) * v[1] - (pos[1] - piv[1]) * v[0];
+    });
+    let c = 0;
+    LOADS.forEach(L => {
+      const rx = J[L.at][0] - piv[0], ry = J[L.at][1] - piv[1];
+      if (kind === "x") c += L.f[0];
+      else if (kind === "y") c += L.f[1];
+      else c += rx * L.f[1] - ry * L.f[0];
+    });
+    E["1"] = c;
+    Object.keys(E).forEach(q => { if (Math.abs(E[q]) < 1e-9) E[q] = 0; });
+    return E;
+  }
+  // find the overall scale factor k and list the terms that disagree
+  function matchLinear(S, E) {
+    // "1" (the constant) sorts first in JS key order; put it last so ties are broken by the force terms
+    const tol = 0.012, eKeys = Object.keys(E).filter(q => E[q]).sort((a, b) => (a === "1") - (b === "1"));
+    const close = (a, b, r) => Math.abs(a - b) <= tol * r;
+    let k = null, best = -1;
+    eKeys.forEach(q => {
+      if (!S[q]) return;
+      const c = S[q] / E[q];
+      const n = eKeys.filter(p => close(S[p] || 0, c * E[p], Math.abs(c) * Math.max(1, Math.abs(E[p])))).length;
+      if (n > best) { best = n; k = c; }
+    });
+    if (k === null) return { k: null, issues: [] };
+    const issues = [];
+    new Set([...Object.keys(S).filter(q => S[q]), ...eKeys]).forEach(q => {
+      const s = S[q] || 0;
+      if (eKeys.includes(q)) {
+        const e = k * E[q], r = Math.abs(k) * Math.max(1, Math.abs(E[q]));
+        if (close(s, e, r)) return;
+        issues.push({ q, type: !s ? "missing" : close(s, -e, r) ? "sign" : "size" });
+      } else issues.push({ q, type: "extra" });
+    });
+    const ambiguous = eKeys.length >= 2 && best * 2 <= eKeys.length && issues.length && issues.every(i => i.type === "sign");
+    return { k, issues, ambiguous };
+  }
+  function gradeWholeEq(kind, text) {
+    if (kind === "m" && !state.p5.pivot) return { ok: false, msgs: ["Choose a point to take moments about, then write the moment equation."] };
+    if (!text.trim()) return { ok: false, msgs: ["Enter an equation."] };
+    let ast;
+    try { ast = parseEquation(text); } catch (e) { return { ok: false, msgs: [e.message] }; }
+    const used = [...collectVars(ast, new Set())];
+    for (const name of used) {
+      if (/^(kn|n|m|kNm|knm)$/i.test(name)) return { ok: false, msgs: ["Leave units out. Write forces in kN and distances in m as plain numbers."] };
+      const c = canonSym(name);
+      if (c && c[0] === "F") return { ok: false, msgs: [`${c} is a member force. Member forces are internal to the whole truss and cancel in pairs, so only ${listAnd(REACTS)} and the loads appear here.`] };
+      if (c === RX) return { ok: false, msgs: [`There is no ${RX}. The roller at ${ROLLER} only has the vertical reaction ${RY}.`] };
+      if (!c) return { ok: false, msgs: [`'${name}' isn't one of the reaction labels. Use ${listAnd(REACTS)}, and plain numbers for loads and distances.`] };
+    }
+    const syms = [...new Set(used.map(canonSym))];
+    const S = linearCoefs(ast, syms);
+    if (!S) return { ok: false, msgs: ["Each reaction should appear to the first power, multiplied by a number. Check for one reaction multiplied by or divided by another."] };
+    if (!Object.keys(S).some(q => S[q])) return { ok: false, msgs: ["Your equation has no forces in it."] };
+    if (kind === "m" && !pivotXY()) return { ok: false, msgs: ["Enter both coordinates of your moment point (in m, measured from joint " + PIN + ")."] };
+    const E = expectedWhole(kind), P0 = pivName(), axis = kind === "x" ? "horizontal (x)" : "vertical (y)";
+    const { k, issues, ambiguous } = matchLinear(S, E);
+    if (k === null) return { ok: false, msgs: [kind === "m"
+      ? `None of the terms match your FBD. For each force, multiply its magnitude by its perpendicular distance from ${P0}.`
+      : `None of the terms match your FBD. Include every force on the whole truss that has a ${axis} component.`] };
+    if (ambiguous) return { ok: false, msgs: ["The signs in this equation don't agree with each other. Compare each term with its arrow on your FBD" + (kind === "m" ? ", and decide whether it turns the truss clockwise or counterclockwise about " + P0 + "." : ".")] };
+    const msgs = issues.map(({ q, type }) => {
+      const dir = q !== "1" ? p5Dir(q) : "";
+      if (kind !== "m") {
+        if (q === "1") {
+          const ax = kind === "x" ? 0 : 1, rel = LOADS.filter(L => L.f[ax]);
+          const desc = listAnd(rel.map(L => `the ${L.label} load points ${L.dir}`));
+          return type === "extra" ? `No applied load acts in the ${kind}-direction, so this equation shouldn't have a constant term.`
+            : type === "missing" ? "The applied loads are missing." : type === "sign" ? `Check the sign of the load term: ${desc}.` : `The load term has the wrong size. Include every applied load with a ${axis} component (${desc}).`;
+        }
+        if (type === "extra") return `${q} has no ${axis} component: it points ${dir}.`;
+        if (type === "missing") return `${q} is missing. It is on your FBD and has a ${axis} component.`;
+        if (type === "sign") return `Check the sign of ${q}. On your FBD it points ${dir}.`;
+        return `${q} has the wrong size. It acts along the ${kind}-axis, so its whole magnitude counts.`;
+      }
+      if (q === "1") return type === "missing" ? "The moments of the applied loads are missing."
+        : type === "sign" ? `Check the signs of the load moments. Decide whether each load turns the truss clockwise or counterclockwise about ${P0}.`
+        : type === "extra" ? `The loads' lines of action pass through ${P0}, so they have no moment about it.`
+        : `Check the load moments. Each is the load times the perpendicular distance from ${P0} to its line of action (horizontal distance for a vertical load, vertical distance for a horizontal one).`;
+      if (type === "extra") return `${q}'s line of action passes through ${P0}, so it has no moment about ${P0}.`;
+      if (type === "missing") return `${q} is missing. It has a moment about ${P0}.`;
+      if (type === "sign") return `Check the sign of the ${q} moment. ${q} points ${dir} at ${q[0]}, which turns the truss ${E[q] > 0 ? "counterclockwise" : "clockwise"} about ${P0}.`;
+      return `Check the moment arm for ${q}: it is the perpendicular distance from ${P0} to ${q}'s line of action.`;
+    });
+    return { ok: !msgs.length, msgs };
+  }
+  ["x", "y", "m"].forEach(a => {
+    const inp = document.getElementById("p5-eq-" + a);
+    inp.addEventListener("input", () => {
+      state.p5.eq[a] = inp.value;
+      delete state.p5.eqPass[a];
+      document.getElementById("p5-zero-" + a).hidden = inp.value.includes("=");
+      const chk = document.getElementById("p5-chk-" + a); chk.className = "chk neutral"; chk.textContent = "·";
+      save();
+    });
+    inp.addEventListener("keydown", e => { if (e.key === "Enter") checkWholeEqs(); });
+  });
+  ["x", "y"].forEach(a => document.getElementById("p5-pt-" + a).addEventListener("input", e => {
+    state.p5.pt[a] = e.target.value;
+    delete state.p5.eqPass.m;
+    const chk = document.getElementById("p5-chk-m"); chk.className = "chk neutral"; chk.textContent = "·";
+    save();
+    const svg = document.getElementById("whole-fbd");
+    svg.querySelectorAll(".s-pivot").forEach(n => n.remove());
+    drawPivotRing(svg);
+  }));
+  document.getElementById("p5-pivot").addEventListener("change", e => {
+    state.p5.pivot = e.target.value;
+    delete state.p5.eqPass.m;
+    save();
+    renderPart5();
+  });
+  function checkWholeEqs() {
+    const p = state.p5, res = {};
+    ["x", "y", "m"].forEach(a => { res[a] = gradeWholeEq(a, p.eq[a]); p.eqPass[a] = res[a].ok; });
+    if (!["x", "y", "m"].every(a => p.eqPass[a])) p.valPass = false;
+    save();
+    renderPart5();
+    ["x", "y", "m"].forEach(a => {
+      const m = document.getElementById("p5-msg-" + a);
+      m.className = "eq-msg " + (res[a].ok ? "ok" : "bad");
+      m.textContent = res[a].ok ? "Matches your FBD." : res[a].msgs.join(" ");
+    });
+  }
+  document.getElementById("btn-p5-eq").addEventListener("click", checkWholeEqs);
+
+  // true reactions (kN, x right / y up); the expected value is the component along the student's arrow
+  function evalNumber(t) {
+    if (!t.trim()) return NaN;
+    try {
+      const ast = parseEquation(t);
+      if (collectVars(ast, new Set()).size) return NaN;
+      return evalAst(ast, {});
+    } catch (e) { return NaN; }
+  }
+  REACTS.forEach(r => {
+    document.getElementById("p5-val-" + r).addEventListener("input", e => {
+      state.p5.val[r] = e.target.value;
+      if (state.p5.valPass) { state.p5.valPass = false; renderPart6(); }
+      const chk = document.getElementById("p5-vchk-" + r); chk.className = "chk neutral"; chk.textContent = "·";
+      save();
+    });
+  });
+  document.getElementById("p5-reflect").addEventListener("input", e => { state.p5.reflect = e.target.value; save(); });
+  REACTS.forEach(r => {
+    document.getElementById("p5-dir-" + r).addEventListener("change", e => {
+      state.p5.dir[r] = e.target.value;
+      if (state.p5.valPass) { state.p5.valPass = false; renderPart6(); }
+      const chk = document.getElementById("p5-vchk-" + r); chk.className = "chk neutral"; chk.textContent = "·";
+      save();
+    });
+  });
+  function reactWords(r) {
+    const v = REACT[r];
+    if (!v) return `${r} = 0`;
+    const w = r[1] === "x" ? (v > 0 ? "to the right" : "to the left") : (v > 0 ? "upward" : "downward");
+    return `${r} = ${fmt(Math.abs(v))} kN ${w}`;
+  }
+  function gradeValues() {
+    const msgs = [], ok = {};
+    const near = (a, b) => Math.abs(a - b) <= 0.02 + 0.005 * Math.abs(b);
+    REACTS.forEach(r => {
+      const t = state.p5.val[r] || "", v = evalNumber(t), mag = Math.abs(REACT[r]), d = (state.p5.dir || {})[r] || "";
+      ok[r] = false;
+      if (!t.trim()) { msgs.push(`Enter the magnitude of ${r}.`); return; }
+      if (!isFinite(v)) { msgs.push(`${r}: enter a number (or arithmetic such as 144/12), with no symbols or units.`); return; }
+      if (v < 0) { msgs.push(`${r}: report the magnitude as a positive number and show the sense by choosing its direction. A negative result from your equations means ${r} acts opposite to the arrow you drew.`); return; }
+      if (!near(v, mag)) {
+        if (r === PY) msgs.push(state.p5.pivot === PIN
+          ? `${PY} is off. Find ${RY} from ΣM_${PIN} first, then use ΣFy to get ${PY}.`
+          : `${PY} is off. Your moment equation about ${pivName()} contains more than one reaction, so solve it together with ΣFx and ΣFy.`);
+        else if (r === RY) msgs.push(state.p5.pivot === PIN
+          ? `${RY} is off. Solve your moment equation for ${RY}, and check each load's distance from your moment point.`
+          : `${RY} is off. Your moment equation about ${pivName()} also contains other reactions; solve it together with ΣFx and ΣFy, substituting what you find from those.`);
+        else msgs.push(`${PX} is off. Look at your ΣFx equation: what else acts horizontally?`);
+        return;
+      }
+      if (mag > 1e-9) {
+        const act = r[1] === "x" ? (REACT[r] > 0 ? "right" : "left") : (REACT[r] > 0 ? "up" : "down");
+        if (!d) { msgs.push(`The magnitude of ${r} is right. Now choose the direction it acts.`); return; }
+        if (d !== act) { msgs.push(`The magnitude of ${r} is right, but it doesn't act ${d}. Look at the sign your equations gave: your FBD arrow points ${p5Dir(r)}, and a negative value means the reaction acts the opposite way.`); return; }
+      }
+      ok[r] = true;
+    });
+    return { ok, pass: !msgs.length, msgs };
+  }
+  // a reported reaction as a signed value along the arrow on the student's whole-truss FBD (for later equations)
+  function reactAlongArrow(r) {
+    const v = evalNumber(state.p5.val[r] || ""), d = (state.p5.dir || {})[r];
+    if (!isFinite(v)) return NaN;
+    if (!v) return 0;
+    return d === p5Dir(r) ? v : -v;
+  }
+  document.getElementById("btn-p5-val").addEventListener("click", () => {
+    const g = gradeValues();
+    state.p5.valPass = g.pass;
+    REACTS.forEach(r => {
+      const chk = document.getElementById("p5-vchk-" + r);
+      chk.className = "chk " + (g.ok[r] ? "ok" : "bad"); chk.textContent = g.ok[r] ? "✓" : "✗";
+    });
+    const items = g.msgs.map(t => ["bad", t]);
+    if (g.pass) items.push(["ok", "Correct: " + REACTS.map(reactWords).join(", ") + "."],
+      ["note", `Check: the vertical reactions add to ${fmt(REACT[PY] + REACT[RY])} kN upward, matching the ${fmt(VERT_LOAD)} kN of downward load${LOADS.some(L => L.f[0]) ? `, and ${PX} balances the horizontal load` : ""}. With the reactions known, joint ${START_JOINTS.join(" (or " )}${START_JOINTS.length > 1 ? ")" : ""} has only two unknowns, so you can now work through the truss joint by joint.`]);
+    showFeedback(document.getElementById("p5-val-feedback"), items);
+    save();
+    renderPart6();
+  });
+
+
+  /* ---------- Part 6: member forces ---------- */
+  const RES_TXT = { T: "tension", C: "compression", Z: "zero-force" };
+  const p6Unlocked = () => p5Unlocked() && state.p5.valPass;
+  const senseOf = m => state.fbd[m[0]].m[m];
+  const actualRes = m => (m in ZERO ? "Z" : FORCE[m] > 0 ? "T" : "C");
+  // members in the order they can be found, then the zero-force members
+  const p6Order = SOLVE_STEPS.flatMap(st => st.unk).concat(MEMBERS.filter(m => m in ZERO));
+
+  function renderPart6() {
+    const un = p6Unlocked(), p = state.p6;
+    document.getElementById("p6-locked").hidden = un;
+    document.getElementById("p6-body").hidden = !un;
+    if (!un) { renderReveal(); return; }
+    const known = document.getElementById("p6-known");
+    known.innerHTML = REACTS.map(r => {
+      const words = reactWords(r).split(" = ");
+      return `<div class="given-chip">${sub(r)} = <b>${words[1]}</b></div>`;
+    }).join("") + `<div class="given-chip">Zero-force <b>${Object.keys(ZERO).map(m => "F<sub>" + m + "</sub>").join(" = ")} = 0</b></div>`;
+    const cards = document.getElementById("p6-eq-cards");
+    cards.innerHTML = "";
+    JOINTS.forEach(j => {
+      const c = document.createElement("div");
+      c.className = "eq-card";
+      c.innerHTML = `<h4>Joint ${j}</h4>` + ["x", "y"].map(a =>
+        `<div class="eqn"><span class="ax">ΣF<sub>${a}</sub>:</span>${prettyEq(state.eq[j][a])}</div>`).join("");
+      cards.appendChild(c);
+    });
+    const list = document.getElementById("mf-list");
+    if (!list.children.length) {
+      p6Order.forEach(m => {
+        const row = document.createElement("div");
+        row.className = "mf-row";
+        row.innerHTML = `<span class="mf-name">F<sub>${m}</sub></span><span class="mf-assume" id="mf-as-${m}"></span>
+          <span class="mf-val"><span class="mf-unit">=</span><input type="text" id="mf-v-${m}" autocomplete="off" aria-label="Magnitude of F_${m} in kN"><span class="mf-unit">kN</span></span>
+          <select id="mf-r-${m}" aria-label="Member ${m} is in"><option value="">member is in…</option><option value="T">tension</option><option value="C">compression</option><option value="Z">zero-force</option></select>
+          <span class="chk neutral" id="mf-c-${m}">·</span><div class="mf-msg" id="mf-m-${m}"></div>`;
+        list.appendChild(row);
+        row.querySelector("input").addEventListener("input", e => { state.p6.val[m] = e.target.value; p6Edited(m); });
+        row.querySelector("select").addEventListener("change", e => { state.p6.res[m] = e.target.value; p6Edited(m); });
+      });
+    }
+    p6Order.forEach(m => {
+      const s = senseOf(m);
+      document.getElementById("mf-as-" + m).textContent = s === "0" ? "marked 0 on your FBDs" : "your FBDs assume " + (s === "T" ? "tension" : "compression");
+      document.getElementById("mf-v-" + m).value = p.val[m] || "";
+      document.getElementById("mf-r-" + m).value = p.res[m] || "";
+    });
+    document.getElementById("p6-reflect").value = p.reflect;
+    renderReveal();
+  }
+  function p6Edited(m) {
+    const chk = document.getElementById("mf-c-" + m);
+    chk.className = "chk neutral"; chk.textContent = "·";
+    document.getElementById("mf-m-" + m).textContent = "";
+    if (state.p6.pass) { state.p6.pass = false; renderReveal(); }
+    save();
+  }
+  document.getElementById("p6-reflect").addEventListener("input", e => { state.p6.reflect = e.target.value; save(); });
+
+  function gradeMember(m) {
+    const t = state.p6.val[m] || "", r = state.p6.res[m] || "", v = evalNumber(t), s = senseOf(m);
+    const mag = m in ZERO ? 0 : Math.abs(FORCE[m]), act = actualRes(m), name = "F_" + m;
+    const near = (a, b) => Math.abs(a - b) <= 0.05 + 0.005 * Math.abs(b);
+    if (!t.trim()) return [false, `Enter the magnitude of ${name}.`];
+    if (!isFinite(v)) return [false, `${name}: enter a number (or arithmetic such as 9/0.6), with no symbols or units.`];
+    if (v < 0) return [false, `Report the magnitude of ${name} as a positive number and show its sense with tension or compression. A negative result from your equations means the member's sense is opposite to the one you assumed.`];
+    if (!near(v, mag)) return [false, m in ZERO
+      ? `${m} is a zero-force member (Part 1), so its magnitude is 0.`
+      : `The magnitude of ${name} is off. It can be found from joint ${SOLVE_AT[m]}; check the forces you substituted there.`];
+    if (!r) return [false, `Magnitude correct. Now say whether ${m} is in tension, in compression or zero-force.`];
+    if (r !== act) {
+      if (act === "Z") return [false, `${name} = 0, so member ${m} is zero-force.`];
+      const assumed = s === "T" ? "tension" : "compression";
+      return [false, act === s
+        ? `Magnitude correct, but check the sense. You assumed ${assumed}, and your equations give a positive value, so the assumption holds: ${m} is in ${assumed}.`
+        : `Magnitude correct, but check the sense. You assumed ${assumed}, and your equations give a negative value, so ${m} is actually in ${RES_TXT[act]}.`];
+    }
+    return [true, ""];
+  }
+  // a reported member force as a signed value along the sense assumed on the FBDs (for substituting into equations)
+  function memberAlongSense(m) {
+    const v = evalNumber(state.p6.val[m] || ""), r = state.p6.res[m];
+    if (!isFinite(v) || r === "Z" || m in ZERO) return isFinite(v) ? 0 : NaN;
+    return r === senseOf(m) ? v : -v;
+  }
+  function gradePart6() {
+    const res = {};
+    p6Order.forEach(m => { res[m] = gradeMember(m); });
+    return { res, pass: p6Order.every(m => res[m][0]) };
+  }
+  document.getElementById("btn-p6").addEventListener("click", () => {
+    const g = gradePart6();
+    state.p6.pass = g.pass;
+    p6Order.forEach(m => {
+      const [ok, msg] = g.res[m], chk = document.getElementById("mf-c-" + m);
+      chk.className = "chk " + (ok ? "ok" : "bad"); chk.textContent = ok ? "✓" : "✗";
+      document.getElementById("mf-m-" + m).textContent = msg;
+    });
+    const nOk = p6Order.filter(m => g.res[m][0]).length;
+    const items = [];
+    if (g.pass) {
+      items.push(["ok", `All ${MEMBERS.length} member forces are correct. The truss is solved.`]);
+      // substitute the student's own values into the equations of a joint the solving order never needed
+      const env = {};
+      p6Order.forEach(m => { env["F_" + m] = memberAlongSense(m); });
+      REACTS.forEach(r => { env[r] = reactAlongArrow(r); });
+      const resid = ["x", "y"].map(a => {
+        try {
+          const v = evalAst(parseEquation(state.eq[CHECK_JOINT][a]), env);
+          return `ΣF${a} at ${CHECK_JOINT} → ${Math.abs(v) < 0.05 ? "0" : v.toFixed(2)}${Math.abs(v) < 0.05 ? " ✓" : ""}`;
+        } catch (e) { return ""; }
+      }).filter(Boolean).join(", ");
+      items.push(["note", `Check with the equations you didn't need. Substituting your values into your joint ${CHECK_JOINT} equations gives ${resid}. Three of the ${NEQ + 3} equations were left over because you used the whole-truss equations to find the reactions.`]);
+    } else items.push(["bad", `${nOk} of ${MEMBERS.length} members correct. See the notes under each member.`]);
+    showFeedback(document.getElementById("p6-feedback"), items);
+    save();
+    renderReveal();
+  });
+
+  /* ---------- report ---------- */
+  function fnv1a(str) {
+    let h = 0x811c9dc5;
+    for (let i = 0; i < str.length; i++) { h ^= str.charCodeAt(i); h = Math.imul(h, 0x01000193); }
+    return (h >>> 0).toString(16).padStart(8, "0");
+  }
+  const nameEl = document.getElementById("student-name");
+  nameEl.value = state.name || "";
+  nameEl.addEventListener("input", () => { state.name = nameEl.value; save(); });
+
+  document.getElementById("btn-report").addEventListener("click", () => {
+    JOINTS.forEach(j => { state.pass[j] = !gradeJoint(j).length; });
+    const inc = consistencyIssues();
+    const cons = !inc.length && JOINTS.every(j => state.pass[j]);
+    const L = [];
+    L.push("TRUSS JOINT LAB — SUBMISSION REPORT");
+    L.push("Name: " + (state.name.trim() || "(name not entered)"));
+    L.push(`Truss: ${VI + 1} of ${TRUSSES.length}`);
+    L.push("Generated: " + new Date().toISOString());
+    L.push("");
+    const sel = MEMBERS.filter(m => state.zfm[m] !== undefined);
+    L.push("Part 1 — Zero-force members: " + (state.zfPass ? "PASS" : "incomplete"));
+    L.push("  Marked: " + (sel.length ? sel.map(m => `${m} (joint ${state.zfm[m] || "?"})`).join(", ") : "(none)"));
+    L.push("  Explanation:");
+    L.push("    " + (state.reflect.trim() || "(not answered)"));
+    L.push("");
+    L.push("Part 2 — Joint free-body diagrams:");
+    JOINTS.forEach(j => {
+      const st = state.fbd[j];
+      const ms = membersAt(j).map(m => `${fname(m)}:${st.m[m] || "—"}`).join(" ");
+      const ex = st.ext.map(x => `${x.label || "?"}${x.dir ? "(" + x.dir + ")" : ""}`).join(" ") || "none";
+      L.push(`  Joint ${j}: ${state.pass[j] ? "PASS" : "incomplete"}   [${ms} | ext: ${ex}]`);
+    });
+    L.push("  Newton's third-law consistency: " + (cons ? "PASS" : inc.length ? `${inc.length} mismatch(es)` : "incomplete"));
+    L.push("");
+    L.push("Part 3 — Joint equilibrium equations:" + (cons ? "" : " (locked until Part 2 passes)"));
+    let eqAll = cons;
+    JOINTS.forEach(j => {
+      ["x", "y"].forEach(a => {
+        const t = (state.eq[j][a] || "").trim();
+        const ok = cons && !!t && gradeEquation(j, a, t).ok;
+        if (!ok) eqAll = false;
+        L.push(`  Joint ${j} ΣF${a}: ${ok ? "PASS" : "incomplete"}   ${t ? t + (t.includes("=") ? "" : " = 0") : "(blank)"}`);
+      });
+    });
+    L.push("");
+    const p4 = state.p4, p4ok = cons && eqAll && gradePart4(false);
+    const optTxt = (list, v) => { const o = list.find(x => x[0] === v); return o ? o[1] : "(not answered)"; };
+    L.push("Part 4 — Can you start solving?: " + (p4ok ? "PASS" : "incomplete"));
+    L.push("  Q1 enough information to start?: " + (p4.q1 ? p4.q1.toUpperCase() + (p4.q1 === "yes" && p4.q1joint ? " (start at joint " + p4.q1joint + ")" : "") : "(not answered)"));
+    if (p4.q1 === "no") {
+      L.push("  Q2 what must be determined: " + optTxt(P4_Q2, p4.q2));
+      L.push("  Q3 how: " + optTxt(P4_Q3, p4.q3));
+      L.push("  Q4 first joint afterward: " + (p4.q4 || "(not answered)"));
+    }
+    L.push("  Reasoning:");
+    L.push("    " + (p4.reflect.trim() || "(not answered)"));
+    L.push("");
+    const p5 = state.p5, p5open = cons && eqAll && p4ok;
+    const p5fbd = p5open && !gradeWholeFBD().length;
+    const p5eq = {};
+    ["x", "y", "m"].forEach(a => { p5eq[a] = p5fbd && gradeWholeEq(a, p5.eq[a]).ok; });
+    const p5vals = p5fbd && ["x", "y", "m"].every(a => p5eq[a]) && gradeValues().pass;
+    L.push("Part 5 — Support reactions: " + (p5vals ? "PASS" : "incomplete"));
+    L.push("  Whole-truss FBD: " + (p5fbd ? "PASS" : "incomplete") + "   [" + (p5.ext.map(x => `${x.label || "?"}${x.dir ? "(" + x.dir + ")" : ""}`).join(" ") || "none") + "]");
+    [["x", "ΣFx"], ["y", "ΣFy"], ["m", "ΣM about " + pivName()]].forEach(([a, lab]) => {
+      const t = (p5.eq[a] || "").trim();
+      L.push(`  ${lab}: ${p5eq[a] ? "PASS" : "incomplete"}   ${t ? t + (t.includes("=") ? "" : " = 0") : "(blank)"}`);
+    });
+    L.push("  Values: " + REACTS.map(r => `${r} = ${(p5.val[r] || "—").trim()} kN ${(p5.dir || {})[r] || ""}`.trim()).join(", ") + (p5vals ? "  (PASS)" : ""));
+    L.push("  Reaction reflection:");
+    L.push("    " + (p5.reflect.trim() || "(not answered)"));
+    L.push("");
+    const p6 = state.p6, p6g = p5vals ? gradePart6() : null, p6ok = !!(p6g && p6g.pass);
+    L.push("Part 6 — Member forces: " + (p6ok ? "PASS" : "incomplete"));
+    p6Order.forEach(m => {
+      const ok = p6g && p6g.res[m][0];
+      L.push(`  F_${m} = ${(p6.val[m] || "—").trim()} kN, ${p6.res[m] ? RES_TXT[p6.res[m]] : "—"}${ok ? "  (PASS)" : ""}`);
+    });
+    L.push("  Unused equations / checks:");
+    L.push("    " + (p6.reflect.trim() || "(not answered)"));
+    L.push("");
+    L.push("Overall: " + (state.zfPass && cons && eqAll && p4ok && p5vals && p6ok ? "ALL CHECKS PASSED" : "INCOMPLETE"));
+    const body = L.join("\n");
+    document.getElementById("report-out").value = body + "\n\nIntegrity hash: " + fnv1a(body);
+    document.getElementById("copy-note").textContent = "";
+    save();
+    renderJointTabs();
+  });
+  document.getElementById("btn-copy").addEventListener("click", async () => {
+    const ta = document.getElementById("report-out"), note = document.getElementById("copy-note");
+    if (!ta.value) { note.textContent = "Generate a report first."; return; }
+    try { await navigator.clipboard.writeText(ta.value); note.textContent = "Copied."; }
+    catch (e) { ta.select(); note.textContent = "Text selected. Copy it manually."; }
+  });
+  let resetArmed = false;
+  document.getElementById("btn-reset").addEventListener("click", e => {
+    const note = document.getElementById("copy-note");
+    if (!resetArmed) { resetArmed = true; e.target.textContent = "Click again to erase all work"; note.textContent = ""; setTimeout(() => { resetArmed = false; e.target.textContent = "Start over"; }, 4000); return; }
+    // erase this truss's work and assign a different truss (a #truss-N preview keeps its truss)
+    try {
+      localStorage.removeItem(STORE_KEY);
+      if (VI === 0) localStorage.removeItem("truss-joint-lab-v1");
+      if (HASH_VI === null) {
+        const choices = TRUSSES.map((_, i) => i).filter(i => i !== VI);
+        localStorage.setItem(ASSIGN_KEY, String(choices[Math.floor(Math.random() * choices.length)]));
+      }
+    } catch (e) { /* storage unavailable */ }
+    location.reload();
+  });
+
+  /* ---------- truss-specific text ---------- */
+  function fillText() {
+    const reactHtml = listAnd(REACTS.map(sub));
+    const reflect = REACT[PY] < 0
+      ? `${PY} acts downward: the pin at ${PIN} pulls down on the truss. Explain why that happens with this loading.`
+      : (() => { const [big, small] = Math.abs(REACT[RY]) > Math.abs(REACT[PY]) ? [RY, PY] : [PY, RY];
+          return `${big} is larger than ${small}. Explain why that makes sense for this loading.`; })();
+    const geom = GEOM_GROUPS.length
+      ? GEOM_GROUPS.map(({ g, ms }) => `Member${ms.length > 1 ? "s" : ""} ${listAnd(ms)} run${ms.length > 1 ? "" : "s"} ${fmt(g.dx)} m across and ${fmt(g.dy)} m vertically (length ${g.Ltxt} m, ${g.ang}° from horizontal), so the horizontal component is <code class="k">${g.hx}</code> of the force and the vertical component is <code class="k">${g.hy}</code>.`).join(" ")
+        + ` You may also use <code class="k">cos()</code>, <code class="k">sin()</code>, <code class="k">atan()</code> (in degrees) and <code class="k">sqrt()</code>, for example <code class="k">cos(${GEOM_GROUPS[0].g.ang})</code>.`
+      : "";
+    const order = SOLVE_STEPS.map((st, i) => {
+      const f = listAnd(st.unk.map(m => `F<sub>${m}</sub>`));
+      if (i === 0) return `Start at joint ${st.j}: once ${listAnd(reactsAt(st.j).map(sub))} ${reactsAt(st.j).length > 1 ? "are" : "is"} known, its unknowns are ${f}.`;
+      return `Then joint ${st.j} gives ${f}.`;
+    }).join(" ") + ` Joint ${CHECK_JOINT} is left over as a check.`;
+    const FILL = {
+      variant: `Truss ${VI + 1} of ${TRUSSES.length}`, pin: PIN, roller: ROLLER, neq: String(NEQ), nunk: String(NUNK),
+      "react-html": reactHtml, "react-codes": REACTS.map(r => `<code class="k">${r}</code>`).join(", "),
+      "geom-hint": geom, "order-hint": order, "react-reflect": reflect
+    };
+    document.querySelectorAll("[data-fill]").forEach(n => { n.innerHTML = FILL[n.dataset.fill]; });
+    const arrowCh = { up: "&uarr;", down: "&darr;", left: "&larr;", right: "&rarr;" };
+    document.getElementById("givens").innerHTML =
+      LOADS.map(L => `<div class="given-chip">Load at ${L.at} <b>${L.label} ${arrowCh[L.dir]}</b></div>`).join("") +
+      `<div class="given-chip">Supports <b>pin at ${PIN}, roller at ${ROLLER}</b></div>` +
+      `<div class="given-chip">Members <b>${MEMBERS.length}</b> &middot; Joints <b>${JOINTS.length}</b></div>` +
+      `<div class="given-chip">Dimensions <b>on the drawing</b></div>`;
+    document.getElementById("truss-main").setAttribute("aria-label",
+      `Truss with joints ${JOINTS[0]} through ${JOINTS[JOINTS.length - 1]}, pin at ${PIN}, roller at ${ROLLER}, ` + listAnd(LOADS.map(L => `${L.label} load ${L.dir} at ${L.at}`)));
+  }
+
+  /* ---------- init ---------- */
+  fillText();
+  document.getElementById("reflect-zf").value = state.reflect || "";
+  if (!JOINTS.includes(state.cur)) state.cur = "A";
+  renderPart1();
+  renderPart2();
+  renderPart3();
+})();
+</script>
