@@ -1,4 +1,5 @@
 <!doctype html>
+<html lang="en">
 <title>Plank Equilibrium</title>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
@@ -117,6 +118,19 @@
   textarea.report { width: 100%; min-height: 160px; font-family: "IBM Plex Mono", monospace; font-size: .8rem; padding: 10px; border: 1px solid var(--rule); border-radius: 6px; background: var(--surface-2); color: var(--ink); margin-top: 10px; }
   .report-actions { display: flex; gap: 10px; margin-top: 10px; flex-wrap: wrap; align-items: center; }
   .copy-note { font-size: .8rem; color: var(--ink-soft); }
+  .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
+  :focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+  button.action.secondary.danger { color: var(--danger); border-color: var(--danger); }
+
+  details.instructor > summary { cursor: pointer; font-weight: 700; font-size: 1.05rem; }
+  .verify-scroll { overflow-x: auto; margin-top: 10px; }
+  table.verify { width: 100%; border-collapse: collapse; font-size: .82rem; }
+  table.verify th, table.verify td { text-align: left; padding: 6px 8px; border-bottom: 1px solid var(--rule); vertical-align: top; }
+  table.verify th { font-family: "IBM Plex Mono", monospace; font-size: .72rem; text-transform: uppercase; letter-spacing: .04em; color: var(--ink-soft); }
+  table.verify td:first-child { font-family: "IBM Plex Mono", monospace; white-space: nowrap; }
+  table.verify tr.ok td:nth-child(3) { color: var(--success); font-weight: 600; }
+  table.verify tr.bad { background: var(--danger-bg); }
+  table.verify tr.bad td:nth-child(3), table.verify tr.bad td:last-child { color: var(--danger); }
 </style>
 
 <div class="wrap">
@@ -132,13 +146,13 @@
     <div class="legend-item"><span class="swatch cg"></span> Center of gravity (CG) marker</div>
   </div>
 
-  <div class="tabs">
-    <button class="tab-btn active" data-tab="s1">Sheet 1 &middot; Level Plank</button>
-    <button class="tab-btn" data-tab="s2">Sheet 2 &middot; Plank on a Decline</button>
+  <div class="tabs" role="tablist" aria-label="Lab sheets">
+    <button class="tab-btn active" role="tab" aria-selected="true" aria-controls="sheet-s1" data-tab="s1">Sheet 1 &middot; Level Plank</button>
+    <button class="tab-btn" role="tab" aria-selected="false" aria-controls="sheet-s2" data-tab="s2">Sheet 2 &middot; Plank on a Decline</button>
   </div>
 
   <!-- ================= SHEET 1 ================= -->
-  <section class="sheet" id="sheet-s1" data-sheet="s1">
+  <section class="sheet" id="sheet-s1" data-sheet="s1" role="tabpanel" aria-label="Sheet 1: Level Plank">
     <div class="givens">
       <div class="given-chip"><b>W</b><span>weight of the person</span></div>
       <div class="given-chip"><b>L</b><span>distance from the foot-contact point to the hand-contact point</span></div>
@@ -156,11 +170,11 @@
         <div class="panel">
           <h3>Free-body diagram (ghost)</h3>
           <svg class="ghost" id="ghost-s1" viewBox="0 0 440 260"></svg>
-          <div class="selectors" id="selectors-s1"></div>
+          <div class="selectors" id="selectors-s1" role="group" aria-label="Force directions"></div>
         </div>
       </div>
       <button class="action" data-action="check-diagram" data-sheet="s1">Check diagram</button>
-      <div class="status-row neutral" id="status-diagram-s1">Not checked yet.</div>
+      <div class="status-row neutral" id="status-diagram-s1" role="status">Not checked yet.</div>
     </div>
 
     <div class="stage" data-stage="equations">
@@ -168,33 +182,33 @@
       <p class="sub">Use exactly these symbols: <b>W</b>, <b>L</b>, <b>d</b>, <b>N_h</b> (normal force at the hands), <b>N_f</b> (normal force at the feet). Use <code>*</code> for multiplication, e.g. <code>N_h*L - W*d</code>. You may write the equation as an expression (equal to 0 is assumed) or with an explicit <code>=</code>.</p>
 
       <p class="sub" style="margin-top:-6px">List all horizontal forces present in the free-body diagram (not graded, but your instructor will read it):</p>
-      <textarea class="reflect" id="reflect-fx-s1" placeholder="List the horizontal forces here..."></textarea>
+      <textarea class="reflect" id="reflect-fx-s1" aria-label="Sheet 1: list the horizontal forces" placeholder="List the horizontal forces here..."></textarea>
       <div class="eq-row" style="margin-top:10px">
-        <label>&Sigma;F<sub>x</sub> = 0</label>
-        <input type="text" id="eq-fx-s1">
-        <span class="chk neutral" id="chk-fx-s1">&middot;</span>
+        <label for="eq-fx-s1">&Sigma;F<sub>x</sub> = 0</label>
+        <input type="text" id="eq-fx-s1" autocomplete="off" spellcheck="false">
+        <span class="chk neutral" id="chk-fx-s1" aria-hidden="true">&middot;</span>
         <button class="action secondary" data-action="check-eq" data-sheet="s1" data-field="fx">Check</button>
-        <div class="eq-msg" id="msg-fx-s1"></div>
+        <div class="eq-msg" id="msg-fx-s1" role="status"></div>
       </div>
 
       <p class="sub" style="margin-top:14px">List all vertical forces present in the free-body diagram (not graded, but your instructor will read it):</p>
-      <textarea class="reflect" id="reflect-fy-s1" placeholder="List the vertical forces here..."></textarea>
+      <textarea class="reflect" id="reflect-fy-s1" aria-label="Sheet 1: list the vertical forces" placeholder="List the vertical forces here..."></textarea>
       <div class="eq-row" style="margin-top:10px">
-        <label>&Sigma;F<sub>y</sub> = 0</label>
-        <input type="text" id="eq-fy-s1">
-        <span class="chk neutral" id="chk-fy-s1">&middot;</span>
+        <label for="eq-fy-s1">&Sigma;F<sub>y</sub> = 0</label>
+        <input type="text" id="eq-fy-s1" autocomplete="off" spellcheck="false">
+        <span class="chk neutral" id="chk-fy-s1" aria-hidden="true">&middot;</span>
         <button class="action secondary" data-action="check-eq" data-sheet="s1" data-field="fy">Check</button>
-        <div class="eq-msg" id="msg-fy-s1"></div>
+        <div class="eq-msg" id="msg-fy-s1" role="status"></div>
       </div>
 
       <p class="sub" style="margin-top:14px">Note where you have assumed the pivot point is when you balance the torques (not graded, but your instructor will read it):</p>
-      <textarea class="reflect" id="reflect-tau-s1" placeholder="State your chosen pivot point here..."></textarea>
+      <textarea class="reflect" id="reflect-tau-s1" aria-label="Sheet 1: state your pivot point" placeholder="State your chosen pivot point here..."></textarea>
       <div class="eq-row" style="margin-top:10px">
-        <label>&Sigma;&tau; = 0</label>
-        <input type="text" id="eq-tau-s1">
-        <span class="chk neutral" id="chk-tau-s1">&middot;</span>
+        <label for="eq-tau-s1">&Sigma;&tau; = 0</label>
+        <input type="text" id="eq-tau-s1" autocomplete="off" spellcheck="false">
+        <span class="chk neutral" id="chk-tau-s1" aria-hidden="true">&middot;</span>
         <button class="action secondary" data-action="check-eq" data-sheet="s1" data-field="tau">Check</button>
-        <div class="eq-msg" id="msg-tau-s1"></div>
+        <div class="eq-msg" id="msg-tau-s1" role="status"></div>
       </div>
       <details class="hint"><summary>Hint</summary><p>You may choose any pivot point for the torque equation &mdash; the feet, the hands, the CG, or half-way between the hands and the CG all are valid choices and will all be accepted.</p></details>
     </div>
@@ -203,35 +217,35 @@
       <h2>3. Solve symbolically</h2>
       <p class="sub">Combine your two nontrivial equations above and solve for each unknown, written only in terms of the given quantities <b>W</b>, <b>L</b>, <b>d</b>.</p>
       <div class="eq-row">
-        <label>N_h =</label>
-        <input type="text" id="sol-Nh-s1">
-        <span class="chk neutral" id="chk-sol-Nh-s1">&middot;</span>
+        <label for="sol-Nh-s1">N_h =</label>
+        <input type="text" id="sol-Nh-s1" autocomplete="off" spellcheck="false">
+        <span class="chk neutral" id="chk-sol-Nh-s1" aria-hidden="true">&middot;</span>
         <button class="action secondary" data-action="check-sol" data-sheet="s1" data-field="Nh">Check</button>
-        <div class="eq-msg" id="msg-sol-Nh-s1"></div>
+        <div class="eq-msg" id="msg-sol-Nh-s1" role="status"></div>
       </div>
       <div class="eq-row">
-        <label>N_f =</label>
-        <input type="text" id="sol-Nf-s1">
-        <span class="chk neutral" id="chk-sol-Nf-s1">&middot;</span>
+        <label for="sol-Nf-s1">N_f =</label>
+        <input type="text" id="sol-Nf-s1" autocomplete="off" spellcheck="false">
+        <span class="chk neutral" id="chk-sol-Nf-s1" aria-hidden="true">&middot;</span>
         <button class="action secondary" data-action="check-sol" data-sheet="s1" data-field="Nf">Check</button>
-        <div class="eq-msg" id="msg-sol-Nf-s1"></div>
+        <div class="eq-msg" id="msg-sol-Nf-s1" role="status"></div>
       </div>
     </div>
   </section>
 
   <!-- ================= SHEET 2 ================= -->
-  <section class="sheet" id="sheet-s2" data-sheet="s2" hidden>
+  <section class="sheet" id="sheet-s2" data-sheet="s2" role="tabpanel" aria-label="Sheet 2: Plank on a Decline" hidden>
     <div class="givens">
       <div class="given-chip"><b>W</b><span>weight of the person</span></div>
       <div class="given-chip"><b>L</b><span>distance from the foot-contact point to the hand-contact point</span></div>
       <div class="given-chip"><b>d</b><span>distance from the foot-contact point to the CG</span></div>
       <div class="given-chip"><b>theta</b><span>incline angle of the board above horizontal</span></div>
     </div>
-    <p class="lede" style="margin-top:0 0 14px 0">Now the person holds the same plank position on a straight inclined board, feet elevated toward the upper end. Both contact points sit directly on the board, so the normal forces are perpendicular to the board and friction acts along the board. It is easiest to use axes aligned with the board: <b>x&prime;</b> along the board (up-slope positive) and <b>y&prime;</b> perpendicular to the board. Resolve the weight into components along these axes: W<sub>&parallel;</sub> = W&middot;sin(theta) (down-slope) and W<sub>&perp;</sub> = W&middot;cos(theta) (into the board).</p>
+    <p class="lede" style="margin:0 0 14px 0">Now the person holds the same plank position on a straight inclined board, feet elevated toward the upper end. Both contact points sit directly on the board, so the normal forces are perpendicular to the board and friction acts along the board. It is easiest to use axes aligned with the board: <b>x&prime;</b> along the board (up-slope positive) and <b>y&prime;</b> perpendicular to the board. Resolve the weight into components along these axes: W<sub>&parallel;</sub> = W&middot;sin(theta) (down-slope) and W<sub>&perp;</sub> = W&middot;cos(theta) (into the board).</p>
 
     <div class="stage" data-stage="diagram">
       <h2>1. Build the free-body diagram</h2>
-      <p class="sub">Four real forces act on the isolated body: the weight at the CG, a normal force and a friction force at the feet, and a normal force and a friction force at the hands. Choose each direction. (Static equilibrium of a rigid body with two contact points only determines the <i>combined</i> friction demand, not how it individually splits between the two points &mdash; so you are only asked for direction here, and will solve for the total friction magnitude below.)</p>
+      <p class="sub">Four real forces act on the isolated body: the weight at the CG, a normal force and a friction force at the feet, and a normal force and a friction force at the hands. Choose each direction. (Static equilibrium of a rigid body with two contact points only determines the <i>combined</i> friction demand, not how it individually splits between the two points. Any choice of friction directions is accepted as long as, together, they can keep the body from sliding down the slope. You will solve for the total friction magnitude below.)</p>
       <div class="panels">
         <div class="panel">
           <h3>Scenario</h3>
@@ -240,11 +254,11 @@
         <div class="panel">
           <h3>Free-body diagram (ghost)</h3>
           <svg class="ghost" id="ghost-s2" viewBox="0 0 440 260"></svg>
-          <div class="selectors" id="selectors-s2"></div>
+          <div class="selectors" id="selectors-s2" role="group" aria-label="Force directions"></div>
         </div>
       </div>
       <button class="action" data-action="check-diagram" data-sheet="s2">Check diagram</button>
-      <div class="status-row neutral" id="status-diagram-s2">Not checked yet.</div>
+      <div class="status-row neutral" id="status-diagram-s2" role="status">Not checked yet.</div>
     </div>
 
     <div class="stage" data-stage="equations">
@@ -252,33 +266,33 @@
       <p class="sub">Use exactly these symbols: <b>W</b>, <b>L</b>, <b>d</b>, <b>theta</b>, <b>N_h</b>, <b>N_f</b> (normal forces), <b>f</b> (total friction demand at the two contacts combined). Write sin(theta) and cos(theta) using those function names. Equations are along the board (x&prime;), perpendicular to the board (y&prime;), and torque.</p>
 
       <p class="sub" style="margin-top:-6px">List all forces along the board present in the free-body diagram (not graded, but your instructor will read it):</p>
-      <textarea class="reflect" id="reflect-fx-s2" placeholder="List the forces along the board here..."></textarea>
+      <textarea class="reflect" id="reflect-fx-s2" aria-label="Sheet 2: list the forces along the board" placeholder="List the forces along the board here..."></textarea>
       <div class="eq-row" style="margin-top:10px">
-        <label>&Sigma;F<sub>x&prime;</sub> = 0</label>
-        <input type="text" id="eq-fx-s2">
-        <span class="chk neutral" id="chk-fx-s2">&middot;</span>
+        <label for="eq-fx-s2">&Sigma;F<sub>x&prime;</sub> = 0</label>
+        <input type="text" id="eq-fx-s2" autocomplete="off" spellcheck="false">
+        <span class="chk neutral" id="chk-fx-s2" aria-hidden="true">&middot;</span>
         <button class="action secondary" data-action="check-eq" data-sheet="s2" data-field="fx">Check</button>
-        <div class="eq-msg" id="msg-fx-s2"></div>
+        <div class="eq-msg" id="msg-fx-s2" role="status"></div>
       </div>
 
       <p class="sub" style="margin-top:14px">List all forces perpendicular to the board present in the free-body diagram (not graded, but your instructor will read it):</p>
-      <textarea class="reflect" id="reflect-fy-s2" placeholder="List the forces perpendicular to the board here..."></textarea>
+      <textarea class="reflect" id="reflect-fy-s2" aria-label="Sheet 2: list the forces perpendicular to the board" placeholder="List the forces perpendicular to the board here..."></textarea>
       <div class="eq-row" style="margin-top:10px">
-        <label>&Sigma;F<sub>y&prime;</sub> = 0</label>
-        <input type="text" id="eq-fy-s2">
-        <span class="chk neutral" id="chk-fy-s2">&middot;</span>
+        <label for="eq-fy-s2">&Sigma;F<sub>y&prime;</sub> = 0</label>
+        <input type="text" id="eq-fy-s2" autocomplete="off" spellcheck="false">
+        <span class="chk neutral" id="chk-fy-s2" aria-hidden="true">&middot;</span>
         <button class="action secondary" data-action="check-eq" data-sheet="s2" data-field="fy">Check</button>
-        <div class="eq-msg" id="msg-fy-s2"></div>
+        <div class="eq-msg" id="msg-fy-s2" role="status"></div>
       </div>
 
       <p class="sub" style="margin-top:14px">Note where you have assumed the pivot point is when you balance the torques (not graded, but your instructor will read it):</p>
-      <textarea class="reflect" id="reflect-tau-s2" placeholder="State your chosen pivot point here..."></textarea>
+      <textarea class="reflect" id="reflect-tau-s2" aria-label="Sheet 2: state your pivot point" placeholder="State your chosen pivot point here..."></textarea>
       <div class="eq-row" style="margin-top:10px">
-        <label>&Sigma;&tau; = 0</label>
-        <input type="text" id="eq-tau-s2">
-        <span class="chk neutral" id="chk-tau-s2">&middot;</span>
+        <label for="eq-tau-s2">&Sigma;&tau; = 0</label>
+        <input type="text" id="eq-tau-s2" autocomplete="off" spellcheck="false">
+        <span class="chk neutral" id="chk-tau-s2" aria-hidden="true">&middot;</span>
         <button class="action secondary" data-action="check-eq" data-sheet="s2" data-field="tau">Check</button>
-        <div class="eq-msg" id="msg-tau-s2"></div>
+        <div class="eq-msg" id="msg-tau-s2" role="status"></div>
       </div>
       <details class="hint"><summary>Hint</summary><p>You may choose any pivot point for the torque equation &mdash; the feet, the hands, the CG, or half-way between the hands and the CG all are valid choices and will all be accepted. Notice that friction and the down-slope weight component both act along the same line as the body, so neither contributes a torque about any point on that line &mdash; only the perpendicular forces matter for &Sigma;&tau;.</p></details>
     </div>
@@ -287,40 +301,51 @@
       <h2>3. Solve symbolically</h2>
       <p class="sub">Solve for each unknown, written only in terms of the given quantities <b>W</b>, <b>L</b>, <b>d</b>, <b>theta</b>.</p>
       <div class="eq-row">
-        <label>f =</label>
-        <input type="text" id="sol-f-s2">
-        <span class="chk neutral" id="chk-sol-f-s2">&middot;</span>
+        <label for="sol-f-s2">f =</label>
+        <input type="text" id="sol-f-s2" autocomplete="off" spellcheck="false">
+        <span class="chk neutral" id="chk-sol-f-s2" aria-hidden="true">&middot;</span>
         <button class="action secondary" data-action="check-sol" data-sheet="s2" data-field="f">Check</button>
-        <div class="eq-msg" id="msg-sol-f-s2"></div>
+        <div class="eq-msg" id="msg-sol-f-s2" role="status"></div>
       </div>
       <div class="eq-row">
-        <label>N_h =</label>
-        <input type="text" id="sol-Nh-s2">
-        <span class="chk neutral" id="chk-sol-Nh-s2">&middot;</span>
+        <label for="sol-Nh-s2">N_h =</label>
+        <input type="text" id="sol-Nh-s2" autocomplete="off" spellcheck="false">
+        <span class="chk neutral" id="chk-sol-Nh-s2" aria-hidden="true">&middot;</span>
         <button class="action secondary" data-action="check-sol" data-sheet="s2" data-field="Nh">Check</button>
-        <div class="eq-msg" id="msg-sol-Nh-s2"></div>
+        <div class="eq-msg" id="msg-sol-Nh-s2" role="status"></div>
       </div>
       <div class="eq-row">
-        <label>N_f =</label>
-        <input type="text" id="sol-Nf-s2">
-        <span class="chk neutral" id="chk-sol-Nf-s2">&middot;</span>
+        <label for="sol-Nf-s2">N_f =</label>
+        <input type="text" id="sol-Nf-s2" autocomplete="off" spellcheck="false">
+        <span class="chk neutral" id="chk-sol-Nf-s2" aria-hidden="true">&middot;</span>
         <button class="action secondary" data-action="check-sol" data-sheet="s2" data-field="Nf">Check</button>
-        <div class="eq-msg" id="msg-sol-Nf-s2"></div>
+        <div class="eq-msg" id="msg-sol-Nf-s2" role="status"></div>
       </div>
     </div>
   </section>
 
   <div class="stage" id="report-stage">
     <h2>Submission report</h2>
-    <p class="sub">Generate a plain-text summary of your progress to paste into your course's submission dropbox.</p>
-    <input class="name-input" id="student-name" placeholder="Full name, as it appears on your roster">
+    <p class="sub">When you are done, enter your name, click <b>Generate report</b>, then <b>Download report</b> and upload the downloaded <code>.txt</code> file to the assignment dropbox. (If downloading doesn't work on your device, use <b>Copy report</b> and paste it into the dropbox text box instead.) The report lists every answer you entered and whether it passed its most recent check, so your instructor can re-check your work. Your answers are saved in this browser as you go.</p>
+    <label for="student-name" class="sr-only">Full name</label>
+    <input class="name-input" id="student-name" autocomplete="name" placeholder="Full name, as it appears on your roster">
     <div class="report-actions">
       <button class="action" id="btn-report">Generate report</button>
+      <button class="action secondary" id="btn-download">Download report (.txt)</button>
       <button class="action secondary" id="btn-copy">Copy report</button>
-      <span class="copy-note" id="copy-note"></span>
+      <span class="copy-note" id="copy-note" role="status"></span>
+      <button class="action secondary danger" id="btn-reset" style="margin-left:auto">Start over</button>
     </div>
-    <textarea class="report" id="report-out" readonly placeholder="Your report will appear here."></textarea>
+    <textarea class="report" id="report-out" readonly aria-label="Submission report" placeholder="Your report will appear here."></textarea>
   </div>
+
+  <details class="stage instructor" id="instructor" hidden>
+    <summary>Instructor: verify a submitted report</summary>
+    <p class="sub" style="margin-top:10px">This panel only appears when the page address ends in <code>#instructor</code>. Paste a student's report (an uploaded .txt file's contents, or text pasted into the dropbox). Every answer in it is re-graded here, and the integrity hash is recomputed. Lines whose claimed result disagrees with re-grading are flagged.</p>
+    <textarea class="report" id="verify-in" aria-label="Report to verify" placeholder="Paste the full report here, including the integrity hash line."></textarea>
+    <div class="report-actions"><button class="action" id="btn-verify">Verify report</button></div>
+    <div id="verify-out" role="status"></div>
+  </details>
 </div>
 
 <script>
@@ -595,7 +620,7 @@
       fx: "TRIVIAL",
       fy: (v) => v.Nh + v.Nf - v.W,
       tauFeet: (v) => v.L * v.Nh - v.d * v.W,
-      allowed: { fx: ["W", "L", "d", "Nf", "Nh"], fy: ["W", "L", "d", "Nf", "Nh"], tau: ["W", "L", "d", "Nf", "Nh"] },
+      allowed: ["W", "L", "d", "Nf", "Nh"],
       solAllowed: ["W", "L", "d"],
       sol: { Nh: (v) => v.W * v.d / v.L, Nf: (v) => v.W * (v.L - v.d) / v.L }
     },
@@ -603,11 +628,7 @@
       fx: (v) => v.f - v.W * Math.sin(v.theta),
       fy: (v) => v.Nh + v.Nf - v.W * Math.cos(v.theta),
       tauFeet: (v) => v.L * v.Nh - v.d * v.W * Math.cos(v.theta),
-      allowed: {
-        fx: ["W", "L", "d", "theta", "Nf", "Nh", "f"],
-        fy: ["W", "L", "d", "theta", "Nf", "Nh", "f"],
-        tau: ["W", "L", "d", "theta", "Nf", "Nh", "f"]
-      },
+      allowed: ["W", "L", "d", "theta", "Nf", "Nh", "f"],
       solAllowed: ["W", "L", "d", "theta"],
       sol: {
         f: (v) => v.W * Math.sin(v.theta),
@@ -616,10 +637,29 @@
       }
     }
   };
-  REFS.s1.fx = "TRIVIAL";
-  REFS.s2.fx = [REFS.s2.fx];
-  REFS.s1.fyRef = [REFS.s1.fy];
-  REFS.s2.fyRef = [REFS.s2.fy];
+
+  const FIELDS = {
+    s1: { eq: ["fx", "fy", "tau"], sol: ["Nh", "Nf"] },
+    s2: { eq: ["fx", "fy", "tau"], sol: ["f", "Nh", "Nf"] }
+  };
+  const SHEET_TITLES = { s1: "Sheet 1 — Level Plank", s2: "Sheet 2 — Plank on a Decline" };
+  const EQ_LABELS = {
+    s1: { fx: "ΣFx = 0", fy: "ΣFy = 0", tau: "Στ = 0" },
+    s2: { fx: "ΣFx′ = 0", fy: "ΣFy′ = 0", tau: "Στ = 0" }
+  };
+  const SOL_LABELS = { f: "f", Nh: "N_h", Nf: "N_f" };
+
+  // Pure grading functions (no DOM), shared by the student checks and the
+  // instructor report verifier.
+  function gradeEq(sheet, field, text) {
+    const ref = REFS[sheet];
+    if (field === "tau") return checkTorqueEquation(text, ref.tauFeet, ref.fy, ref.allowed);
+    const refList = field === "fy" ? [ref.fy] : (ref.fx === "TRIVIAL" ? "TRIVIAL" : [ref.fx]);
+    return checkEquation(text, refList, ref.allowed);
+  }
+  function gradeSol(sheet, field, text) {
+    return checkSolution(text, REFS[sheet].sol[field], REFS[sheet].solAllowed);
+  }
 
   /* ---------- geometry + diagram rendering ---------- */
 
@@ -651,23 +691,41 @@
     ],
     s2: [
       { key: "Nf", at: "F", label: "Normal force at feet", options: ["away", "into"], labels: { away: "away from board", into: "into board" }, correct: "away", color: "reaction" },
-      { key: "Ff", at: "F", label: "Friction at feet", options: ["upslope", "downslope"], labels: { upslope: "up the slope", downslope: "down the slope" }, correct: "upslope", color: "reaction" },
+      // The friction split between feet and hands is statically indeterminate,
+      // so neither friction arrow has a single correct direction on its own —
+      // DIAGRAM_RULES.s2 grades them together.
+      { key: "Ff", at: "F", label: "Friction at feet", options: ["upslope", "downslope"], labels: { upslope: "up the slope", downslope: "down the slope" }, correct: null, color: "reaction" },
       { key: "Nh", at: "H", label: "Normal force at hands", options: ["away", "into"], labels: { away: "away from board", into: "into board" }, correct: "away", color: "reaction" },
-      { key: "Fh", at: "H", label: "Friction at hands", options: ["upslope", "downslope"], labels: { upslope: "up the slope", downslope: "down the slope" }, correct: "upslope", color: "reaction" },
+      { key: "Fh", at: "H", label: "Friction at hands", options: ["upslope", "downslope"], labels: { upslope: "up the slope", downslope: "down the slope" }, correct: null, color: "reaction" },
       { key: "W", at: "G", label: "Weight at the CG", options: ["down", "up", "downslope", "upslope"], labels: { down: "straight down", up: "straight up", downslope: "down the slope", upslope: "up the slope" }, correct: "down", color: "applied" }
     ]
   };
 
-  const state = {
-    current: "s1",
-    sel: { s1: {}, s2: {} },
-    pass: {
-      s1: { diagram: false, fx: false, fy: false, tau: false, Nh: false, Nf: false },
-      s2: { diagram: false, fx: false, fy: false, tau: false, f: false, Nh: false, Nf: false }
+  const DIAGRAM_RULES = {
+    s2: {
+      test: (sel) => sel.Ff === "upslope" || sel.Fh === "upslope",
+      message: "the friction forces (together they must keep the body from sliding down the slope)"
     }
   };
-  POINTS.s1.forEach(p => { state.sel.s1[p.key] = null; });
-  POINTS.s2.forEach(p => { state.sel.s2[p.key] = null; });
+
+  function gradeDiagram(sheet, sel) {
+    const pts = POINTS[sheet];
+    if (pts.some(p => !sel[p.key])) return { ok: false, message: "Choose a direction for every force first." };
+    const wrong = pts.filter(p => p.correct && sel[p.key] !== p.correct).map(p => p.label);
+    const rule = DIAGRAM_RULES[sheet];
+    if (rule && !rule.test(sel)) wrong.push(rule.message);
+    return wrong.length
+      ? { ok: false, message: "Not quite — recheck: " + wrong.join("; ") + "." }
+      : { ok: true, message: "Correct — every force is in an allowed direction." };
+  }
+
+  // result[sheet][field]: true/false once checked, null if never checked or
+  // edited since the last check.
+  const state = { current: "s1", sel: { s1: {}, s2: {} }, result: { s1: {}, s2: {} } };
+  ["s1", "s2"].forEach(sh => {
+    POINTS[sh].forEach(p => { state.sel[sh][p.key] = null; });
+    ["diagram", ...FIELDS[sh].eq, ...FIELDS[sh].sol].forEach(f => { state.result[sh][f] = null; });
+  });
 
   function cssVar(name) { return getComputedStyle(document.documentElement).getPropertyValue(name).trim(); }
 
@@ -739,7 +797,14 @@
       s += `<text x="${g.H.x - 44}" y="${g.H.y - 12}" font-family="IBM Plex Mono, monospace" font-size="13" fill="var(--accent)">&#952;</text>`;
     }
     svg.innerHTML = s;
+    svg.setAttribute("role", "img");
+    svg.setAttribute("aria-label", SCENE_DESCRIPTIONS[sheet]);
   }
+
+  const SCENE_DESCRIPTIONS = {
+    s1: "A person in a plank position, modeled as a straight horizontal rod resting on a level floor. The forearms (hands) touch the floor at the left end and the toes (feet) at the right end, a distance L apart. The center of gravity lies a distance d from the feet, between the two contact points.",
+    s2: "The same plank position on a straight board inclined at angle theta above horizontal. The hands are at the lower end of the board and the feet at the upper end, a distance L apart along the board. The center of gravity lies a distance d from the feet."
+  };
 
   function arrowMarkerDefs(id, color) {
     return `<marker id="arrow-${id}" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
@@ -773,15 +838,36 @@
       s += `<text x="${x2 + v[0] * 14}" y="${y2 + v[1] * 14 + 4}" font-family="IBM Plex Mono, monospace" font-size="12" fill="${color}" text-anchor="middle">${p.key}</text>`;
     });
     svg.innerHTML = s;
+    const chosen = POINTS[sheet].filter(p => state.sel[sheet][p.key])
+      .map(p => p.label + ": " + p.labels[state.sel[sheet][p.key]].replace(/^[←→↑↓]\s*/, ""));
+    svg.setAttribute("role", "img");
+    svg.setAttribute("aria-label", "Your free-body diagram. " + (chosen.length ? chosen.join("; ") + "." : "No forces drawn yet."));
+  }
+
+  function el(id) { return document.getElementById(id); }
+
+  function escapeHtml(s) {
+    return String(s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+  }
+
+  function selectDir(sheet, point, dir) {
+    state.sel[sheet][point] = dir;
+    el("selectors-" + sheet).querySelectorAll(`.dir-btn[data-point="${point}"]`)
+      .forEach(b => {
+        b.classList.toggle("sel", b.dataset.dir === dir);
+        b.setAttribute("aria-pressed", String(b.dataset.dir === dir));
+      });
+    renderGhost(sheet);
   }
 
   function buildSelectors(sheet) {
-    const host = document.getElementById("selectors-" + sheet);
+    const host = el("selectors-" + sheet);
     let html = "";
     POINTS[sheet].forEach(p => {
-      html += `<div class="selector-row"><span class="pt-label">${p.label}</span>`;
+      const labelId = `lbl-${sheet}-${p.key}`;
+      html += `<div class="selector-row" role="group" aria-labelledby="${labelId}"><span class="pt-label" id="${labelId}">${p.label}</span>`;
       p.options.forEach(opt => {
-        html += `<button type="button" class="dir-btn" data-sheet="${sheet}" data-point="${p.key}" data-dir="${opt}">${p.labels[opt]}</button>`;
+        html += `<button type="button" class="dir-btn" aria-pressed="false" data-sheet="${sheet}" data-point="${p.key}" data-dir="${opt}">${p.labels[opt]}</button>`;
       });
       html += `</div>`;
     });
@@ -789,80 +875,82 @@
     host.querySelectorAll(".dir-btn").forEach(btn => {
       btn.addEventListener("click", () => {
         const { sheet: sh, point, dir } = btn.dataset;
-        state.sel[sh][point] = dir;
-        host.querySelectorAll(`.dir-btn[data-point="${point}"]`).forEach(b => b.classList.toggle("sel", b.dataset.dir === dir));
-        renderGhost(sh);
+        selectDir(sh, point, dir);
+        invalidateDiagram(sh);
+        save();
       });
     });
   }
 
+  /* ---------- student checks ---------- */
+
+  function showMark(chkId, msgId, result) {
+    const chk = el(chkId), msg = el(msgId);
+    if (!result) { chk.textContent = "·"; chk.className = "chk neutral"; msg.textContent = ""; msg.className = "eq-msg"; return; }
+    chk.textContent = result.ok ? "✓" : "✗";
+    chk.className = "chk " + (result.ok ? "ok" : "bad");
+    msg.textContent = result.ok ? "Correct." : result.message;
+    msg.className = "eq-msg " + (result.ok ? "ok" : "bad");
+  }
+
   function checkDiagram(sheet) {
-    const pts = POINTS[sheet];
-    const allCorrect = pts.every(p => state.sel[sheet][p.key] === p.correct);
-    const anyChosen = pts.some(p => state.sel[sheet][p.key]);
-    const statusEl = document.getElementById("status-diagram-" + sheet);
-    if (!anyChosen) {
-      statusEl.textContent = "Choose a direction for every force first.";
-      statusEl.className = "status-row bad";
-      return;
-    }
-    if (allCorrect) {
-      statusEl.textContent = "Correct — every force is in the right direction.";
-      statusEl.className = "status-row ok";
-      state.pass[sheet].diagram = true;
-    } else {
-      const wrong = pts.filter(p => state.sel[sheet][p.key] !== p.correct).map(p => p.label);
-      statusEl.textContent = "Not quite — recheck: " + wrong.join("; ") + ".";
-      statusEl.className = "status-row bad";
-      state.pass[sheet].diagram = false;
-    }
+    const r = gradeDiagram(sheet, state.sel[sheet]);
+    const statusEl = el("status-diagram-" + sheet);
+    statusEl.textContent = r.message;
+    statusEl.className = "status-row " + (r.ok ? "ok" : "bad");
+    state.result[sheet].diagram = r.ok;
+    save();
   }
 
   function checkEqField(sheet, field) {
-    const input = document.getElementById(`eq-${field}-s${sheet.slice(1)}`);
-    const chk = document.getElementById(`chk-${field}-s${sheet.slice(1)}`);
-    const msg = document.getElementById(`msg-${field}-s${sheet.slice(1)}`);
-    const ref = sheet === "s1" ? REFS.s1 : REFS.s2;
-    const allowed = ref.allowed[field];
-    const text = input.value.trim();
-    if (!text) { chk.textContent = "·"; chk.className = "chk neutral"; msg.textContent = ""; return; }
-    const result = field === "tau"
-      ? checkTorqueEquation(text, ref.tauFeet, ref.fy, allowed)
-      : checkEquation(text, field === "fx" ? ref.fx : ref.fyRef, allowed);
-    chk.textContent = result.ok ? "✓" : "✗";
-    chk.className = "chk " + (result.ok ? "ok" : "bad");
-    msg.textContent = result.ok ? "" : result.message;
-    msg.className = "eq-msg " + (result.ok ? "ok" : "bad");
-    state.pass[sheet][field] = result.ok;
+    const text = el(`eq-${field}-${sheet}`).value.trim();
+    const result = text ? gradeEq(sheet, field, text) : null;
+    showMark(`chk-${field}-${sheet}`, `msg-${field}-${sheet}`, result);
+    state.result[sheet][field] = result ? result.ok : null;
+    save();
   }
 
   function checkSolField(sheet, field) {
-    const input = document.getElementById(`sol-${field}-s${sheet.slice(1)}`);
-    const chk = document.getElementById(`chk-sol-${field}-s${sheet.slice(1)}`);
-    const msg = document.getElementById(`msg-sol-${field}-s${sheet.slice(1)}`);
-    const ref = sheet === "s1" ? REFS.s1 : REFS.s2;
-    const text = input.value.trim();
-    if (!text) { chk.textContent = "·"; chk.className = "chk neutral"; msg.textContent = ""; return; }
-    const result = checkSolution(text, ref.sol[field], ref.solAllowed);
-    chk.textContent = result.ok ? "✓" : "✗";
-    chk.className = "chk " + (result.ok ? "ok" : "bad");
-    msg.textContent = result.ok ? "" : result.message;
-    msg.className = "eq-msg " + (result.ok ? "ok" : "bad");
-    state.pass[sheet][field] = result.ok;
+    const text = el(`sol-${field}-${sheet}`).value.trim();
+    const result = text ? gradeSol(sheet, field, text) : null;
+    showMark(`chk-sol-${field}-${sheet}`, `msg-sol-${field}-${sheet}`, result);
+    state.result[sheet][field] = result ? result.ok : null;
+    save();
+  }
+
+  // Editing an answer after checking it clears the old verdict, so a PASS
+  // can't outlive the answer that earned it.
+  function invalidateDiagram(sheet) {
+    if (state.result[sheet].diagram === null) return;
+    state.result[sheet].diagram = null;
+    const statusEl = el("status-diagram-" + sheet);
+    statusEl.textContent = "Changed since last check — check again.";
+    statusEl.className = "status-row neutral";
+  }
+
+  function invalidateField(sheet, field, chkId, msgId) {
+    if (state.result[sheet][field] === null) return;
+    state.result[sheet][field] = null;
+    showMark(chkId, msgId, null);
+    el(msgId).textContent = "Changed since last check — check again.";
   }
 
   /* ---------- wiring ---------- */
 
-  document.querySelectorAll(".tab-btn").forEach(btn => {
-    btn.addEventListener("click", () => {
-      document.querySelectorAll(".tab-btn").forEach(b => b.classList.toggle("active", b === btn));
-      const tab = btn.dataset.tab;
-      state.current = tab;
-      document.getElementById("sheet-s1").hidden = tab !== "s1";
-      document.getElementById("sheet-s2").hidden = tab !== "s2";
+  function showTab(tab) {
+    if (!SHEET_TITLES[tab]) return;
+    document.querySelectorAll(".tab-btn").forEach(b => {
+      b.classList.toggle("active", b.dataset.tab === tab);
+      b.setAttribute("aria-selected", String(b.dataset.tab === tab));
     });
-  });
+    state.current = tab;
+    el("sheet-s1").hidden = tab !== "s1";
+    el("sheet-s2").hidden = tab !== "s2";
+  }
 
+  document.querySelectorAll(".tab-btn").forEach(btn => {
+    btn.addEventListener("click", () => { showTab(btn.dataset.tab); save(); });
+  });
   document.querySelectorAll('[data-action="check-diagram"]').forEach(btn => {
     btn.addEventListener("click", () => checkDiagram(btn.dataset.sheet));
   });
@@ -872,6 +960,66 @@
   document.querySelectorAll('[data-action="check-sol"]').forEach(btn => {
     btn.addEventListener("click", () => checkSolField(btn.dataset.sheet, btn.dataset.field));
   });
+  ["s1", "s2"].forEach(sh => {
+    FIELDS[sh].eq.forEach(f => el(`eq-${f}-${sh}`).addEventListener("input",
+      () => invalidateField(sh, f, `chk-${f}-${sh}`, `msg-${f}-${sh}`)));
+    FIELDS[sh].sol.forEach(f => el(`sol-${f}-${sh}`).addEventListener("input",
+      () => invalidateField(sh, f, `chk-sol-${f}-${sh}`, `msg-sol-${f}-${sh}`)));
+  });
+
+  /* ---------- saving work in this browser ---------- */
+
+  const STORE_KEY = "plank-equilibrium-lab:v1";
+
+  function persistentFields() {
+    return [...document.querySelectorAll(".sheet input[type=text], .sheet textarea.reflect, #student-name")];
+  }
+
+  function save() {
+    try {
+      const values = {};
+      persistentFields().forEach(f => { values[f.id] = f.value; });
+      const checked = {};
+      ["s1", "s2"].forEach(sh => {
+        checked[sh] = Object.keys(state.result[sh]).filter(k => state.result[sh][k] !== null);
+      });
+      localStorage.setItem(STORE_KEY, JSON.stringify({ values, sel: state.sel, tab: state.current, checked }));
+    } catch (e) { /* storage unavailable — work just won't persist */ }
+  }
+
+  function restore() {
+    let data = null;
+    try { data = JSON.parse(localStorage.getItem(STORE_KEY) || "null"); } catch (e) { return; }
+    if (!data || typeof data !== "object") return;
+    const values = data.values || {};
+    persistentFields().forEach(f => { if (typeof values[f.id] === "string") f.value = values[f.id]; });
+    ["s1", "s2"].forEach(sh => {
+      POINTS[sh].forEach(p => {
+        const d = data.sel && data.sel[sh] && data.sel[sh][p.key];
+        if (p.options.indexOf(d) >= 0) selectDir(sh, p.key, d);
+      });
+    });
+    if (data.tab) showTab(data.tab);
+    // Re-run (rather than trust) every check that had been made before reload.
+    ["s1", "s2"].forEach(sh => {
+      const list = (data.checked && data.checked[sh]) || [];
+      list.forEach(f => {
+        if (f === "diagram") checkDiagram(sh);
+        else if (FIELDS[sh].eq.indexOf(f) >= 0) checkEqField(sh, f);
+        else if (FIELDS[sh].sol.indexOf(f) >= 0) checkSolField(sh, f);
+      });
+    });
+  }
+
+  persistentFields().forEach(f => f.addEventListener("input", save));
+
+  el("btn-reset").addEventListener("click", () => {
+    if (!confirm("Erase all of your answers on this page and start over? This cannot be undone.")) return;
+    try { localStorage.removeItem(STORE_KEY); } catch (e) {}
+    location.reload();
+  });
+
+  /* ---------- submission report ---------- */
 
   function fnv1a(str) {
     let h = 0x811c9dc5;
@@ -882,31 +1030,55 @@
     return (h >>> 0).toString(16).padStart(8, "0");
   }
 
-  document.getElementById("btn-report").addEventListener("click", () => {
-    const name = document.getElementById("student-name").value.trim() || "(name not entered)";
+  // Pasting into a dropbox's rich-text editor changes line endings, turns
+  // spaces into non-breaking spaces, collapses runs of spaces, and adds blank
+  // lines between paragraphs. Hash only the visible words, line by line, so an
+  // honest report still matches after all of that.
+  function normalizeForHash(s) {
+    return s.replace(/\r/g, "").split("\n")
+      .map(l => l.replace(/\s+/g, " ").trim())
+      .filter(l => l !== "")
+      .join("\n");
+  }
+
+  const GRADED_LINE = /^\s*\[(s[12])\.(\w+)\]\s+(PASS|FAIL|NOT CHECKED|BLANK)\s+[^:]*:\s?(.*)$/;
+  const WRITTEN_HEADER = "WRITTEN RESPONSES";
+  const HASH_LABEL = "Integrity hash:";
+
+  function statusOf(sheet, field, answered) {
+    if (!answered) return "BLANK";
+    const r = state.result[sheet][field];
+    return r === true ? "PASS" : r === false ? "FAIL" : "NOT CHECKED";
+  }
+
+  function gradedLine(sheet, field, status, label, answer) {
+    return ("  [" + sheet + "." + field + "]").padEnd(16) + status.padEnd(13) + label + ": " + answer;
+  }
+
+  function buildReport(name) {
     const lines = [];
     lines.push("PLANK EQUILIBRIUM LAB — SUBMISSION REPORT");
     lines.push("Name: " + name);
     lines.push("Generated: " + new Date().toISOString());
     lines.push("");
+    let passed = 0, total = 0;
     ["s1", "s2"].forEach(sh => {
-      const title = sh === "s1" ? "Sheet 1 — Level Plank" : "Sheet 2 — Plank on a Decline";
-      lines.push(title);
-      const p = state.pass[sh];
-      lines.push("  Diagram: " + (p.diagram ? "PASS" : "incomplete"));
-      lines.push("  ΣFx: " + (p.fx ? "PASS" : "incomplete"));
-      lines.push("  ΣFy: " + (p.fy ? "PASS" : "incomplete"));
-      lines.push("  Στ: " + (p.tau ? "PASS" : "incomplete"));
-      if (sh === "s1") {
-        lines.push("  N_h solution: " + (p.Nh ? "PASS" : "incomplete"));
-        lines.push("  N_f solution: " + (p.Nf ? "PASS" : "incomplete"));
-      } else {
-        lines.push("  f solution: " + (p.f ? "PASS" : "incomplete"));
-        lines.push("  N_h solution: " + (p.Nh ? "PASS" : "incomplete"));
-        lines.push("  N_f solution: " + (p.Nf ? "PASS" : "incomplete"));
-      }
+      lines.push(SHEET_TITLES[sh]);
+      const sel = state.sel[sh];
+      const dia = POINTS[sh].filter(p => sel[p.key]).map(p => p.key + "=" + sel[p.key]).join(", ");
+      const entries = [["diagram", "Diagram", dia]];
+      FIELDS[sh].eq.forEach(f => entries.push([f, EQ_LABELS[sh][f], el(`eq-${f}-${sh}`).value.trim()]));
+      FIELDS[sh].sol.forEach(f => entries.push([f, SOL_LABELS[f], el(`sol-${f}-${sh}`).value.trim()]));
+      entries.forEach(([f, label, answer]) => {
+        const status = statusOf(sh, f, answer !== "");
+        total++; if (status === "PASS") passed++;
+        lines.push(gradedLine(sh, f, status, label, answer));
+      });
       lines.push("");
     });
+    lines.push("Overall: " + passed + " / " + total + " checks passed" + (passed === total ? " — ALL CHECKS PASSED" : ""));
+    lines.push("");
+    lines.push(WRITTEN_HEADER);
     [
       ["reflect-fx-s1", "Sheet 1 – horizontal forces (ΣFx)"],
       ["reflect-fy-s1", "Sheet 1 – vertical forces (ΣFy)"],
@@ -915,39 +1087,159 @@
       ["reflect-fy-s2", "Sheet 2 – forces perpendicular to the board (ΣFy′)"],
       ["reflect-tau-s2", "Sheet 2 – torque pivot point"]
     ].forEach(([id, label]) => {
-      const val = document.getElementById(id).value.trim();
+      const val = el(id).value.trim();
       lines.push(label + ":");
-      lines.push("  " + (val || "(not answered)"));
+      (val || "(not answered)").split(/\r?\n/).forEach(l => lines.push("  " + l));
       lines.push("");
     });
-    const allPass = ["s1", "s2"].every(sh => Object.values(state.pass[sh]).every(Boolean));
-    lines.push("Overall: " + (allPass ? "ALL CHECKS PASSED" : "INCOMPLETE"));
     const body = lines.join("\n");
-    const hash = fnv1a(body);
-    const full = body + "\n\nIntegrity hash: " + hash;
-    document.getElementById("report-out").value = full;
-    document.getElementById("copy-note").textContent = "";
+    return body + "\n\n" + HASH_LABEL + " " + fnv1a(normalizeForHash(body));
+  }
+
+  el("btn-report").addEventListener("click", () => {
+    currentReport();
+    el("copy-note").textContent = "";
   });
 
-  document.getElementById("btn-copy").addEventListener("click", async () => {
-    const ta = document.getElementById("report-out");
-    if (!ta.value) { document.getElementById("copy-note").textContent = "Generate a report first."; return; }
+  function currentReport() {
+    // Always regenerate so the report can never be stale.
+    const name = el("student-name").value.trim() || "(name not entered)";
+    const text = buildReport(name);
+    el("report-out").value = text;
+    return text;
+  }
+
+  el("btn-download").addEventListener("click", () => {
+    const text = currentReport();
+    const who = el("student-name").value.trim().replace(/[^A-Za-z0-9]+/g, "-").replace(/^-|-$/g, "") || "student";
+    const url = URL.createObjectURL(new Blob([text], { type: "text/plain;charset=utf-8" }));
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "plank-lab-report-" + who + ".txt";
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 2000);
+    el("copy-note").textContent = "Downloaded " + a.download + " — upload it to the dropbox.";
+  });
+
+  // Brightspace shows the page inside a frame, which often blocks the
+  // Clipboard API, so fall back to the older copy command.
+  el("btn-copy").addEventListener("click", async () => {
+    const ta = el("report-out");
+    const text = currentReport();
     try {
-      await navigator.clipboard.writeText(ta.value);
-      document.getElementById("copy-note").textContent = "Copied.";
-    } catch (e) {
-      ta.select();
-      document.getElementById("copy-note").textContent = "Select-all applied — copy manually.";
+      await navigator.clipboard.writeText(text);
+      el("copy-note").textContent = "Copied.";
+      return;
+    } catch (e) { /* fall through */ }
+    ta.focus();
+    ta.select();
+    let ok = false;
+    try { ok = document.execCommand("copy"); } catch (e) {}
+    el("copy-note").textContent = ok ? "Copied." : "Your browser blocked copying — the report is selected; press Ctrl+C (Cmd+C on a Mac).";
+  });
+
+  /* ---------- instructor verification ---------- */
+
+  function regrade(sheet, field, answer) {
+    if (!answer) return null;
+    if (field === "diagram") {
+      const sel = {};
+      answer.split(",").forEach(part => {
+        const [k, v] = part.split("=").map(s => (s || "").trim());
+        if (k) sel[k] = v;
+      });
+      return gradeDiagram(sheet, sel);
     }
+    if (FIELDS[sheet].eq.indexOf(field) >= 0) return gradeEq(sheet, field, answer);
+    if (FIELDS[sheet].sol.indexOf(field) >= 0) return gradeSol(sheet, field, answer);
+    return { ok: false, message: "Unknown field" };
+  }
+
+  function verifyReport(raw) {
+    const text = raw.replace(/\r/g, "").replace(/\u00a0/g, " ");
+    const hashIdx = text.lastIndexOf(HASH_LABEL);
+    let hash;
+    if (hashIdx < 0) {
+      hash = { cls: "bad", text: "No integrity hash found — the report is incomplete or was edited." };
+    } else {
+      const claimed = text.slice(hashIdx + HASH_LABEL.length).trim().split(/\s+/)[0].toLowerCase();
+      const actual = fnv1a(normalizeForHash(text.slice(0, hashIdx)));
+      hash = claimed === actual
+        ? { cls: "ok", text: "Integrity hash matches — the text is as generated (or was re-hashed by someone determined)." }
+        : { cls: "bad", text: "Integrity hash does NOT match — the report text was changed after it was generated." };
+    }
+
+    const gradedEnd = text.indexOf("\n" + WRITTEN_HEADER);
+    const gradedPart = gradedEnd >= 0 ? text.slice(0, gradedEnd) : text;
+    const found = {};
+    gradedPart.split("\n").forEach(line => {
+      const m = line.match(GRADED_LINE);
+      if (m && !found[m[1] + "." + m[2]]) found[m[1] + "." + m[2]] = { claimed: m[3], answer: m[4].trim() };
+    });
+
+    const rows = [];
+    let mismatches = 0;
+    ["s1", "s2"].forEach(sh => {
+      ["diagram", ...FIELDS[sh].eq, ...FIELDS[sh].sol].forEach(f => {
+        const key = sh + "." + f;
+        const entry = found[key];
+        if (!entry) { mismatches++; rows.push({ key, claimed: "—", answer: "", regraded: "—", cls: "bad", note: "missing from report" }); return; }
+        const r = regrade(sh, f, entry.answer);
+        const regraded = r ? (r.ok ? "PASS" : "FAIL") : "BLANK";
+        let cls = "", note = r && !r.ok ? r.message : "";
+        if ((entry.claimed === "PASS" || entry.claimed === "FAIL") && entry.claimed !== regraded) {
+          cls = "bad"; mismatches++; note = "claimed " + entry.claimed + ", re-grades as " + regraded + (note ? " — " + note : "");
+        } else if (entry.claimed === "BLANK" && entry.answer) {
+          cls = "bad"; mismatches++; note = "claimed BLANK but has an answer";
+        } else if (regraded === "PASS") {
+          cls = "ok";
+        }
+        rows.push({ key, claimed: entry.claimed, answer: entry.answer, regraded, cls, note });
+      });
+    });
+
+    const passed = rows.filter(r => r.regraded === "PASS").length;
+    let html = `<p class="status-row ${hash.cls}">${escapeHtml(hash.text)}</p>`;
+    html += `<p class="status-row ${mismatches ? "bad" : "ok"}">Re-graded: ${passed} / ${rows.length} pass. ` +
+      (mismatches ? `${mismatches} line(s) disagree with what the report claims.` : "Every claimed result agrees with re-grading.") + `</p>`;
+    html += `<div class="verify-scroll"><table class="verify"><thead><tr><th>Item</th><th>Claimed</th><th>Re-graded</th><th>Answer</th><th>Note</th></tr></thead><tbody>`;
+    rows.forEach(r => {
+      html += `<tr class="${r.cls}"><td>${escapeHtml(r.key)}</td><td>${escapeHtml(r.claimed)}</td><td>${escapeHtml(r.regraded)}</td>` +
+        `<td><code>${escapeHtml(r.answer)}</code></td><td>${escapeHtml(r.note)}</td></tr>`;
+    });
+    html += `</tbody></table></div>`;
+    return html;
+  }
+
+  el("btn-verify").addEventListener("click", () => {
+    const raw = el("verify-in").value;
+    el("verify-out").innerHTML = raw.trim() ? verifyReport(raw) : `<p class="status-row bad">Paste a report first.</p>`;
   });
 
   /* ---------- init ---------- */
 
+  function renderAll() {
+    ["s1", "s2"].forEach(sh => { renderRealistic(sh); renderGhost(sh); });
+  }
+
+  // Diagram colors are read from CSS variables at render time, so redraw
+  // whenever the theme changes.
+  try { matchMedia("(prefers-color-scheme: dark)").addEventListener("change", renderAll); } catch (e) {}
+  new MutationObserver(renderAll).observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
+
+  function syncInstructorPanel() {
+    const on = location.hash === "#instructor";
+    el("instructor").hidden = !on;
+    if (on) el("instructor").open = true;
+  }
+  window.addEventListener("hashchange", syncInstructorPanel);
+
   buildSelectors("s1");
   buildSelectors("s2");
-  renderRealistic("s1");
-  renderRealistic("s2");
-  renderGhost("s1");
-  renderGhost("s2");
+  renderAll();
+  restore();
+  syncInstructorPanel();
 })();
 </script>
