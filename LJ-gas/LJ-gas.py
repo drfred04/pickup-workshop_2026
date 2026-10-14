@@ -1,5 +1,6 @@
-from vpython import *
 import random
+
+from vpython import *
 
 # --- Simulation Parameters ---
 N = 40              # Number of particles

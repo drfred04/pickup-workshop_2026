@@ -33,8 +33,8 @@ Flow resistivity measurement standard:
     ISO 9053-1:2018, Acoustics - Determination of airflow resistance -
     Part 1: Static airflow method.
 """
-import numpy as np
 import matplotlib.pyplot as plt
+import numpy as np
 from scipy.special import jv
 
 # Ambient air properties (20 C, 101.325 kPa)
@@ -210,7 +210,7 @@ if __name__ == "__main__":
         Zc, k = jca_impedance(f, phi, alpha_inf, sigma, Lambda, Lambda_p)
         Zs = surface_impedance(Zc, k, L)
         alpha = absorption_coefficient(Zs)
-        results[shape] = dict(Lambda=Lambda, Zc=Zc, k=k, Zs=Zs, alpha=alpha)
+        results[shape] = {"Lambda": Lambda, "Zc": Zc, "k": k, "Zs": Zs, "alpha": alpha}
 
     Zc_db, k_db = delany_bazley_miki_impedance(f, sigma)
     Zs_db = surface_impedance(Zc_db, k_db, L)

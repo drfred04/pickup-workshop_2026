@@ -1,5 +1,5 @@
-import numpy as np
 import matplotlib.pyplot as plt
+import numpy as np
 
 g = 9.81
 
@@ -8,7 +8,7 @@ def derivatives(state, k):
     """
 		state = [x, y, vx, vy]; k = Cd*rho*A/(2m), drag accel = -k*|v|*v.
     """
-    x, y, vx, vy = state
+    _x, _y, vx, vy = state
     speed = np.hypot(vx, vy)
     return np.array([vx, vy, -k * speed * vx, -g - k * speed * vy])
 

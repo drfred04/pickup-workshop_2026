@@ -14,17 +14,17 @@ import platform
 import subprocess
 import sys
 
-import numpy as np
 import matplotlib.pyplot as plt
-
+import numpy as np
 from porous_impedance import (
-    rho0, c0,
-    jca_impedance_from_bulk,
-    zwikker_kosten_impedance,
+    absorption_coefficient,
+    c0,
     delany_bazley_miki_impedance,
+    jca_impedance_from_bulk,
+    rho0,
     shape_characteristic_length,
     surface_impedance,
-    absorption_coefficient,
+    zwikker_kosten_impedance,
 )
 
 REQUIRED_FLOAT_KEYS = ["porosity", "tortuosity", "flow_resistance", "thickness", "freq_min", "freq_max"]
@@ -72,7 +72,7 @@ def _save_dialog_tkinter(title, default_name):
 def _open_dialog_osascript(title):
     """macOS 'choose file' dialog via AppleScript, restricted to .txt files."""
     script = f'POSIX path of (choose file with prompt "{title}" of type {{"txt"}})'
-    result = subprocess.run(["osascript", "-e", script], capture_output=True, text=True)
+    result = subprocess.run(["osascript", "-e", script], capture_output=True, text=True, check=False)
     if result.returncode != 0:
         return None
     return result.stdout.strip()
@@ -82,7 +82,7 @@ def _save_dialog_osascript(title, default_name):
     """macOS 'choose file name' dialog via AppleScript, for picking a save location/name."""
     safe_name = default_name.replace('"', "'")
     script = f'POSIX path of (choose file name with prompt "{title}" default name "{safe_name}")'
-    result = subprocess.run(["osascript", "-e", script], capture_output=True, text=True)
+    result = subprocess.run(["osascript", "-e", script], capture_output=True, text=True, check=False)
     if result.returncode != 0:
         return None
     return result.stdout.strip()
@@ -196,7 +196,7 @@ def run_model(name, f, phi, alpha_inf, sigma, L):
 
     Zs = surface_impedance(Zc, k, L)
     alpha = absorption_coefficient(Zs)
-    return dict(Zc=Zc, k=k, Zs=Zs, alpha=alpha), notes
+    return {"Zc": Zc, "k": k, "Zs": Zs, "alpha": alpha}, notes
 
 
 if __name__ == "__main__":
