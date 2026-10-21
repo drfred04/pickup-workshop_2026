@@ -1,0 +1,71 @@
+{
+  "name": "Shed end-wall panel (scale model)",
+  "units": "mm",
+  "origin": "bottom-left corner of the part's bounding box; x to the right, y up",
+  "parts": [
+    {
+      "id": "R1",
+      "label": "Sill",
+      "type": "rectangle",
+      "x0": 0,
+      "y0": 0,
+      "width": 170,
+      "height": 10
+    },
+    {
+      "id": "R2",
+      "label": "Wall",
+      "type": "rectangle",
+      "x0": 10,
+      "y0": 10,
+      "width": 120,
+      "height": 60
+    },
+    {
+      "id": "R3",
+      "label": "Lean-to wall",
+      "type": "rectangle",
+      "x0": 130,
+      "y0": 10,
+      "width": 40,
+      "height": 35
+    },
+    {
+      "id": "T1",
+      "label": "Gable",
+      "type": "triangle",
+      "vertices": [
+        [
+          10,
+          70
+        ],
+        [
+          130,
+          70
+        ],
+        [
+          50,
+          110
+        ]
+      ]
+    },
+    {
+      "id": "H1",
+      "label": "Gable vent",
+      "type": "hole",
+      "cx": 55,
+      "cy": 85,
+      "r": 8,
+      "callout_deg": 0
+    },
+    {
+      "id": "H2",
+      "label": "Porthole window",
+      "type": "hole",
+      "cx": 40,
+      "cy": 40,
+      "r": 12,
+      "callout_deg": -45
+    }
+  ]
+}

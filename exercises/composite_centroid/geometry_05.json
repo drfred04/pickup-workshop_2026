@@ -1,0 +1,71 @@
+{
+  "name": "Latch dog plate",
+  "units": "mm",
+  "origin": "bottom-left corner of the part's bounding box; x to the right, y up",
+  "parts": [
+    {
+      "id": "R1",
+      "label": "Body",
+      "type": "rectangle",
+      "x0": 0,
+      "y0": 0,
+      "width": 80,
+      "height": 30
+    },
+    {
+      "id": "R2",
+      "label": "Upright",
+      "type": "rectangle",
+      "x0": 0,
+      "y0": 30,
+      "width": 30,
+      "height": 60
+    },
+    {
+      "id": "R3",
+      "label": "Top lip",
+      "type": "rectangle",
+      "x0": 0,
+      "y0": 90,
+      "width": 50,
+      "height": 15
+    },
+    {
+      "id": "T1",
+      "label": "Latch claw",
+      "type": "triangle",
+      "vertices": [
+        [
+          80,
+          0
+        ],
+        [
+          80,
+          30
+        ],
+        [
+          120,
+          45
+        ]
+      ]
+    },
+    {
+      "id": "H1",
+      "label": "Pivot hole",
+      "type": "hole",
+      "cx": 15,
+      "cy": 70,
+      "r": 8,
+      "callout_deg": -90
+    },
+    {
+      "id": "H2",
+      "label": "Spring hole",
+      "type": "hole",
+      "cx": 45,
+      "cy": 15,
+      "r": 10,
+      "callout_deg": 0
+    }
+  ]
+}

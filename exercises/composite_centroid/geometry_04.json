@@ -1,0 +1,70 @@
+{
+  "name": "Braced I-bracket",
+  "units": "mm",
+  "origin": "bottom-left corner of the part's bounding box; x to the right, y up",
+  "parts": [
+    {
+      "id": "R1",
+      "label": "Top flange",
+      "type": "rectangle",
+      "x0": 0,
+      "y0": 80,
+      "width": 120,
+      "height": 20
+    },
+    {
+      "id": "R2",
+      "label": "Web",
+      "type": "rectangle",
+      "x0": 50,
+      "y0": 20,
+      "width": 20,
+      "height": 60
+    },
+    {
+      "id": "R3",
+      "label": "Bottom flange",
+      "type": "rectangle",
+      "x0": 20,
+      "y0": 0,
+      "width": 80,
+      "height": 20
+    },
+    {
+      "id": "R4",
+      "label": "Side boss",
+      "type": "rectangle",
+      "x0": 70,
+      "y0": 40,
+      "width": 30,
+      "height": 20
+    },
+    {
+      "id": "T1",
+      "label": "Flange brace",
+      "type": "triangle",
+      "vertices": [
+        [
+          20,
+          80
+        ],
+        [
+          50,
+          80
+        ],
+        [
+          50,
+          50
+        ]
+      ]
+    },
+    {
+      "id": "H1",
+      "label": "Boss pin hole",
+      "type": "hole",
+      "cx": 85,
+      "cy": 50,
+      "r": 6
+    }
+  ]
+}
