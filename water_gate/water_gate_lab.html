@@ -1,0 +1,1930 @@
+<!doctype html>
+<html lang="en">
+<title>Water Gate Equilibrium</title>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@600;700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --paper: #eef0e8;
+    --surface: #f8f9f4;
+    --surface-2: #ffffff;
+    --ink: #22252b;
+    --ink-soft: #595f6b;
+    --rule: #c6c9b8;
+    --accent: #3b4f8a;
+    --applied: #b4502a;
+    --reaction: #3b4f8a;
+    --water: rgba(64, 128, 196, .20);
+    --water-edge: #3570ad;
+    --success: #2f7d4f;
+    --success-bg: #dcefdf;
+    --warn: #93650c;
+    --warn-bg: #f5e6c8;
+    --danger: #a8341f;
+    --danger-bg: #f3ded9;
+    --shadow: 0 1px 2px rgba(34,37,43,.08), 0 6px 20px rgba(34,37,43,.08);
+    color-scheme: light dark;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --paper: #141821; --surface: #1b2130; --surface-2: #151a26;
+      --ink: #e8eaf0; --ink-soft: #a7adba; --rule: #333b50;
+      --accent: #8fa3e0; --applied: #ff9a6b; --reaction: #8fa3e0;
+      --water: rgba(96, 160, 232, .22); --water-edge: #7fb2ec;
+      --success: #79d99a; --success-bg: #123222; --warn: #e0b64a; --warn-bg: #33280f;
+      --danger: #ff7a6b; --danger-bg: #341313;
+      --shadow: 0 1px 2px rgba(0,0,0,.4), 0 8px 24px rgba(0,0,0,.35);
+    }
+  }
+  :root[data-theme="dark"] {
+    --paper: #141821; --surface: #1b2130; --surface-2: #151a26;
+    --ink: #e8eaf0; --ink-soft: #a7adba; --rule: #333b50;
+    --accent: #8fa3e0; --applied: #ff9a6b; --reaction: #8fa3e0;
+    --water: rgba(96, 160, 232, .22); --water-edge: #7fb2ec;
+    --success: #79d99a; --success-bg: #123222; --warn: #e0b64a; --warn-bg: #33280f;
+    --danger: #ff7a6b; --danger-bg: #341313;
+    --shadow: 0 1px 2px rgba(0,0,0,.4), 0 8px 24px rgba(0,0,0,.35);
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--paper); color: var(--ink); font-family: "Inter", system-ui, sans-serif; padding-inline: 20px; padding-block: 28px 70px; }
+  @media (max-width: 520px) { body { padding-inline: 16px; } }
+  h1, h2, h3 { font-family: "Fraunces", Georgia, serif; text-wrap: balance; margin: 0; }
+  .wrap { max-width: 1180px; margin: 0 auto; }
+  header.top { margin-bottom: 18px; }
+  .eyebrow { font-family: "IBM Plex Mono", monospace; font-size: .72rem; letter-spacing: .12em; text-transform: uppercase; color: var(--accent); font-weight: 600; margin-bottom: 6px; display: block; }
+  h1 { font-size: clamp(1.6rem, 3vw, 2.1rem); font-weight: 700; }
+  .lede { max-width: 68ch; color: var(--ink-soft); font-size: 1rem; line-height: 1.6; margin-top: 10px; }
+  .legend { display: flex; flex-wrap: wrap; gap: 10px 22px; margin-top: 16px; padding: 12px 16px; background: var(--surface); border: 1px solid var(--rule); border-radius: 10px; font-size: .85rem; }
+  .legend-item { display: flex; align-items: center; gap: 8px; }
+  .swatch { width: 26px; height: 12px; border-radius: 2px; flex-shrink: 0; }
+  .swatch.applied { background: var(--applied); }
+  .swatch.reaction { background: var(--reaction); }
+  .swatch.water { background: var(--water); border: 1px solid var(--water-edge); }
+  .swatch.cg { background: none; width: 16px; height: 16px; border-radius: 50%; position: relative; overflow: hidden; border: 1.5px solid var(--ink-soft); }
+  .swatch.cg::before, .swatch.cg::after { content: ""; position: absolute; width: 50%; height: 50%; background: var(--ink-soft); }
+  .swatch.cg::before { top: 0; left: 0; }
+  .swatch.cg::after { bottom: 0; right: 0; }
+
+  .tabs { display: flex; gap: 6px; margin-top: 22px; border-bottom: 2px solid var(--rule); overflow-x: auto; }
+  .tab-btn { font-family: "IBM Plex Mono", monospace; font-size: .82rem; font-weight: 600; letter-spacing: .02em; background: transparent; border: none; cursor: pointer; padding: 10px 18px; color: var(--ink-soft); border-bottom: 3px solid transparent; margin-bottom: -2px; white-space: nowrap; }
+  .tab-btn.active { color: var(--ink); border-bottom-color: var(--accent); }
+  .tab-btn:hover { color: var(--ink); }
+
+  .sheet { padding-top: 22px; }
+  .givens { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 20px; }
+  .given-chip { background: var(--surface); border: 1px solid var(--rule); border-radius: 8px; padding: 8px 12px; font-size: .88rem; display: flex; gap: 8px; align-items: baseline; }
+  .given-chip b { font-family: "IBM Plex Mono", monospace; color: var(--accent); }
+
+  .stage { background: var(--surface); border: 1px solid var(--rule); border-radius: 12px; padding: 18px 20px; margin-bottom: 18px; box-shadow: var(--shadow); }
+  .stage h2 { font-size: 1.05rem; font-weight: 700; margin-bottom: 4px; }
+  .stage .sub { color: var(--ink-soft); font-size: .9rem; margin-bottom: 14px; line-height: 1.5; }
+
+  .panels { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  @media (max-width: 820px) { .panels { grid-template-columns: 1fr; } }
+  .panel { background: var(--surface-2); border: 1px solid var(--rule); border-radius: 10px; padding: 10px; min-width: 0; }
+  .panel h3 { font-size: .78rem; font-family: "IBM Plex Mono", monospace; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; color: var(--ink-soft); margin-bottom: 6px; }
+  svg.illustration, svg.ghost, svg.chart { display: block; width: 100%; height: auto; background: var(--surface-2); }
+
+  .selectors { margin-top: 10px; display: flex; flex-direction: column; gap: 8px; }
+  .selector-row { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; font-size: .85rem; }
+  .selector-row .pt-label { font-family: "IBM Plex Mono", monospace; font-weight: 600; min-width: 150px; color: var(--ink); }
+  .dir-btn { border: 1px solid var(--rule); background: var(--surface); color: var(--ink); border-radius: 6px; padding: 5px 10px; font-size: .82rem; cursor: pointer; }
+  .dir-btn.sel { background: var(--accent); color: var(--surface-2); border-color: var(--accent); }
+  .dir-btn:hover { border-color: var(--accent); }
+
+  button.action { font-family: "IBM Plex Mono", monospace; font-weight: 600; font-size: .82rem; letter-spacing: .02em; background: var(--accent); color: var(--surface-2); border: none; border-radius: 8px; padding: 10px 16px; cursor: pointer; margin-top: 4px; }
+  button.action:hover { opacity: .9; }
+  button.action.secondary { background: transparent; color: var(--accent); border: 1px solid var(--accent); }
+
+  .status-row { margin-top: 10px; font-size: .88rem; font-weight: 600; }
+  .status-row.ok { color: var(--success); }
+  .status-row.bad { color: var(--danger); }
+  .status-row.neutral { color: var(--ink-soft); }
+
+  .eq-row { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin-bottom: 10px; }
+  .eq-row label { font-family: "IBM Plex Mono", monospace; font-size: .9rem; min-width: 96px; }
+  .eq-row input[type=text] { flex: 1 1 260px; min-width: 0; font-family: "IBM Plex Mono", monospace; font-size: .9rem; padding: 8px 10px; border: 1px solid var(--rule); border-radius: 6px; background: var(--surface-2); color: var(--ink); }
+  .eq-row .unit { font-family: "IBM Plex Mono", monospace; font-size: .85rem; color: var(--ink-soft); min-width: 22px; }
+  .eq-row .chk { font-size: 1.1rem; min-width: 22px; text-align: center; }
+  .eq-row .chk.ok { color: var(--success); }
+  .eq-row .chk.bad { color: var(--danger); }
+  .eq-row .chk.neutral { color: var(--ink-soft); }
+  .eq-msg { font-size: .8rem; color: var(--ink-soft); flex: 1 1 100%; margin-top: -4px; }
+  .eq-msg.bad { color: var(--danger); }
+  .eq-msg.ok { color: var(--success); }
+
+  textarea.reflect { width: 100%; min-height: 54px; font-family: "Inter", sans-serif; font-size: .88rem; padding: 8px 10px; border: 1px solid var(--rule); border-radius: 6px; background: var(--surface-2); color: var(--ink); resize: vertical; }
+
+  details.hint { margin-top: 6px; font-size: .85rem; }
+  details.hint summary { cursor: pointer; color: var(--accent); font-weight: 600; }
+  details.hint p { color: var(--ink-soft); margin: 6px 0 0; line-height: 1.5; }
+
+  .def-grid { display: grid; grid-template-columns: minmax(0, 1fr) 210px; gap: 18px; align-items: start; }
+  @media (max-width: 640px) { .def-grid { grid-template-columns: 1fr; } .def-grid svg { max-width: 240px; } }
+  .def-fig { background: var(--surface-2); border: 1px solid var(--rule); border-radius: 10px; padding: 6px; }
+  .def-fig figcaption { font-size: .75rem; color: var(--ink-soft); text-align: center; margin-top: 2px; }
+  figure { margin: 0; }
+  .slider-row { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; margin-bottom: 14px; font-family: "IBM Plex Mono", monospace; font-size: .9rem; }
+  .slider-row input[type=range] { flex: 1 1 240px; accent-color: var(--accent); }
+  .slider-row output { font-weight: 600; min-width: 140px; }
+  table.readout { width: 100%; border-collapse: collapse; font-size: .85rem; margin-top: 10px; }
+  table.readout th, table.readout td { text-align: left; padding: 5px 8px; border-bottom: 1px solid var(--rule); }
+  table.readout th { font-weight: 500; color: var(--ink-soft); }
+  table.readout td { font-family: "IBM Plex Mono", monospace; font-variant-numeric: tabular-nums; text-align: right; }
+  .chart-wrap { position: relative; }
+  .chart-legend { display: flex; flex-wrap: wrap; gap: 6px 18px; font-size: .8rem; color: var(--ink-soft); margin-bottom: 4px; }
+  .chart-legend span { display: inline-flex; align-items: center; gap: 6px; }
+  .chart-legend i { display: inline-block; width: 22px; height: 0; border-top: 2px solid; }
+  .tooltip { position: absolute; pointer-events: none; background: var(--surface); border: 1px solid var(--rule); border-radius: 6px; padding: 6px 8px; font-size: .78rem; font-family: "IBM Plex Mono", monospace; color: var(--ink); box-shadow: var(--shadow); white-space: nowrap; }
+
+  .name-input { font-family: "Inter", sans-serif; font-size: .9rem; padding: 8px 10px; border: 1px solid var(--rule); border-radius: 6px; background: var(--surface-2); color: var(--ink); width: 280px; max-width: 100%; }
+  textarea.report { width: 100%; min-height: 160px; font-family: "IBM Plex Mono", monospace; font-size: .8rem; padding: 10px; border: 1px solid var(--rule); border-radius: 6px; background: var(--surface-2); color: var(--ink); margin-top: 10px; }
+  .report-actions { display: flex; gap: 10px; margin-top: 10px; flex-wrap: wrap; align-items: center; }
+  .copy-note { font-size: .8rem; color: var(--ink-soft); }
+  .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
+  :focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+  button.action.secondary.danger { color: var(--danger); border-color: var(--danger); }
+
+  details.instructor > summary { cursor: pointer; font-weight: 700; font-size: 1.05rem; }
+  .verify-scroll { overflow-x: auto; margin-top: 10px; }
+  table.verify { width: 100%; border-collapse: collapse; font-size: .82rem; }
+  table.verify th, table.verify td { text-align: left; padding: 6px 8px; border-bottom: 1px solid var(--rule); vertical-align: top; }
+  table.verify th { font-family: "IBM Plex Mono", monospace; font-size: .72rem; text-transform: uppercase; letter-spacing: .04em; color: var(--ink-soft); }
+  table.verify td:first-child { font-family: "IBM Plex Mono", monospace; white-space: nowrap; }
+  table.verify tr.ok td:nth-child(3) { color: var(--success); font-weight: 600; }
+  table.verify tr.bad { background: var(--danger-bg); }
+  table.verify tr.bad td:nth-child(3), table.verify tr.bad td:last-child { color: var(--danger); }
+</style>
+
+<div class="wrap">
+  <header class="top">
+    <span class="eyebrow">Statics &middot; Hydrostatic Loading</span>
+    <h1>Holding Back the Water: A Gate Equilibrium Lab</h1>
+    <p class="lede">A rectangular vertical gate of height <b>h</b> and width <b>b</b> (into the page) closes an opening at the bottom of a water channel wall. It is pinned at its top edge <b>A</b> and rests against a smooth stop at its bottom edge <b>B</b>. Water presses on one face. You will draw the pressure loading and the free-body diagram, replace the distributed water load with a single resultant force, write the equilibrium equations, and solve for the support reactions &mdash; then explore how those reactions change as the water gets deeper.</p>
+  </header>
+
+  <div class="legend">
+    <div class="legend-item"><span class="swatch applied"></span> Applied load &mdash; water pressure, its resultant, and the gate&rsquo;s weight</div>
+    <div class="legend-item"><span class="swatch reaction"></span> Reaction force &mdash; at the hinge A or the stop B</div>
+    <div class="legend-item"><span class="swatch water"></span> Water</div>
+    <div class="legend-item"><span class="swatch cg"></span> Center of gravity of the gate</div>
+  </div>
+
+  <div class="tabs" role="tablist" aria-label="Lab sheets">
+    <button class="tab-btn active" role="tab" aria-selected="true" aria-controls="sheet-s1" data-tab="s1">Sheet 1 &middot; Water at the Top of the Gate</button>
+    <button class="tab-btn" role="tab" aria-selected="false" aria-controls="sheet-s2" data-tab="s2">Sheet 2 &middot; Submerged Gate</button>
+    <button class="tab-btn" role="tab" aria-selected="false" aria-controls="sheet-s3" data-tab="s3">Sheet 3 &middot; Explore the Depth</button>
+  </div>
+
+  <!-- ================= SHEET 1 ================= -->
+  <section class="sheet" id="sheet-s1" data-sheet="s1" role="tabpanel" aria-label="Sheet 1: Water at the top of the gate">
+    <div class="givens">
+      <div class="given-chip"><b>h</b><span>height of the gate (A to B)</span></div>
+      <div class="given-chip"><b>b</b><span>width of the gate, into the page</span></div>
+      <div class="given-chip"><b>rho</b><span>density of water</span></div>
+      <div class="given-chip"><b>g</b><span>gravitational acceleration</span></div>
+      <div class="given-chip"><b>W</b><span>weight of the gate</span></div>
+    </div>
+    <p class="sub">The water surface is exactly level with the hinge at the top of the gate. Ignore atmospheric pressure &mdash; it acts on both faces of the gate and cancels.</p>
+
+    <div class="stage" data-stage="diagram">
+      <h2>1. Build the free-body diagram</h2>
+      <p class="sub">Isolate the gate. The <b>loads</b> are known, so give their true form and direction: the shape and direction of the water pressure, and the gate&rsquo;s weight. The <b>reactions</b> A<sub>x</sub>, A<sub>y</sub> and R are unknowns, so you may <b>assume either sense</b> for each one &mdash; the signs of your answers in steps 4 and 5 will reveal the true sense. The stop at B is smooth, so its force must act perpendicular to the gate&rsquo;s face.</p>
+      <div class="panels">
+        <div class="panel">
+          <h3>Scenario</h3>
+          <svg class="illustration" id="real-s1" viewBox="0 0 440 290"></svg>
+        </div>
+        <div class="panel">
+          <h3>Free-body diagram of the gate</h3>
+          <svg class="ghost" id="ghost-s1" viewBox="0 0 440 290"></svg>
+          <div class="selectors" id="selectors-s1" role="group" aria-label="Loading and force directions"></div>
+        </div>
+      </div>
+      <button class="action" data-action="check-diagram" data-sheet="s1">Check diagram</button>
+      <div class="status-row neutral" id="status-diagram-s1" role="status">Not checked yet.</div>
+      <p class="sub" style="margin-top:14px;margin-bottom:6px">Explain in a sentence or two why the water pressure has the shape you chose (not graded, but your instructor will read it):</p>
+      <textarea class="reflect" id="reflect-shape-s1" aria-label="Sheet 1: explain the pressure shape" placeholder="Pressure at depth y below the surface is..."></textarea>
+    </div>
+
+    <div class="stage" data-stage="resultant">
+      <h2>2. Replace the water load with its resultant</h2>
+      <div class="def-grid">
+      <div>
+      <p class="sub">The resultant force <b>F</b> equals the &ldquo;volume&rdquo; of the pressure distribution (area of the pressure diagram &times; width <b>b</b>). It acts through the centroid of the pressure diagram.</p>
+      <p class="sub"><b>y_p</b> locates that line of action: it is the distance measured <b>down the gate from the hinge A</b> to where F acts (not from the water surface, and not up from B). See the sketch.</p>
+      <p class="sub">Write each in terms of <b>rho</b>, <b>g</b>, <b>b</b>, <b>h</b>. Use <code>*</code> for multiplication and <code>^</code> for powers, e.g. <code>rho*g*b*h^2</code>.</p>
+      </div>
+      <figure class="def-fig"><svg class="illustration" id="ypdef-s1" viewBox="0 0 200 210"></svg><figcaption>Definition of y<sub>p</sub> (not to scale)</figcaption></figure>
+      </div>
+      <div class="eq-row">
+        <label for="sol-F-s1">F =</label>
+        <input type="text" id="sol-F-s1" autocomplete="off" spellcheck="false">
+        <span class="chk neutral" id="chk-sol-F-s1" aria-hidden="true">&middot;</span>
+        <button class="action secondary" data-action="check-sol" data-sheet="s1" data-field="F">Check</button>
+        <div class="eq-msg" id="msg-sol-F-s1" role="status"></div>
+      </div>
+      <div class="eq-row">
+        <label for="sol-yp-s1">y_p (below A) =</label>
+        <input type="text" id="sol-yp-s1" autocomplete="off" spellcheck="false">
+        <span class="chk neutral" id="chk-sol-yp-s1" aria-hidden="true">&middot;</span>
+        <button class="action secondary" data-action="check-sol" data-sheet="s1" data-field="yp">Check</button>
+        <div class="eq-msg" id="msg-sol-yp-s1" role="status"></div>
+      </div>
+      <details class="hint"><summary>Hint</summary><p>The pressure at depth y is &rho;gy, so at the bottom of the gate it is &rho;gh. The pressure diagram is a triangle with area &frac12;(base)(height). The centroid of a triangle is one-third of the way from its wide side &mdash; but <b>y_p</b> is measured down from the <em>hinge</em>.</p></details>
+    </div>
+
+    <div class="stage" data-stage="equations">
+      <h2>3. Write the three equilibrium equations</h2>
+      <p class="sub">Use the resultant <b>F</b> in place of the distributed load. Allowed symbols: <b>F</b>, <b>y_p</b> (distance of F below A), <b>h</b>, <b>W</b>, <b>A_x</b>, <b>A_y</b> (hinge components), <b>R</b> (stop force). Each reaction symbol stands for the force component in the sense <b>you drew</b> on your free-body diagram, and your signs are checked against that diagram. You may write an expression (= 0 is assumed) or use an explicit <code>=</code>.</p>
+      <div class="eq-row">
+        <label for="eq-fx-s1">&Sigma;F<sub>x</sub> = 0</label>
+        <input type="text" id="eq-fx-s1" autocomplete="off" spellcheck="false">
+        <span class="chk neutral" id="chk-fx-s1" aria-hidden="true">&middot;</span>
+        <button class="action secondary" data-action="check-eq" data-sheet="s1" data-field="fx">Check</button>
+        <div class="eq-msg" id="msg-fx-s1" role="status"></div>
+      </div>
+      <div class="eq-row">
+        <label for="eq-fy-s1">&Sigma;F<sub>y</sub> = 0</label>
+        <input type="text" id="eq-fy-s1" autocomplete="off" spellcheck="false">
+        <span class="chk neutral" id="chk-fy-s1" aria-hidden="true">&middot;</span>
+        <button class="action secondary" data-action="check-eq" data-sheet="s1" data-field="fy">Check</button>
+        <div class="eq-msg" id="msg-fy-s1" role="status"></div>
+      </div>
+      <p class="sub" style="margin-top:14px;margin-bottom:6px">State the point you are taking moments about, and why it is a convenient choice (not graded, but your instructor will read it):</p>
+      <textarea class="reflect" id="reflect-tau-s1" aria-label="Sheet 1: state your moment point" placeholder="I take moments about..."></textarea>
+      <div class="eq-row" style="margin-top:10px">
+        <label for="eq-tau-s1">&Sigma;M = 0</label>
+        <input type="text" id="eq-tau-s1" autocomplete="off" spellcheck="false">
+        <span class="chk neutral" id="chk-tau-s1" aria-hidden="true">&middot;</span>
+        <button class="action secondary" data-action="check-eq" data-sheet="s1" data-field="tau">Check</button>
+        <div class="eq-msg" id="msg-tau-s1" role="status"></div>
+      </div>
+      <details class="hint"><summary>Hint</summary><p>Any moment point is accepted. Taking moments about the hinge A eliminates both unknown hinge components at once, leaving only R and the water resultant.</p></details>
+    </div>
+
+    <div class="stage" data-stage="solution">
+      <h2>4. Solve for the support reactions</h2>
+      <p class="sub">Write each reaction only in terms of the given quantities <b>rho</b>, <b>g</b>, <b>b</b>, <b>h</b>, <b>W</b> (substitute your results for F and y_p). If an assumed sense was wrong, that answer comes out <b>negative</b> &mdash; keep the minus sign.</p>
+      <div class="eq-row">
+        <label for="sol-R-s1">R =</label>
+        <input type="text" id="sol-R-s1" autocomplete="off" spellcheck="false">
+        <span class="chk neutral" id="chk-sol-R-s1" aria-hidden="true">&middot;</span>
+        <button class="action secondary" data-action="check-sol" data-sheet="s1" data-field="R">Check</button>
+        <div class="eq-msg" id="msg-sol-R-s1" role="status"></div>
+      </div>
+      <div class="eq-row">
+        <label for="sol-Ax-s1">A_x =</label>
+        <input type="text" id="sol-Ax-s1" autocomplete="off" spellcheck="false">
+        <span class="chk neutral" id="chk-sol-Ax-s1" aria-hidden="true">&middot;</span>
+        <button class="action secondary" data-action="check-sol" data-sheet="s1" data-field="Ax">Check</button>
+        <div class="eq-msg" id="msg-sol-Ax-s1" role="status"></div>
+      </div>
+      <div class="eq-row">
+        <label for="sol-Ay-s1">A_y =</label>
+        <input type="text" id="sol-Ay-s1" autocomplete="off" spellcheck="false">
+        <span class="chk neutral" id="chk-sol-Ay-s1" aria-hidden="true">&middot;</span>
+        <button class="action secondary" data-action="check-sol" data-sheet="s1" data-field="Ay">Check</button>
+        <div class="eq-msg" id="msg-sol-Ay-s1" role="status"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= SHEET 2 ================= -->
+  <section class="sheet" id="sheet-s2" data-sheet="s2" role="tabpanel" aria-label="Sheet 2: Submerged gate" hidden>
+    <div class="givens">
+      <div class="given-chip"><b>h</b><span>height of the gate (A to B)</span></div>
+      <div class="given-chip"><b>D</b><span>water depth at the bottom of the gate (D &gt; h)</span></div>
+      <div class="given-chip"><b>b</b><span>width of the gate, into the page</span></div>
+      <div class="given-chip"><b>rho</b><span>density of water</span></div>
+      <div class="given-chip"><b>g</b><span>gravitational acceleration</span></div>
+      <div class="given-chip"><b>W</b><span>weight of the gate</span></div>
+    </div>
+    <p class="sub">Same gate, but now the water surface is above the hinge: the depth at the bottom of the gate is <b>D</b>, so the hinge A is at depth D &minus; h. The wall above the gate holds back the water above A; only the pressure on the gate itself acts on the gate.</p>
+
+    <div class="stage" data-stage="diagram">
+      <h2>1. Build the free-body diagram</h2>
+      <p class="sub">Isolate the gate. The <b>loads</b> are known, so give their true form and direction: the shape and direction of the water pressure, and the gate&rsquo;s weight. The <b>reactions</b> A<sub>x</sub>, A<sub>y</sub> and R are unknowns, so you may <b>assume either sense</b> for each one &mdash; the signs of your answers in steps 4 and 5 will reveal the true sense. The stop at B is smooth, so its force must act perpendicular to the gate&rsquo;s face.</p>
+      <div class="panels">
+        <div class="panel">
+          <h3>Scenario</h3>
+          <svg class="illustration" id="real-s2" viewBox="0 0 440 290"></svg>
+        </div>
+        <div class="panel">
+          <h3>Free-body diagram of the gate</h3>
+          <svg class="ghost" id="ghost-s2" viewBox="0 0 440 290"></svg>
+          <div class="selectors" id="selectors-s2" role="group" aria-label="Loading and force directions"></div>
+        </div>
+      </div>
+      <button class="action" data-action="check-diagram" data-sheet="s2">Check diagram</button>
+      <div class="status-row neutral" id="status-diagram-s2" role="status">Not checked yet.</div>
+      <p class="sub" style="margin-top:14px;margin-bottom:6px">Explain why the pressure diagram on the gate has the shape you chose. What are the pressures at A and at B? (Not graded, but your instructor will read it.)</p>
+      <textarea class="reflect" id="reflect-shape-s2" aria-label="Sheet 2: explain the pressure shape" placeholder="At A the pressure is... at B it is..."></textarea>
+    </div>
+
+    <div class="stage" data-stage="resultant">
+      <h2>2. Replace the water load with its resultant</h2>
+      <div class="def-grid">
+      <div>
+      <p class="sub">As on Sheet 1, <b>y_p</b> is the distance measured <b>down the gate from the hinge A</b> to the line of action of F &mdash; not the depth below the water surface. (The depth of F below the surface would be y_p + D &minus; h.)</p>
+      <p class="sub">Write <b>F</b> and <b>y_p</b> in terms of <b>rho</b>, <b>g</b>, <b>b</b>, <b>h</b>, <b>D</b>.</p>
+      </div>
+      <figure class="def-fig"><svg class="illustration" id="ypdef-s2" viewBox="0 0 200 210"></svg><figcaption>Definition of y<sub>p</sub> (not to scale)</figcaption></figure>
+      </div>
+      <div class="eq-row">
+        <label for="sol-F-s2">F =</label>
+        <input type="text" id="sol-F-s2" autocomplete="off" spellcheck="false">
+        <span class="chk neutral" id="chk-sol-F-s2" aria-hidden="true">&middot;</span>
+        <button class="action secondary" data-action="check-sol" data-sheet="s2" data-field="F">Check</button>
+        <div class="eq-msg" id="msg-sol-F-s2" role="status"></div>
+      </div>
+      <div class="eq-row">
+        <label for="sol-yp-s2">y_p (below A) =</label>
+        <input type="text" id="sol-yp-s2" autocomplete="off" spellcheck="false">
+        <span class="chk neutral" id="chk-sol-yp-s2" aria-hidden="true">&middot;</span>
+        <button class="action secondary" data-action="check-sol" data-sheet="s2" data-field="yp">Check</button>
+        <div class="eq-msg" id="msg-sol-yp-s2" role="status"></div>
+      </div>
+      <details class="hint"><summary>Hint</summary><p>Split the trapezoid into a <b>rectangle</b> (uniform pressure &rho;g(D&minus;h), acting at h/2 below A) plus a <b>triangle</b> (zero at A, &rho;gh at B, acting at 2h/3 below A). F is the sum of the two pieces. For y_p, the moment of F about A must equal the sum of the moments of the two pieces about A.</p></details>
+    </div>
+
+    <div class="stage" data-stage="equations">
+      <h2>3. Write the three equilibrium equations</h2>
+      <p class="sub">Allowed symbols: <b>F</b>, <b>y_p</b> (distance of F below A), <b>h</b>, <b>D</b>, <b>W</b>, <b>A_x</b>, <b>A_y</b>, <b>R</b>. Keep F and y_p as symbols here &mdash; you will substitute in step 4. As on Sheet 1, each reaction symbol acts in the sense you drew, and your signs are checked against your diagram.</p>
+      <div class="eq-row">
+        <label for="eq-fx-s2">&Sigma;F<sub>x</sub> = 0</label>
+        <input type="text" id="eq-fx-s2" autocomplete="off" spellcheck="false">
+        <span class="chk neutral" id="chk-fx-s2" aria-hidden="true">&middot;</span>
+        <button class="action secondary" data-action="check-eq" data-sheet="s2" data-field="fx">Check</button>
+        <div class="eq-msg" id="msg-fx-s2" role="status"></div>
+      </div>
+      <div class="eq-row">
+        <label for="eq-fy-s2">&Sigma;F<sub>y</sub> = 0</label>
+        <input type="text" id="eq-fy-s2" autocomplete="off" spellcheck="false">
+        <span class="chk neutral" id="chk-fy-s2" aria-hidden="true">&middot;</span>
+        <button class="action secondary" data-action="check-eq" data-sheet="s2" data-field="fy">Check</button>
+        <div class="eq-msg" id="msg-fy-s2" role="status"></div>
+      </div>
+      <p class="sub" style="margin-top:14px;margin-bottom:6px">State the point you are taking moments about (not graded, but your instructor will read it):</p>
+      <textarea class="reflect" id="reflect-tau-s2" aria-label="Sheet 2: state your moment point" placeholder="I take moments about..."></textarea>
+      <div class="eq-row" style="margin-top:10px">
+        <label for="eq-tau-s2">&Sigma;M = 0</label>
+        <input type="text" id="eq-tau-s2" autocomplete="off" spellcheck="false">
+        <span class="chk neutral" id="chk-tau-s2" aria-hidden="true">&middot;</span>
+        <button class="action secondary" data-action="check-eq" data-sheet="s2" data-field="tau">Check</button>
+        <div class="eq-msg" id="msg-tau-s2" role="status"></div>
+      </div>
+    </div>
+
+    <div class="stage" data-stage="solution">
+      <h2>4. Solve for the support reactions</h2>
+      <p class="sub">Write each reaction only in terms of <b>rho</b>, <b>g</b>, <b>b</b>, <b>h</b>, <b>D</b>, <b>W</b>. If an assumed sense was wrong, that answer comes out <b>negative</b> &mdash; keep the minus sign.</p>
+      <div class="eq-row">
+        <label for="sol-R-s2">R =</label>
+        <input type="text" id="sol-R-s2" autocomplete="off" spellcheck="false">
+        <span class="chk neutral" id="chk-sol-R-s2" aria-hidden="true">&middot;</span>
+        <button class="action secondary" data-action="check-sol" data-sheet="s2" data-field="R">Check</button>
+        <div class="eq-msg" id="msg-sol-R-s2" role="status"></div>
+      </div>
+      <div class="eq-row">
+        <label for="sol-Ax-s2">A_x =</label>
+        <input type="text" id="sol-Ax-s2" autocomplete="off" spellcheck="false">
+        <span class="chk neutral" id="chk-sol-Ax-s2" aria-hidden="true">&middot;</span>
+        <button class="action secondary" data-action="check-sol" data-sheet="s2" data-field="Ax">Check</button>
+        <div class="eq-msg" id="msg-sol-Ax-s2" role="status"></div>
+      </div>
+      <div class="eq-row">
+        <label for="sol-Ay-s2">A_y =</label>
+        <input type="text" id="sol-Ay-s2" autocomplete="off" spellcheck="false">
+        <span class="chk neutral" id="chk-sol-Ay-s2" aria-hidden="true">&middot;</span>
+        <button class="action secondary" data-action="check-sol" data-sheet="s2" data-field="Ay">Check</button>
+        <div class="eq-msg" id="msg-sol-Ay-s2" role="status"></div>
+      </div>
+      <details class="hint"><summary>Hint</summary><p>Check your answers against Sheet 1: when D = h, your R and A_x here should reduce to your Sheet 1 results.</p></details>
+    </div>
+  </section>
+
+  <!-- ================= SHEET 3 ================= -->
+  <section class="sheet" id="sheet-s3" data-sheet="s3" role="tabpanel" aria-label="Sheet 3: Explore the depth" hidden>
+    <div class="givens">
+      <div class="given-chip"><b>h</b><span>2.0 m</span></div>
+      <div class="given-chip"><b>b</b><span>3.0 m</span></div>
+      <div class="given-chip"><b>rho</b><span>1000 kg/m&sup3;</span></div>
+      <div class="given-chip"><b>g</b><span>9.81 m/s&sup2;</span></div>
+      <div class="given-chip"><b>W</b><span>4.0 kN</span></div>
+    </div>
+
+    <div class="stage">
+      <h2>1. Raise the water</h2>
+      <p class="sub">Drag the slider to change the water depth D at the bottom of the gate. The scene shows the pressure on the gate, the resultant F at its line of action, and the two horizontal reactions. F, A<sub>x</sub> and R are all drawn to the same force scale, so their lengths grow with the depth and A<sub>x</sub> + R always matches F; the percentages give each support&rsquo;s share of F. Click a point on the chart to jump to that depth.</p>
+      <div class="slider-row">
+        <label for="depth">Water depth D</label>
+        <input type="range" id="depth" min="2" max="10" step="0.1" value="2">
+        <output id="depth-out" for="depth">2.0 m (D/h = 1.00)</output>
+      </div>
+      <div class="panels">
+        <div class="panel">
+          <h3>Gate under load</h3>
+          <svg class="illustration" id="explore-scene" viewBox="0 0 440 330"></svg>
+        </div>
+        <div class="panel">
+          <h3>Share of F carried by each support</h3>
+          <div class="chart-legend" aria-hidden="true">
+            <span><i style="border-color:var(--reaction)"></i>R / F &mdash; stop B</span>
+            <span><i style="border-color:var(--applied);border-top-style:dashed"></i>A<sub>x</sub> / F &mdash; hinge A</span>
+          </div>
+          <div class="chart-wrap" id="chart-wrap">
+            <svg class="chart" id="share-chart" viewBox="0 0 440 240"></svg>
+            <div class="tooltip" id="chart-tip" hidden></div>
+          </div>
+          <table class="readout" aria-label="Current values">
+            <tbody id="readout"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <div class="stage">
+      <h2>2. What happens in very deep water?</h2>
+      <p class="sub">Use the slider to form a conjecture, then use your Sheet 2 results to find the exact limits. Enter a number or a simple expression (for y_p, in terms of <b>h</b>).</p>
+      <div class="eq-row">
+        <label for="sol-Rlim-s3">As D&rarr;&infin;, R/F &rarr;</label>
+        <input type="text" id="sol-Rlim-s3" autocomplete="off" spellcheck="false">
+        <span class="chk neutral" id="chk-sol-Rlim-s3" aria-hidden="true">&middot;</span>
+        <button class="action secondary" data-action="check-sol" data-sheet="s3" data-field="Rlim">Check</button>
+        <div class="eq-msg" id="msg-sol-Rlim-s3" role="status"></div>
+      </div>
+      <div class="eq-row">
+        <label for="sol-yplim-s3">As D&rarr;&infin;, y_p &rarr;</label>
+        <input type="text" id="sol-yplim-s3" autocomplete="off" spellcheck="false">
+        <span class="chk neutral" id="chk-sol-yplim-s3" aria-hidden="true">&middot;</span>
+        <button class="action secondary" data-action="check-sol" data-sheet="s3" data-field="yplim">Check</button>
+        <div class="eq-msg" id="msg-sol-yplim-s3" role="status"></div>
+      </div>
+      <details class="hint"><summary>Hint</summary><p>Divide the numerator and denominator of your Sheet 2 expressions by D, then let h/D &rarr; 0. Physically: when the gate is deep, how different is the pressure at A from the pressure at B?</p></details>
+    </div>
+
+    <div class="stage">
+      <h2>3. Explain the effect of the loading</h2>
+      <p class="sub">Not graded, but your instructor will read these.</p>
+      <p class="sub" style="margin-bottom:6px">(a) As the water rises, the resultant F grows. Describe how its <em>line of action</em> moves along the gate, and explain why in terms of the shape of the pressure diagram.</p>
+      <textarea class="reflect" id="reflect-yp-s3" aria-label="Sheet 3 question a"></textarea>
+      <p class="sub" style="margin:12px 0 6px">(b) Compare R/F with y_p/h in the readout table. What do you notice? Use a moment balance about A to explain why this must be true for every depth.</p>
+      <textarea class="reflect" id="reflect-share-s3" aria-label="Sheet 3 question b"></textarea>
+      <p class="sub" style="margin:12px 0 6px">(c) The gate&rsquo;s weight W never appears in R or A<sub>x</sub>. Explain why. What would change if the stop at B were rough (could supply friction) instead of smooth?</p>
+      <textarea class="reflect" id="reflect-W-s3" aria-label="Sheet 3 question c"></textarea>
+    </div>
+  </section>
+
+  <div class="stage" id="report-stage">
+    <h2>Submission report</h2>
+    <p class="sub">When you are done, enter your name, click <b>Generate report</b>, then <b>Download report</b> and upload the downloaded <code>.txt</code> file to the assignment dropbox. (If downloading doesn't work on your device, use <b>Copy report</b> and paste it into the dropbox text box instead.) The report lists every answer you entered and whether it passed its most recent check, so your instructor can re-check your work. Your answers are saved in this browser as you go.</p>
+    <label for="student-name" class="sr-only">Full name</label>
+    <input class="name-input" id="student-name" autocomplete="name" placeholder="Full name, as it appears on your roster">
+    <div class="report-actions">
+      <button class="action" id="btn-report">Generate report</button>
+      <button class="action secondary" id="btn-download">Download report (.txt)</button>
+      <button class="action secondary" id="btn-copy">Copy report</button>
+      <span class="copy-note" id="copy-note" role="status"></span>
+      <button class="action secondary danger" id="btn-reset" style="margin-left:auto">Start over</button>
+    </div>
+    <textarea class="report" id="report-out" readonly aria-label="Submission report" placeholder="Your report will appear here."></textarea>
+  </div>
+
+  <details class="stage instructor" id="instructor" hidden>
+    <summary>Instructor: verify a submitted report</summary>
+    <p class="sub" style="margin-top:10px">This panel only appears when the page address ends in <code>#instructor</code>. Paste a student's report (an uploaded .txt file's contents, or text pasted into the dropbox). Every answer in it is re-graded here, and the integrity hash is recomputed. Lines whose claimed result disagrees with re-grading are flagged.</p>
+    <textarea class="report" id="verify-in" aria-label="Report to verify" placeholder="Paste the full report here, including the integrity hash line."></textarea>
+    <div class="report-actions"><button class="action" id="btn-verify">Verify report</button></div>
+    <div id="verify-out" role="status"></div>
+  </details>
+</div>
+
+<script>
+(function () {
+  "use strict";
+
+  /* ---------- tiny expression parser / evaluator ---------- */
+
+  function tokenize(str) {
+    const toks = []; let i = 0;
+    while (i < str.length) {
+      const c = str[i];
+      if (/\s/.test(c)) { i++; continue; }
+      if (/[0-9.]/.test(c)) {
+        let j = i; while (j < str.length && /[0-9.]/.test(str[j])) j++;
+        toks.push({ t: "num", v: parseFloat(str.slice(i, j)) }); i = j; continue;
+      }
+      if (/[A-Za-z_]/.test(c)) {
+        let j = i; while (j < str.length && /[A-Za-z0-9_]/.test(str[j])) j++;
+        toks.push({ t: "id", v: str.slice(i, j) }); i = j; continue;
+      }
+      if ("+-*/^(),=".indexOf(c) >= 0) { toks.push({ t: c }); i++; continue; }
+      throw new Error("Unrecognized character '" + c + "'");
+    }
+    return toks;
+  }
+
+  function makeParser(toks) {
+    let pos = 0;
+    function peek() { return toks[pos]; }
+    function next() { return toks[pos++]; }
+    function expect(t) { if (!peek() || peek().t !== t) throw new Error("Expected '" + t + "'"); return next(); }
+
+    function parseExpr() {
+      let node = parseTerm();
+      while (peek() && (peek().t === "+" || peek().t === "-")) {
+        const op = next().t; node = { type: "bin", op, left: node, right: parseTerm() };
+      }
+      return node;
+    }
+    function parseTerm() {
+      let node = parseUnary();
+      while (peek() && (peek().t === "*" || peek().t === "/")) {
+        const op = next().t; node = { type: "bin", op, left: node, right: parseUnary() };
+      }
+      return node;
+    }
+    function parseUnary() {
+      if (peek() && peek().t === "-") { next(); return { type: "neg", value: parseUnary() }; }
+      if (peek() && peek().t === "+") { next(); return parseUnary(); }
+      return parsePow();
+    }
+    function parsePow() {
+      let node = parsePrimary();
+      if (peek() && peek().t === "^") { next(); return { type: "bin", op: "^", left: node, right: parseUnary() }; }
+      return node;
+    }
+    function parsePrimary() {
+      const tk = peek();
+      if (!tk) throw new Error("Unexpected end of expression");
+      if (tk.t === "num") { next(); return { type: "num", value: tk.v }; }
+      if (tk.t === "(") { next(); const e = parseExpr(); expect(")"); return e; }
+      if (tk.t === "id") {
+        next();
+        if (peek() && peek().t === "(") {
+          next();
+          const args = [parseExpr()];
+          while (peek() && peek().t === ",") { next(); args.push(parseExpr()); }
+          expect(")");
+          return { type: "call", name: tk.v, args };
+        }
+        return { type: "var", name: tk.v };
+      }
+      throw new Error("Unexpected token near '" + tk.t + "'");
+    }
+    return { parseExpr, isDone: () => pos >= toks.length };
+  }
+
+  function parseFullExpr(tokens) {
+    const p = makeParser(tokens);
+    const node = p.parseExpr();
+    if (!p.isDone()) throw new Error("Unexpected trailing input");
+    return node;
+  }
+
+  function parseEquationText(str) {
+    const toks = tokenize(str);
+    const eqIdx = [];
+    toks.forEach((t, i) => { if (t.t === "=") eqIdx.push(i); });
+    if (eqIdx.length > 1) throw new Error("Only one '=' is allowed");
+    let lhsToks, rhsToks;
+    if (eqIdx.length === 1) {
+      lhsToks = toks.slice(0, eqIdx[0]);
+      rhsToks = toks.slice(eqIdx[0] + 1);
+    } else {
+      lhsToks = toks;
+      rhsToks = [{ t: "num", v: 0 }];
+    }
+    if (lhsToks.length === 0 || rhsToks.length === 0) throw new Error("Incomplete equation");
+    const lhs = parseFullExpr(lhsToks);
+    const rhs = parseFullExpr(rhsToks);
+    return { type: "bin", op: "-", left: lhs, right: rhs };
+  }
+
+  // Case-insensitive, underscore-insensitive symbol names (A_x = Ax = ax, y_p = yp, F_R = F, R_B = R).
+  const ALIAS = {
+    rho: "rho", g: "g", b: "b", h: "h", d: "D", w: "W",
+    f: "F", fr: "F", yp: "yp", ycp: "yp",
+    ax: "Ax", ay: "Ay", r: "R", rb: "R", nb: "R"
+  };
+  function canon(name) {
+    const key = name.toLowerCase().replace(/[^a-z]/g, "");
+    return ALIAS[key] || name;
+  }
+  const FUNCS = { sin: Math.sin, cos: Math.cos, tan: Math.tan, sqrt: Math.sqrt, abs: Math.abs };
+
+  function evalAst(ast, env) {
+    switch (ast.type) {
+      case "num": return ast.value;
+      case "neg": return -evalAst(ast.value, env);
+      case "var": {
+        const key = canon(ast.name);
+        if (key in env) return env[key];
+        if (key === "pi") return Math.PI;
+        if (key === "e") return Math.E;
+        throw new Error("Unknown symbol '" + ast.name + "'");
+      }
+      case "call": {
+        const fname = ast.name.toLowerCase();
+        if (!(fname in FUNCS)) throw new Error("Unknown function '" + ast.name + "'");
+        return FUNCS[fname](...ast.args.map(a => evalAst(a, env)));
+      }
+      case "bin": {
+        const l = evalAst(ast.left, env), r = evalAst(ast.right, env);
+        switch (ast.op) {
+          case "+": return l + r;
+          case "-": return l - r;
+          case "*": return l * r;
+          case "/": return l / r;
+          case "^": return Math.pow(l, r);
+        }
+      }
+    }
+    throw new Error("Malformed expression");
+  }
+
+  function collectVars(ast, set) {
+    switch (ast.type) {
+      case "var": set.add(canon(ast.name)); break;
+      case "neg": collectVars(ast.value, set); break;
+      case "bin": collectVars(ast.left, set); collectVars(ast.right, set); break;
+      case "call": ast.args.forEach(a => collectVars(a, set)); break;
+    }
+  }
+
+  const DISPLAY = { rho: "rho", g: "g", b: "b", h: "h", D: "D", W: "W", F: "F", yp: "y_p", Ax: "A_x", Ay: "A_y", R: "R" };
+
+  function validateSymbols(ast, allowed) {
+    const used = new Set();
+    collectVars(ast, used);
+    const bad = [...used].filter(s => s !== "pi" && s !== "e" && allowed.indexOf(s) < 0);
+    if (bad.length) {
+      throw new Error("Unexpected symbol" + (bad.length > 1 ? "s" : "") + ": " + bad.map(s => DISPLAY[s] || s).join(", ") +
+        ". " + (allowed.length ? "Allowed: " + allowed.map(s => DISPLAY[s] || s).join(", ") : "Enter a number (no symbols)."));
+    }
+  }
+
+  // Center of pressure below the hinge, for water depth D at the bottom of a gate of height h.
+  function ypOf(h, D) { return h * (3 * D - h) / (3 * (2 * D - h)); }
+
+  function randomGeom(sheet) {
+    const h = 1 + Math.random() * 2;
+    const D = sheet === "s1" ? h : h * (1.2 + Math.random() * 2.5);
+    return {
+      h, D,
+      b: 1 + Math.random() * 3,
+      rho: 900 + Math.random() * 200,
+      g: 9 + Math.random(),
+      yp: ypOf(h, D)
+    };
+  }
+  function randomForces() {
+    const r = () => (Math.random() * 2 - 1) * 1000;
+    return { W: 500 + Math.random() * 1000, F: r(), Ax: r(), Ay: r(), R: r() };
+  }
+  function randomEnv(sheet) {
+    return { ...randomGeom(sheet), ...randomForces() };
+  }
+
+  function closeRel(a, b, tol) {
+    return Number.isFinite(a) && Number.isFinite(b) && Math.abs(a - b) <= tol * Math.max(1, Math.abs(a), Math.abs(b));
+  }
+
+  // Solve the small square system M c = v by Gaussian elimination; null if singular.
+  function solveLinear(M, v) {
+    const n = v.length;
+    const A = M.map((row, i) => [...row, v[i]]);
+    for (let col = 0; col < n; col++) {
+      let piv = col;
+      for (let r = col + 1; r < n; r++) if (Math.abs(A[r][col]) > Math.abs(A[piv][col])) piv = r;
+      if (Math.abs(A[piv][col]) < 1e-9) return null;
+      [A[col], A[piv]] = [A[piv], A[col]];
+      for (let r = 0; r < n; r++) {
+        if (r === col) continue;
+        const f = A[r][col] / A[col][col];
+        for (let k = col; k <= n; k++) A[r][k] -= f * A[col][k];
+      }
+    }
+    return A.map((row, i) => row[n] / row[i]);
+  }
+
+  /* ---------- equation / solution checking ---------- */
+
+  function checkEquation(sheet, text, ref, allowedSymbols) {
+    let diffAst;
+    try { diffAst = parseEquationText(text); }
+    catch (e) { return { ok: false, message: e.message }; }
+    try { validateSymbols(diffAst, allowedSymbols); }
+    catch (e) { return { ok: false, message: e.message }; }
+
+    const envs = Array.from({ length: 6 }, () => randomEnv(sheet));
+    let studentVals;
+    try { studentVals = envs.map(e => evalAst(diffAst, e)); }
+    catch (e) { return { ok: false, message: e.message }; }
+
+    const refVals = envs.map(e => ref(e));
+    const ratios = studentVals.map((sv, i) => sv / refVals[i]);
+    const allFinite = ratios.every(r => Number.isFinite(r));
+    const nonZero = Math.abs(ratios[0]) > 1e-9;
+    const consistent = ratios.every(r => Math.abs(r - ratios[0]) <= 1e-4 * Math.max(1, Math.abs(ratios[0])));
+    if (allFinite && nonZero && consistent) return { ok: true };
+    return { ok: false, message: "Doesn't match a valid form of this equilibrium equation — check which forces belong in it and their signs." };
+  }
+
+  // A moment equation about ANY point (x, y) equals the moment about A plus
+  // x*(ΣFy) and y*(ΣFx) terms, since shifting the moment point changes every
+  // moment arm by the same amount. So a correct student equation must equal
+  // k*M_A + m*ΣFx + n*ΣFy with k nonzero. The moment point may itself depend
+  // on the geometry, so k, m, n are constants only while the geometry is held
+  // fixed; only the force symbols vary within each group of trials.
+  function checkMomentEquation(sheet, text, refs, allowedSymbols) {
+    let diffAst;
+    try { diffAst = parseEquationText(text); }
+    catch (e) { return { ok: false, message: e.message }; }
+    try { validateSymbols(diffAst, allowedSymbols); }
+    catch (e) { return { ok: false, message: e.message }; }
+
+    const nb = refs.length;
+    for (let gi = 0; gi < 2; gi++) {
+      const geom = randomGeom(sheet);
+      const trials = Array.from({ length: nb + 3 }, () => ({ ...geom, ...randomForces() }));
+      let studentVals;
+      try { studentVals = trials.map(e => evalAst(diffAst, e)); }
+      catch (e) { return { ok: false, message: e.message }; }
+      const basis = trials.map(e => refs.map(fn => fn(e)));
+      const c = solveLinear(basis.slice(0, nb), studentVals.slice(0, nb));
+      if (!c) return { ok: false, message: "Couldn't verify this equation — please try checking again." };
+      if (Math.abs(c[0]) < 1e-6) {
+        return { ok: false, message: "This doesn't look like a moment balance — check that every term is a force times a moment arm." };
+      }
+      const consistent = trials.every((e, i) => i < nb ||
+        closeRel(studentVals[i], basis[i].reduce((s, bv, j) => s + c[j] * bv, 0), 1e-4));
+      if (!consistent) {
+        return { ok: false, message: "Doesn't match a valid moment equation about any point — check your signs, terms, and moment arms." };
+      }
+    }
+    return { ok: true };
+  }
+
+  function checkSolution(sheet, text, refFn, allowedSymbols) {
+    let ast;
+    try { ast = parseFullExpr(tokenize(text)); }
+    catch (e) { return { ok: false, message: e.message }; }
+    try { validateSymbols(ast, allowedSymbols); }
+    catch (e) { return { ok: false, message: e.message }; }
+
+    const envs = Array.from({ length: 6 }, () => randomEnv(sheet));
+    let studentVals;
+    try { studentVals = envs.map(e => evalAst(ast, e)); }
+    catch (e) { return { ok: false, message: e.message }; }
+    const refVals = envs.map(e => refFn(e));
+    const ok = studentVals.every((sv, i) => closeRel(sv, refVals[i], 1e-4));
+    return ok ? { ok: true } : { ok: false, message: "Expression doesn't match the correct result for all values tried." };
+  }
+
+  /* ---------- reference equations ---------- */
+
+  // x is positive to the right (the direction the water pushes); moments are
+  // taken positive counterclockwise about A, with R and F below A.
+  // The student may assume either sense for A_x, A_y and R on the FBD, and each
+  // symbol then stands for the component along the assumed sense. s.Ax, s.Ay,
+  // s.R are +1 when the assumed sense is the true one (A_x and R to the left,
+  // A_y up) and -1 otherwise, so every reference equation and answer below
+  // matches the student's own diagram.
+  const fxRef = (v, s) => v.F - s.Ax * v.Ax - s.R * v.R;
+  const fyRef = (v, s) => s.Ay * v.Ay - v.W;
+  const momentA = (v, s) => s.R * v.R * v.h - v.F * v.yp;
+
+  const REFS = {
+    s1: {
+      eq: { fx: fxRef, fy: fyRef },
+      moment: [momentA, fxRef, fyRef],
+      allowed: ["F", "yp", "h", "W", "Ax", "Ay", "R"],
+      solAllowed: ["rho", "g", "b", "h", "W"],
+      sol: {
+        F: (v) => v.rho * v.g * v.b * v.h * v.h / 2,
+        yp: (v) => 2 * v.h / 3,
+        R: (v, s) => s.R * v.rho * v.g * v.b * v.h * v.h / 3,
+        Ax: (v, s) => s.Ax * v.rho * v.g * v.b * v.h * v.h / 6,
+        Ay: (v, s) => s.Ay * v.W
+      }
+    },
+    s2: {
+      eq: { fx: fxRef, fy: fyRef },
+      moment: [momentA, fxRef, fyRef],
+      allowed: ["F", "yp", "h", "D", "W", "Ax", "Ay", "R"],
+      solAllowed: ["rho", "g", "b", "h", "D", "W"],
+      sol: {
+        F: (v) => v.rho * v.g * v.b * v.h * (v.D - v.h / 2),
+        yp: (v) => ypOf(v.h, v.D),
+        R: (v, s) => s.R * v.rho * v.g * v.b * v.h * (3 * v.D - v.h) / 6,
+        Ax: (v, s) => s.Ax * v.rho * v.g * v.b * v.h * (3 * v.D - 2 * v.h) / 6,
+        Ay: (v, s) => s.Ay * v.W
+      }
+    },
+    s3: {
+      solAllowed: { Rlim: [], yplim: ["h"] },
+      sol: { Rlim: () => 0.5, yplim: (v) => v.h / 2 }
+    }
+  };
+
+  const SHEETS = ["s1", "s2", "s3"];
+  const DIAGRAM_SHEETS = ["s1", "s2"];
+  const SENSE_KEYS = ["Ax", "Ay", "R"];
+  const FIELDS = {
+    s1: { eq: ["fx", "fy", "tau"], sol: ["F", "yp", "R", "Ax", "Ay"], num: ["F", "yp", "R", "Ax", "Ay"] },
+    s2: { eq: ["fx", "fy", "tau"], sol: ["F", "yp", "R", "Ax", "Ay"], num: ["F", "yp", "R", "Ax", "Ay"] },
+    s3: { eq: [], sol: ["Rlim", "yplim"], num: [] }
+  };
+  // Answers that change sign with the sense the student assumed.
+  const SENSE_DEPENDENT = ["fx", "fy", "tau", "R", "Ax", "Ay", "nR", "nAx", "nAy"];
+  const SHEET_TITLES = { s1: "Sheet 1 — Water at the Top of the Gate", s2: "Sheet 2 — Submerged Gate", s3: "Sheet 3 — Explore the Depth" };
+  const EQ_LABELS = { fx: "ΣFx = 0", fy: "ΣFy = 0", tau: "ΣM = 0" };
+  const SOL_LABELS = { F: "F", yp: "y_p (below A)", R: "R", Ax: "A_x", Ay: "A_y", Rlim: "R/F as D→∞", yplim: "y_p as D→∞" };
+  const NUM_UNITS = { F: "kN", yp: "m", R: "kN", Ax: "kN", Ay: "kN" };
+
+  function sensesOf(sel) {
+    const s = {
+      Ax: sel.Ax === "left" ? 1 : sel.Ax === "right" ? -1 : null,
+      Ay: sel.Ay === "up" ? 1 : sel.Ay === "down" ? -1 : null,
+      R: sel.R === "left" ? 1 : sel.R === "right" ? -1 : null
+    };
+    return SENSE_KEYS.every(k => s[k] !== null) ? s : null;
+  }
+  const NEED_SENSE = { ok: false, message: "First choose a sense for A_x, A_y and R on your free-body diagram (step 1), with R perpendicular to the gate. Your answers are checked against the senses you drew." };
+
+  // Pure grading functions (no DOM), shared by the student checks and the
+  // instructor report verifier. sel is the student's FBD selection.
+  function gradeEq(sheet, field, text, sel) {
+    const s = sensesOf(sel || {});
+    if (!s) return NEED_SENSE;
+    const ref = REFS[sheet];
+    if (field === "tau") return checkMomentEquation(sheet, text, ref.moment.map(fn => (v) => fn(v, s)), ref.allowed);
+    return checkEquation(sheet, text, (v) => ref.eq[field](v, s), ref.allowed);
+  }
+  function gradeSol(sheet, field, text, sel) {
+    const al = REFS[sheet].solAllowed;
+    let s = null;
+    if (SENSE_KEYS.indexOf(field) >= 0) {
+      s = sensesOf(sel || {});
+      if (!s) return NEED_SENSE;
+    }
+    return checkSolution(sheet, text, (v) => REFS[sheet].sol[field](v, s), Array.isArray(al) ? al : al[field]);
+  }
+
+  /* ---------- numeric values (one random set per student) ---------- */
+
+  const RHO = 1000, G = 9.81;
+  const round1 = (x) => Math.round(x * 10) / 10;
+
+  function randomGiven(sheet) {
+    const h = round1(10 + Math.random() * 10);
+    const given = { h, b: round1(10 + Math.random() * 20), W: Math.round(50 + Math.random() * 150) };
+    if (sheet === "s2") given.D = round1(h + 5 + Math.random() * 15);
+    return given;
+  }
+  function validGiven(sheet, g) {
+    if (!g || typeof g !== "object") return false;
+    const keys = sheet === "s2" ? ["h", "b", "W", "D"] : ["h", "b", "W"];
+    return keys.every(k => typeof g[k] === "number" && Number.isFinite(g[k]) && g[k] > 0);
+  }
+
+  // True values (forces in kN, y_p in m), with A_x and R positive to the left, A_y up.
+  function numericTruth(sheet, g) {
+    const D = sheet === "s2" ? g.D : g.h;
+    const F = RHO * G * g.b * g.h * (D - g.h / 2) / 1000;
+    const yp = ypOf(g.h, D);
+    const R = F * yp / g.h;
+    return { F, yp, R, Ax: F - R, Ay: g.W };
+  }
+
+  function gradeNum(sheet, field, text, sel, given) {
+    if (!validGiven(sheet, given)) return { ok: false, message: "No numeric values found for this sheet." };
+    let s = { Ax: 1, Ay: 1, R: 1 };
+    if (SENSE_KEYS.indexOf(field) >= 0) {
+      s = sensesOf(sel || {});
+      if (!s) return NEED_SENSE;
+    }
+    let val;
+    try {
+      const ast = parseFullExpr(tokenize(text));
+      validateSymbols(ast, []);
+      val = evalAst(ast, {});
+    } catch (e) { return { ok: false, message: e.message + (/symbol/i.test(e.message) ? "" : " (enter a plain number such as 1234.5)") }; }
+    const want = numericTruth(sheet, given)[field] * (s[field] || 1);
+    if (Number.isFinite(val) && Math.abs(val - want) <= 0.005 * Math.abs(want)) return { ok: true };
+    if (Number.isFinite(val) && Math.abs(val + want) <= 0.005 * Math.abs(want)) {
+      return { ok: false, message: "Right size, wrong sign — the sign must agree with the sense you drew on your free-body diagram." };
+    }
+    return { ok: false, message: "Not within 0.5% of the expected value. Check your arithmetic and units (" + NUM_UNITS[field] + ")." };
+  }
+
+  /* ---------- free-body diagram choices ---------- */
+
+  const PRESSURE_SHAPES = {
+    uniform: { label: "uniform", top: 0.6, bot: 0.6 },
+    tri0top: { label: "triangle: zero at A, largest at B", top: 0, bot: 1 },
+    tri0bot: { label: "triangle: largest at A, zero at B", top: 1, bot: 0 },
+    trap: { label: "trapezoid: nonzero at A, larger at B", top: 0.4, bot: 1 }
+  };
+  const LR = { left: "← left", right: "→ right" };
+  const UD = { up: "↑ up", down: "↓ down" };
+
+  // correct: null marks an unknown reaction whose sense the student may assume.
+  const POINTS = { s1: null, s2: null };
+  DIAGRAM_SHEETS.forEach(sh => {
+    POINTS[sh] = [
+      { key: "Pshape", label: "Water pressure: shape", options: Object.keys(PRESSURE_SHAPES),
+        labels: Object.fromEntries(Object.entries(PRESSURE_SHAPES).map(([k, v]) => [k, v.label])),
+        correct: sh === "s1" ? "tri0top" : "trap" },
+      { key: "Pdir", label: "Water pressure: direction", options: ["right", "left"],
+        labels: { right: "→ pushes right", left: "← pushes left" }, correct: "right" },
+      { key: "W", label: "Gate weight at CG", options: ["down", "up"], labels: UD, correct: "down", color: "applied", at: "G" },
+      { key: "Ax", label: "Hinge A, horizontal (assumed sense)", options: ["left", "right"], labels: LR, correct: null, color: "reaction", at: "A" },
+      { key: "Ay", label: "Hinge A, vertical (assumed sense)", options: ["up", "down"], labels: UD, correct: null, color: "reaction", at: "A" },
+      { key: "R", label: "Stop B, smooth (assumed sense)", options: ["left", "right", "up"], labels: { ...LR, up: "↑ up" }, correct: null, color: "reaction", at: "B" }
+    ];
+  });
+
+  function gradeDiagram(sheet, sel) {
+    const pts = POINTS[sheet];
+    if (pts.some(p => !sel[p.key])) return { ok: false, message: "Choose an option for every row first." };
+    const wrong = pts.filter(p => p.correct && sel[p.key] !== p.correct).map(p => p.label);
+    if (sel.R === "up") wrong.push("Stop B — a smooth stop can only push perpendicular to the gate's face");
+    if (wrong.length) return { ok: false, message: "Not quite — recheck: " + wrong.join("; ") + "." };
+    return { ok: true, message: "Valid diagram — the loads are correct, and you have assumed a sense for each reaction. Your equations and answers will be checked against the senses you drew." };
+  }
+
+  // The true senses, which students read off the signs of their solutions.
+  const TRUE_SENSE = { Ax: "left", Ay: "up", R: "left" };
+  const SENSE_POINTS = [
+    { key: "Ax", label: "A_x actually acts", options: ["left", "right"], labels: LR },
+    { key: "Ay", label: "A_y actually acts", options: ["up", "down"], labels: UD },
+    { key: "R", label: "R actually acts", options: ["left", "right"], labels: LR }
+  ];
+  function gradeSense(sel) {
+    if (SENSE_KEYS.some(k => !sel[k])) return { ok: false, message: "Choose a direction for each reaction first." };
+    const wrong = SENSE_KEYS.filter(k => sel[k] !== TRUE_SENSE[k]);
+    return wrong.length
+      ? { ok: false, message: "Not quite — recheck " + wrong.map(k => DISPLAY[k]).join(", ") + ". A negative answer means the true sense is opposite to the one you assumed." }
+      : { ok: true, message: "Correct — those are the true directions of the reactions." };
+  }
+
+  // result[sheet][field]: true/false once checked, null if never checked or
+  // edited since the last check.
+  const state = {
+    current: "s1",
+    sel: { s1: {}, s2: {} },
+    trueSense: { s1: {}, s2: {} },
+    given: { s1: randomGiven("s1"), s2: randomGiven("s2") },
+    result: { s1: {}, s2: {}, s3: {} }
+  };
+  DIAGRAM_SHEETS.forEach(sh => {
+    POINTS[sh].forEach(p => { state.sel[sh][p.key] = null; });
+    SENSE_KEYS.forEach(k => { state.trueSense[sh][k] = null; });
+  });
+  // Field order here is also the order of the report lines.
+  function resultFields(sh) {
+    if (DIAGRAM_SHEETS.indexOf(sh) < 0) return [...FIELDS[sh].eq, ...FIELDS[sh].sol];
+    return ["diagram", ...FIELDS[sh].eq, ...FIELDS[sh].sol, ...FIELDS[sh].num.map(f => "n" + f), "sense"];
+  }
+  SHEETS.forEach(sh => resultFields(sh).forEach(f => { state.result[sh][f] = null; }));
+
+  /* ---------- drawing helpers ---------- */
+
+  function cssVar(name) { return getComputedStyle(document.documentElement).getPropertyValue(name).trim(); }
+  const MONO = "IBM Plex Mono, monospace";
+
+  function cgSymbol(cx, cy, r, ink, bg) {
+    const uid = "cg" + Math.round(cx) + "_" + Math.round(cy) + "_" + Math.random().toString(36).slice(2, 7);
+    return `<g>
+      <clipPath id="${uid}"><circle cx="${cx}" cy="${cy}" r="${r}" /></clipPath>
+      <circle cx="${cx}" cy="${cy}" r="${r}" fill="${bg}" />
+      <g clip-path="url(#${uid})">
+        <rect x="${cx - r}" y="${cy - r}" width="${r}" height="${r}" fill="${ink}" />
+        <rect x="${cx}" y="${cy}" width="${r}" height="${r}" fill="${ink}" />
+      </g>
+      <circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="${ink}" stroke-width="1.4" />
+    </g>`;
+  }
+
+  function hatchDown(x1, x2, y, color) {
+    let out = `<line x1="${x1}" y1="${y}" x2="${x2}" y2="${y}" stroke="${color}" stroke-width="2"/>`;
+    for (let x = x1; x <= x2; x += 12) out += `<line x1="${x}" y1="${y}" x2="${x - 8}" y2="${y + 10}" stroke="${color}" stroke-width="1.2"/>`;
+    return out;
+  }
+
+  // Vertical dimension line from y1 to y2 at x, with a label beside it.
+  function dimV(x, y1, y2, label, ink, side) {
+    const tx = x + (side === "left" ? -8 : 8);
+    const anchor = side === "left" ? "end" : "start";
+    return `<g stroke="${ink}" stroke-width="1.1">
+      <line x1="${x}" y1="${y1}" x2="${x}" y2="${y2}"/>
+      <line x1="${x - 5}" y1="${y1}" x2="${x + 5}" y2="${y1}"/>
+      <line x1="${x - 5}" y1="${y2}" x2="${x + 5}" y2="${y2}"/>
+    </g>
+    <text x="${tx}" y="${(y1 + y2) / 2 + 4}" font-family="${MONO}" font-size="13" fill="${ink}" text-anchor="${anchor}">${label}</text>`;
+  }
+
+  // fixedPx: draw the head at a fixed size instead of scaling with stroke width,
+  // so short arrows in the Explore scene aren't all arrowhead.
+  function arrowMarkerDefs(id, color, fixedPx) {
+    const size = fixedPx
+      ? `markerUnits="userSpaceOnUse" markerWidth="${fixedPx}" markerHeight="${fixedPx}"`
+      : `markerWidth="6" markerHeight="6"`;
+    return `<marker id="arrow-${id}" viewBox="0 0 10 10" refX="8" refY="5" ${size} orient="auto-start-reverse">
+      <path d="M0,0L10,5L0,10Z" fill="${color}"/>
+    </marker>`;
+  }
+
+  function arrow(x1, y1, x2, y2, color, markerId, width) {
+    return `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="${color}" stroke-width="${width || 3.2}" marker-end="url(#arrow-${markerId})"/>`;
+  }
+
+  function surfaceMark(x, y, color) {
+    return `<path d="M ${x - 7} ${y - 10} L ${x + 7} ${y - 10} L ${x} ${y - 2} Z" fill="none" stroke="${color}" stroke-width="1.3"/>
+      <line x1="${x - 9}" y1="${y + 4}" x2="${x + 9}" y2="${y + 4}" stroke="${color}" stroke-width="1"/>
+      <line x1="${x - 5}" y1="${y + 8}" x2="${x + 5}" y2="${y + 8}" stroke="${color}" stroke-width="1"/>`;
+  }
+
+  /* ---------- sheets 1 & 2: scenario + FBD ---------- */
+
+  const GX = 240, AY = 110, BY = 250, FLOOR = 250;
+  const SURFACE = { s1: AY, s2: 40 };
+
+  function renderRealistic(sheet) {
+    const svg = document.getElementById("real-" + sheet);
+    const ink = cssVar("--ink"), soft = cssVar("--ink-soft"), rule = cssVar("--rule");
+    const water = cssVar("--water"), edge = cssVar("--water-edge"), bg = cssVar("--surface-2");
+    const sy = SURFACE[sheet];
+    let s = "";
+    s += `<rect x="20" y="${sy}" width="${GX - 20}" height="${FLOOR - sy}" fill="${water}"/>`;
+    s += `<line x1="20" y1="${sy}" x2="${GX}" y2="${sy}" stroke="${edge}" stroke-width="1.6"/>`;
+    s += surfaceMark(70, sy, edge);
+    s += hatchDown(20, 420, FLOOR, soft);
+    // fixed wall above the gate
+    s += `<rect x="${GX - 7}" y="14" width="14" height="${AY - 22}" fill="${rule}" stroke="${ink}" stroke-width="1.2"/>`;
+    for (let y = 22; y < AY - 10; y += 12) s += `<line x1="${GX - 7}" y1="${y + 8}" x2="${GX + 7}" y2="${y}" stroke="${soft}" stroke-width="1"/>`;
+    // gate
+    s += `<line x1="${GX}" y1="${AY}" x2="${GX}" y2="${BY}" stroke="${ink}" stroke-width="7"/>`;
+    // hinge A
+    s += `<path d="M ${GX + 4} ${AY - 10} L ${GX + 20} ${AY - 10} L ${GX + 20} ${AY + 6}" fill="none" stroke="${ink}" stroke-width="1.4"/>`;
+    s += `<circle cx="${GX}" cy="${AY}" r="6" fill="${bg}" stroke="${ink}" stroke-width="2"/>`;
+    s += `<text x="${GX + 26}" y="${AY + 4}" font-family="${MONO}" font-size="14" font-weight="600" fill="${ink}">A</text>`;
+    // stop B
+    s += `<rect x="${GX + 4}" y="${BY - 16}" width="16" height="16" fill="${rule}" stroke="${ink}" stroke-width="1.2"/>`;
+    s += `<text x="${GX + 26}" y="${BY - 4}" font-family="${MONO}" font-size="14" font-weight="600" fill="${ink}">B</text>`;
+    s += cgSymbol(GX, (AY + BY) / 2, 6, ink, bg);
+    s += dimV(GX + 110, AY, BY, "h", ink, "right");
+    if (sheet === "s2") s += dimV(45, sy, FLOOR, "D", ink, "right");
+    s += `<text x="130" y="${FLOOR - 12}" font-family="Inter, sans-serif" font-size="12" fill="${soft}" text-anchor="middle">water</text>`;
+    s += `<text x="${GX + 70}" y="${FLOOR - 40}" font-family="Inter, sans-serif" font-size="12" fill="${soft}" text-anchor="middle">air</text>`;
+    s += `<text x="${GX - 14}" y="30" font-family="Inter, sans-serif" font-size="12" fill="${soft}" text-anchor="end">wall</text>`;
+    if (sheet === "s1") s += `<text x="150" y="${sy - 10}" font-family="Inter, sans-serif" font-size="12" fill="${soft}" text-anchor="middle">surface level with A</text>`;
+    svg.innerHTML = s;
+    svg.setAttribute("role", "img");
+    svg.setAttribute("aria-label", SCENE_DESCRIPTIONS[sheet]);
+  }
+
+  const SCENE_DESCRIPTIONS = {
+    s1: "A vertical gate of height h closes an opening at the bottom of a wall. Water fills the left side up to the top of the gate; the right side is dry. The gate is pinned at its top edge A, just below the wall, and rests against a stop on the dry side at its bottom edge B. Its center of gravity is at mid-height.",
+    s2: "The same gate, but the water on the left now stands above the top of the gate, at a depth D measured from the bottom of the gate. The wall above A holds back the water above the gate."
+  };
+
+  function renderGhost(sheet) {
+    const svg = document.getElementById("ghost-" + sheet);
+    const ink = cssVar("--ink"), bg = cssVar("--surface-2");
+    const applied = cssVar("--applied"), reaction = cssVar("--reaction");
+    const sel = state.sel[sheet];
+    let s = "<defs>" + arrowMarkerDefs(sheet + "-applied", applied) + arrowMarkerDefs(sheet + "-reaction", reaction) + "</defs>";
+    s += `<line x1="${GX}" y1="${AY}" x2="${GX}" y2="${BY}" stroke="${ink}" stroke-width="3" stroke-dasharray="6,4"/>`;
+    s += `<circle cx="${GX}" cy="${AY}" r="4" fill="${ink}"/><circle cx="${GX}" cy="${BY}" r="4" fill="${ink}"/>`;
+    s += `<text x="${GX + 10}" y="${AY - 8}" font-family="${MONO}" font-size="13" font-weight="600" fill="${ink}">A</text>`;
+    s += `<text x="${GX + 10}" y="${BY + 18}" font-family="${MONO}" font-size="13" font-weight="600" fill="${ink}">B</text>`;
+
+    // distributed water pressure
+    if (sel.Pshape && sel.Pdir) {
+      const shp = PRESSURE_SHAPES[sel.Pshape];
+      const sgn = sel.Pdir === "right" ? -1 : 1;    // which side of the gate the arrows sit on
+      const maxLen = 80, n = 8, y0 = AY + 14, y1 = BY - 14;
+      const env = [];
+      for (let i = 0; i < n; i++) {
+        const y = y0 + (y1 - y0) * i / (n - 1);
+        const t = (y - AY) / (BY - AY);
+        const len = maxLen * (shp.top + (shp.bot - shp.top) * t);
+        const xt = GX + sgn * len;
+        env.push(`${xt},${y}`);
+        if (len > 8) s += arrow(xt, y, GX + sgn * 3, y, applied, sheet + "-applied", 2);
+      }
+      const xTop = GX + sgn * maxLen * shp.top, xBot = GX + sgn * maxLen * shp.bot;
+      s += `<polyline points="${GX},${AY} ${xTop},${AY} ${env.join(" ")} ${xBot},${BY} ${GX},${BY}" fill="none" stroke="${applied}" stroke-width="1.4"/>`;
+      s += `<text x="${GX + sgn * (maxLen + 14)}" y="${(AY + BY) / 2 + 4}" font-family="${MONO}" font-size="12" fill="${applied}" text-anchor="middle">p</text>`;
+    }
+
+    const anchors = { A: { x: GX, y: AY }, B: { x: GX, y: BY }, G: { x: GX, y: (AY + BY) / 2 } };
+    const VEC = { up: [0, -1], down: [0, 1], left: [-1, 0], right: [1, 0] };
+    POINTS[sheet].filter(p => p.at).forEach(p => {
+      const d = sel[p.key];
+      if (!d) return;
+      const v = VEC[d], a = anchors[p.at], len = 52;
+      const color = p.color === "applied" ? applied : reaction;
+      // Horizontal reactions, and A_y when assumed downward, are drawn pushing
+      // on the gate (head at the point), which keeps every reaction at A above
+      // the gate and a leftward arrow on the dry side, clear of the water load.
+      // Other vertical forces start at their point.
+      const horiz = v[0] !== 0;
+      const headIn = horiz || (p.key === "Ay" && d === "down");
+      const x1 = headIn ? a.x - v[0] * len : a.x, y1 = headIn ? a.y - v[1] * len : a.y;
+      const x2 = headIn ? a.x - v[0] * 4 : a.x, y2 = headIn ? a.y - v[1] * 4 : a.y + v[1] * len;
+      s += arrow(x1, y1, x2, y2, color, sheet + "-" + p.color, 3.4);
+      // A rightward reaction sits on the water side, so its label goes above the tail.
+      const waterSide = horiz && v[0] > 0;
+      const lx = waterSide ? x1 + 2 : horiz ? x1 - v[0] * 14 : a.x + 18;
+      const ly = waterSide ? y1 - 8 : horiz ? y1 + 4 : p.key === "W" ? a.y + v[1] * len * 0.6 : a.y - len + 10;
+      const lbl = p.key === "Ax" ? "A<tspan font-size='9' dy='3'>x</tspan>" : p.key === "Ay" ? "A<tspan font-size='9' dy='3'>y</tspan>" : p.key;
+      s += `<text x="${lx}" y="${ly}" font-family="${MONO}" font-size="12" fill="${color}" text-anchor="middle">${lbl}</text>`;
+    });
+    s += cgSymbol(anchors.G.x, anchors.G.y, 6, ink, bg);
+    svg.innerHTML = s;
+
+    const chosen = POINTS[sheet].filter(p => sel[p.key]).map(p => p.label + ": " + p.labels[sel[p.key]].replace(/^[←→↑↓]\s*/, ""));
+    svg.setAttribute("role", "img");
+    svg.setAttribute("aria-label", "Your free-body diagram of the gate. " + (chosen.length ? chosen.join("; ") + "." : "Nothing drawn yet."));
+  }
+
+  // Small "definition of y_p" sketch. F is deliberately placed at an arbitrary
+  // height so the sketch doesn't give away the answer.
+  function renderYpDef(sheet) {
+    const svg = document.getElementById("ypdef-" + sheet);
+    const ink = cssVar("--ink"), soft = cssVar("--ink-soft"), bg = cssVar("--surface-2");
+    const applied = cssVar("--applied"), accent = cssVar("--accent");
+    const water = cssVar("--water"), edge = cssVar("--water-edge");
+    const gx = 110, ay = sheet === "s1" ? 40 : 70, by = 190, fy = ay + (by - ay) * 0.55;
+    const sy = sheet === "s1" ? ay : 22;
+    let s = "<defs>" + arrowMarkerDefs("yp-" + sheet, applied, 11) + "</defs>";
+    s += `<rect x="8" y="${sy}" width="${gx - 8}" height="${by - sy}" fill="${water}"/>`;
+    s += `<line x1="8" y1="${sy}" x2="${gx}" y2="${sy}" stroke="${edge}" stroke-width="1.4"/>`;
+    s += `<line x1="${gx}" y1="${ay}" x2="${gx}" y2="${by}" stroke="${ink}" stroke-width="5"/>`;
+    s += `<circle cx="${gx}" cy="${ay}" r="5" fill="${bg}" stroke="${ink}" stroke-width="2"/>`;
+    s += `<text x="${gx - 10}" y="${ay - 6}" font-family="${MONO}" font-size="13" font-weight="600" fill="${ink}" text-anchor="end">A</text>`;
+    s += `<text x="${gx - 10}" y="${by - 4}" font-family="${MONO}" font-size="13" font-weight="600" fill="${ink}" text-anchor="end">B</text>`;
+    s += `<line x1="${gx - 70}" y1="${fy}" x2="${gx - 4}" y2="${fy}" stroke="${applied}" stroke-width="3" marker-end="url(#arrow-yp-${sheet})"/>`;
+    s += `<text x="${gx - 74}" y="${fy + 4}" font-family="${MONO}" font-size="13" font-weight="600" fill="${applied}" text-anchor="end">F</text>`;
+    // y_p: from A down to F's line of action
+    const dx = gx + 28;
+    s += `<g stroke="${accent}" stroke-width="1.3">
+      <line x1="${gx + 6}" y1="${ay}" x2="${dx + 6}" y2="${ay}" stroke-dasharray="2,2"/>
+      <line x1="${gx + 2}" y1="${fy}" x2="${dx + 6}" y2="${fy}" stroke-dasharray="2,2"/>
+      <line x1="${dx}" y1="${ay}" x2="${dx}" y2="${fy}"/>
+      <line x1="${dx - 5}" y1="${ay}" x2="${dx + 5}" y2="${ay}"/>
+      <line x1="${dx - 5}" y1="${fy}" x2="${dx + 5}" y2="${fy}"/>
+    </g>`;
+    s += `<text x="${dx + 8}" y="${(ay + fy) / 2 + 4}" font-family="${MONO}" font-size="13" font-weight="600" fill="${accent}">y<tspan font-size="10" dy="3">p</tspan></text>`;
+    s += dimV(gx + 70, ay, by, "h", soft, "right");
+    svg.innerHTML = s;
+    svg.setAttribute("role", "img");
+    svg.setAttribute("aria-label", "Sketch defining y_p: the resultant F acts on the gate at a distance y_p measured downward from the hinge A. The gate height from A to B is h." +
+      (sheet === "s2" ? " The water surface is above A." : " The water surface is level with A."));
+  }
+
+  /* ---------- sheet 3: explore ---------- */
+
+  const EX = { h: 2, b: 3, rho: 1000, g: 9.81, W: 4000 };
+  const EX_GX = 250, EX_FLOOR = 305, EX_PPM = 27;   // pixels per meter
+  const EX_FMAX_PX = 210;   // arrow length of F at the deepest slider setting
+
+  function exploreValues(D) {
+    const { h, b, rho, g } = EX;
+    const F = rho * g * b * h * (D - h / 2);
+    const yp = ypOf(h, D);
+    const R = F * yp / h;
+    return { D, F, yp, R, Ax: F - R, Rshare: R / F, Axshare: (F - R) / F };
+  }
+
+  function renderExplore() {
+    const D = parseFloat(el("depth").value);
+    const v = exploreValues(D);
+    const ink = cssVar("--ink"), soft = cssVar("--ink-soft"), rule = cssVar("--rule"), bg = cssVar("--surface-2");
+    const water = cssVar("--water"), edge = cssVar("--water-edge");
+    const applied = cssVar("--applied"), reaction = cssVar("--reaction");
+    const by = EX_FLOOR, ay = EX_FLOOR - EX.h * EX_PPM, sy = EX_FLOOR - D * EX_PPM;
+    let s = "<defs>" + arrowMarkerDefs("ex-applied", applied, 12) + arrowMarkerDefs("ex-reaction", reaction, 12) + "</defs>";
+    s += `<rect x="20" y="${sy}" width="${EX_GX - 20}" height="${EX_FLOOR - sy}" fill="${water}"/>`;
+    s += `<line x1="20" y1="${sy}" x2="${EX_GX}" y2="${sy}" stroke="${edge}" stroke-width="1.6"/>`;
+    s += surfaceMark(50, sy, edge);
+    s += hatchDown(20, 420, EX_FLOOR, soft);
+    s += `<rect x="${EX_GX - 6}" y="8" width="12" height="${ay - 14}" fill="${rule}" stroke="${ink}" stroke-width="1.1"/>`;
+
+    // linear pressure envelope over the full depth (faint), with arrows on the gate
+    const pScale = 120 / 10;    // px of arrow per meter of depth
+    s += `<line x1="${EX_GX}" y1="${sy}" x2="${EX_GX - D * pScale}" y2="${EX_FLOOR}" stroke="${applied}" stroke-width="1" stroke-dasharray="3,4" opacity=".6"/>`;
+    const n = 6;
+    const pts = [];
+    for (let i = 0; i < n; i++) {
+      const y = ay + 4 + (by - ay - 8) * i / (n - 1);
+      const depth = (EX_FLOOR - y) / EX_PPM;
+      const len = (D - depth) * pScale;
+      pts.push(`${EX_GX - len},${y}`);
+      if (len > 7) s += arrow(EX_GX - len, y, EX_GX - 4, y, applied, "ex-applied", 1.8);
+    }
+    s += `<polyline points="${EX_GX},${ay} ${EX_GX - (D - EX.h) * pScale},${ay} ${pts.join(" ")} ${EX_GX - D * pScale},${by} ${EX_GX},${by}" fill="none" stroke="${applied}" stroke-width="1.3"/>`;
+
+    // gate, hinge, stop, mid-height tick
+    s += `<line x1="${EX_GX}" y1="${ay}" x2="${EX_GX}" y2="${by}" stroke="${ink}" stroke-width="6"/>`;
+    s += `<circle cx="${EX_GX}" cy="${ay}" r="5" fill="${bg}" stroke="${ink}" stroke-width="2"/>`;
+    s += `<rect x="${EX_GX + 3}" y="${by - 12}" width="12" height="12" fill="${rule}" stroke="${ink}" stroke-width="1.1"/>`;
+    const midY = (ay + by) / 2;
+    s += `<line x1="${EX_GX - 10}" y1="${midY}" x2="${EX_GX + 10}" y2="${midY}" stroke="${soft}" stroke-width="1" stroke-dasharray="2,2"/>`;
+    s += `<text x="${EX_GX + 14}" y="${midY + 4}" font-family="${MONO}" font-size="10" fill="${soft}">h/2</text>`;
+
+    // resultant F at its line of action
+    const fy = ay + v.yp * EX_PPM;
+    // All horizontal forces share one scale: F at the deepest setting spans EX_FMAX_PX.
+    const pxPerN = EX_FMAX_PX / exploreValues(parseFloat(el("depth").max)).F;
+    const fLen = v.F * pxPerN;
+    s += arrow(EX_GX - 4 - fLen, fy, EX_GX - 4, fy, applied, "ex-applied", 3.6);
+    // Label to the left of the tail while there's room in the water, else above the tail.
+    const tailX = EX_GX - 4 - fLen;
+    const fLabel = tailX > 120
+      ? `x="${tailX - 6}" y="${fy + 4}" text-anchor="end"`
+      : `x="${tailX}" y="${fy - 9}" text-anchor="start"`;
+    s += `<text ${fLabel} font-family="${MONO}" font-size="13" font-weight="600" fill="${applied}" stroke="${bg}" stroke-width="4" paint-order="stroke">F = ${Math.round(v.F / 1000)} kN</text>`;
+
+    // reactions on the same force scale as F
+    const axLen = v.Ax * pxPerN, rLen = v.R * pxPerN;
+    s += arrow(EX_GX + 6 + axLen, ay - 2, EX_GX + 6, ay - 2, reaction, "ex-reaction", 3.4);
+    s += `<text x="${EX_GX + 14 + axLen}" y="${ay + 2}" font-family="${MONO}" font-size="12" fill="${ink}">A<tspan font-size="9" dy="3">x</tspan><tspan dy="-3"> ${Math.round(v.Axshare * 100)}%</tspan></text>`;
+    s += arrow(EX_GX + 18 + rLen, by - 6, EX_GX + 18, by - 6, reaction, "ex-reaction", 3.4);
+    s += `<text x="${EX_GX + 26 + rLen}" y="${by - 2}" font-family="${MONO}" font-size="12" fill="${ink}">R ${Math.round(v.Rshare * 100)}%</text>`;
+    s += `<text x="${EX_GX + 14}" y="${ay - 14}" font-family="${MONO}" font-size="12" font-weight="600" fill="${ink}">A</text>`;
+
+    const svg = el("explore-scene");
+    svg.innerHTML = s;
+    svg.setAttribute("role", "img");
+    svg.setAttribute("aria-label", `Gate of height 2 m with water depth ${D.toFixed(1)} m. The resultant F = ${Math.round(v.F / 1000)} kN acts ${v.yp.toFixed(3)} m below the hinge. The hinge carries ${Math.round(v.Axshare * 100)}% of F and the stop carries ${Math.round(v.Rshare * 100)}%.`);
+
+    el("depth-out").textContent = `${D.toFixed(1)} m (D/h = ${(D / EX.h).toFixed(2)})`;
+    const kN = (x) => (x / 1000).toFixed(1) + " kN";
+    el("readout").innerHTML = [
+      ["Resultant F", kN(v.F)],
+      ["y_p (below A)", v.yp.toFixed(3) + " m"],
+      ["y_p / h", (v.yp / EX.h).toFixed(3)],
+      ["Stop force R", kN(v.R)],
+      ["Hinge A_x", kN(v.Ax)],
+      ["Hinge A_y", kN(EX.W)],
+      ["R / F", v.Rshare.toFixed(3)],
+      ["A_x / F", v.Axshare.toFixed(3)]
+    ].map(([k, val]) => `<tr><th scope="row">${k}</th><td>${val}</td></tr>`).join("");
+    renderChart(D);
+  }
+
+  const CH = { x0: 48, x1: 420, y0: 20, y1: 200, rmin: 1, rmax: 5 };
+  const chX = (r) => CH.x0 + (r - CH.rmin) / (CH.rmax - CH.rmin) * (CH.x1 - CH.x0);
+  const chY = (f) => CH.y1 - f * (CH.y1 - CH.y0);
+
+  function renderChart(D) {
+    const svg = el("share-chart");
+    const ink = cssVar("--ink"), soft = cssVar("--ink-soft"), rule = cssVar("--rule"), bg = cssVar("--surface-2");
+    const applied = cssVar("--applied"), reaction = cssVar("--reaction");
+    let s = "";
+    [0, 0.25, 0.5, 0.75, 1].forEach(f => {
+      s += `<line x1="${CH.x0}" y1="${chY(f)}" x2="${CH.x1}" y2="${chY(f)}" stroke="${rule}" stroke-width="${f === 0 ? 1.2 : 0.8}"/>`;
+      s += `<text x="${CH.x0 - 8}" y="${chY(f) + 4}" font-family="${MONO}" font-size="11" fill="${soft}" text-anchor="end">${f}</text>`;
+    });
+    [1, 2, 3, 4, 5].forEach(r => {
+      s += `<text x="${chX(r)}" y="${CH.y1 + 16}" font-family="${MONO}" font-size="11" fill="${soft}" text-anchor="middle">${r}</text>`;
+    });
+    s += `<text x="${(CH.x0 + CH.x1) / 2}" y="${CH.y1 + 34}" font-family="Inter, sans-serif" font-size="12" fill="${soft}" text-anchor="middle">water depth ratio D / h</text>`;
+    const rPts = [], aPts = [];
+    for (let r = CH.rmin; r <= CH.rmax + 1e-9; r += 0.05) {
+      const v = exploreValues(r * EX.h);
+      rPts.push(`${chX(r).toFixed(1)},${chY(v.Rshare).toFixed(1)}`);
+      aPts.push(`${chX(r).toFixed(1)},${chY(v.Axshare).toFixed(1)}`);
+    }
+    s += `<polyline points="${rPts.join(" ")}" fill="none" stroke="${reaction}" stroke-width="2" stroke-linejoin="round"/>`;
+    s += `<polyline points="${aPts.join(" ")}" fill="none" stroke="${applied}" stroke-width="2" stroke-dasharray="6,4" stroke-linejoin="round"/>`;
+    // direct labels at the left end, where the curves are farthest apart
+    s += `<text x="${chX(1) + 6}" y="${chY(2 / 3) - 8}" font-family="${MONO}" font-size="11" fill="${ink}">R/F</text>`;
+    s += `<text x="${chX(1) + 6}" y="${chY(1 / 3) + 16}" font-family="${MONO}" font-size="11" fill="${ink}">A<tspan font-size="8" dy="3">x</tspan><tspan dy="-3">/F</tspan></text>`;
+    // current depth
+    const cur = exploreValues(D), cr = D / EX.h;
+    s += `<line x1="${chX(cr)}" y1="${CH.y0}" x2="${chX(cr)}" y2="${CH.y1}" stroke="${soft}" stroke-width="1" stroke-dasharray="2,3"/>`;
+    s += `<circle cx="${chX(cr)}" cy="${chY(cur.Rshare)}" r="5" fill="${reaction}" stroke="${bg}" stroke-width="2"/>`;
+    s += `<circle cx="${chX(cr)}" cy="${chY(cur.Axshare)}" r="5" fill="${applied}" stroke="${bg}" stroke-width="2"/>`;
+    s += `<g id="chart-hover"></g>`;
+    s += `<rect id="chart-hit" x="${CH.x0}" y="${CH.y0 - 10}" width="${CH.x1 - CH.x0}" height="${CH.y1 - CH.y0 + 20}" fill="transparent" style="cursor:crosshair"/>`;
+    svg.innerHTML = s;
+    svg.setAttribute("role", "img");
+    svg.setAttribute("aria-label", `Line chart of the share of F carried by each support versus D/h from 1 to 5. R/F starts at 0.667 and falls toward 0.5; A_x/F starts at 0.333 and rises toward 0.5. Current depth: D/h = ${cr.toFixed(2)}, R/F = ${cur.Rshare.toFixed(3)}, A_x/F = ${cur.Axshare.toFixed(3)}.`);
+  }
+
+  function chartRatioFromEvent(ev) {
+    const svg = el("share-chart");
+    const pt = svg.createSVGPoint();
+    pt.x = ev.clientX; pt.y = ev.clientY;
+    const p = pt.matrixTransform(svg.getScreenCTM().inverse());
+    const r = CH.rmin + (p.x - CH.x0) / (CH.x1 - CH.x0) * (CH.rmax - CH.rmin);
+    return Math.min(CH.rmax, Math.max(CH.rmin, r));
+  }
+
+  function wireChart() {
+    const svg = el("share-chart"), tip = el("chart-tip"), wrap = el("chart-wrap");
+    svg.addEventListener("pointermove", (ev) => {
+      if (!ev.target || ev.target.id !== "chart-hit") return;
+      const r = chartRatioFromEvent(ev);
+      const v = exploreValues(r * EX.h);
+      const soft = cssVar("--ink-soft"), bg = cssVar("--surface-2");
+      el("chart-hover").innerHTML =
+        `<line x1="${chX(r)}" y1="${CH.y0}" x2="${chX(r)}" y2="${CH.y1}" stroke="${soft}" stroke-width="1"/>` +
+        `<circle cx="${chX(r)}" cy="${chY(v.Rshare)}" r="4" fill="${cssVar("--reaction")}" stroke="${bg}" stroke-width="2"/>` +
+        `<circle cx="${chX(r)}" cy="${chY(v.Axshare)}" r="4" fill="${cssVar("--applied")}" stroke="${bg}" stroke-width="2"/>`;
+      tip.hidden = false;
+      tip.innerHTML = `D/h = ${r.toFixed(2)}<br>R/F = ${v.Rshare.toFixed(3)}<br>A<sub>x</sub>/F = ${v.Axshare.toFixed(3)}`;
+      const box = wrap.getBoundingClientRect();
+      let left = ev.clientX - box.left + 12;
+      if (left + tip.offsetWidth > box.width) left = ev.clientX - box.left - tip.offsetWidth - 12;
+      tip.style.left = left + "px";
+      tip.style.top = Math.max(0, ev.clientY - box.top - tip.offsetHeight - 8) + "px";
+    });
+    svg.addEventListener("pointerleave", () => {
+      tip.hidden = true;
+      const h = el("chart-hover"); if (h) h.innerHTML = "";
+    });
+    svg.addEventListener("click", (ev) => {
+      if (!ev.target || ev.target.id !== "chart-hit") return;
+      el("depth").value = (chartRatioFromEvent(ev) * EX.h).toFixed(1);
+      renderExplore();
+      save();
+    });
+  }
+
+  /* ---------- DOM helpers ---------- */
+
+  function el(id) { return document.getElementById(id); }
+
+  function escapeHtml(s) {
+    return String(s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+  }
+
+  function setPressed(host, point, dir) {
+    host.querySelectorAll(`.dir-btn[data-point="${point}"]`).forEach(b => {
+      b.classList.toggle("sel", b.dataset.dir === dir);
+      b.setAttribute("aria-pressed", String(b.dataset.dir === dir));
+    });
+  }
+
+  function selectDir(sheet, point, dir) {
+    state.sel[sheet][point] = dir;
+    setPressed(el("selectors-" + sheet), point, dir);
+    renderGhost(sheet);
+    renderAssumed(sheet);
+  }
+
+  function renderAssumed(sheet) {
+    const host = el("assumed-" + sheet);
+    if (!host) return;
+    const sel = state.sel[sheet];
+    const ARROW = { left: "← left", right: "→ right", up: "↑ up", down: "↓ down" };
+    const parts = SENSE_KEYS.map(k => DISPLAY[k] + " " + (sel[k] ? ARROW[sel[k]] : "(not chosen)"));
+    host.innerHTML = "<b>On your free-body diagram you assumed:</b> " + escapeHtml(parts.join(", ")) + ".";
+  }
+
+  function selectTrueSense(sheet, point, dir) {
+    state.trueSense[sheet][point] = dir;
+    setPressed(el("truesense-" + sheet), point, dir);
+  }
+
+  function selectorRowsHtml(sheet, points, prefix) {
+    return points.map(p => {
+      const labelId = `${prefix}-${sheet}-${p.key}`;
+      return `<div class="selector-row" role="group" aria-labelledby="${labelId}"><span class="pt-label" id="${labelId}">${p.label}</span>` +
+        p.options.map(opt => `<button type="button" class="dir-btn" aria-pressed="false" data-sheet="${sheet}" data-point="${p.key}" data-dir="${opt}">${p.labels[opt]}</button>`).join("") +
+        `</div>`;
+    }).join("");
+  }
+
+  function buildSelectors(sheet) {
+    const host = el("selectors-" + sheet);
+    host.innerHTML = selectorRowsHtml(sheet, POINTS[sheet], "lbl");
+    host.querySelectorAll(".dir-btn").forEach(btn => {
+      btn.addEventListener("click", () => {
+        const { sheet: sh, point, dir } = btn.dataset;
+        const changed = state.sel[sh][point] !== dir;
+        selectDir(sh, point, dir);
+        invalidateDiagram(sh);
+        if (changed && SENSE_KEYS.indexOf(point) >= 0) invalidateSenseDependent(sh);
+        save();
+      });
+    });
+  }
+
+  // Step 5's numeric section and step 6's "true sense" question are the same on
+  // both sheets, so they are built here rather than repeated in the markup.
+  function buildExtraStages(sheet) {
+    const sol = document.querySelector(`#sheet-${sheet} [data-stage="solution"]`);
+    const ts = document.createElement("div");
+    ts.className = "stage";
+    ts.dataset.stage = "sense";
+    ts.innerHTML = `
+      <h2>6. Interpret the signs</h2>
+      <p class="sub">Look at the signs of your numeric answers for R, A<sub>x</sub> and A<sub>y</sub> in step 5. A <b>positive</b> value means the force acts in the sense you drew on your free-body diagram; a <b>negative</b> value means it acts in the <b>opposite</b> sense.</p>
+      <p class="sub" id="assumed-${sheet}"></p>
+      <p class="sub" style="margin-bottom:6px">State the <b>true</b> direction of each reaction:</p>
+      <div class="selectors" id="truesense-${sheet}" role="group" aria-label="True directions of the reactions">${selectorRowsHtml(sheet, SENSE_POINTS, "ts")}</div>
+      <button class="action secondary" data-action="check-sense" data-sheet="${sheet}" style="margin-top:10px">Check directions</button>
+      <div class="status-row neutral" id="status-sense-${sheet}" role="status">Not checked yet.</div>`;
+    ts.querySelectorAll(".dir-btn").forEach(btn => {
+      btn.addEventListener("click", () => {
+        selectTrueSense(sheet, btn.dataset.point, btn.dataset.dir);
+        invalidateStatus(sheet, "sense", "status-sense-" + sheet);
+        save();
+      });
+    });
+
+    const num = document.createElement("div");
+    num.className = "stage";
+    num.dataset.stage = "numeric";
+    const rows = FIELDS[sheet].num.map(f => `
+      <div class="eq-row">
+        <label for="num-${f}-${sheet}">${SOL_LABELS[f]} =</label>
+        <input type="text" id="num-${f}-${sheet}" autocomplete="off" spellcheck="false" inputmode="decimal">
+        <span class="unit">${NUM_UNITS[f]}</span>
+        <span class="chk neutral" id="chk-num-${f}-${sheet}" aria-hidden="true">&middot;</span>
+        <button class="action secondary" data-action="check-num" data-sheet="${sheet}" data-field="${f}">Check</button>
+        <div class="eq-msg" id="msg-num-${f}-${sheet}" role="status"></div>
+      </div>`).join("");
+    num.innerHTML = `
+      <h2>5. Put in numbers</h2>
+      <p class="sub">These values were chosen at random for you and are saved with your work. Use your symbolic results from steps 2&ndash;4. Enter forces in <b>kN</b> and y_p in <b>m</b>, as plain numbers. Keep the sign your equations give: a negative value means the true sense is opposite to the one you drew. Answers within 0.5% are accepted.</p>
+      <div class="givens" id="given-${sheet}"></div>
+      ${rows}`;
+    sol.after(num);
+    num.after(ts);
+    renderAssumed(sheet);
+    num.querySelectorAll('[data-action="check-num"]').forEach(btn => {
+      btn.addEventListener("click", () => checkNumField(sheet, btn.dataset.field));
+    });
+    FIELDS[sheet].num.forEach(f => el(`num-${f}-${sheet}`).addEventListener("input",
+      () => invalidateField(sheet, "n" + f, `chk-num-${f}-${sheet}`, `msg-num-${f}-${sheet}`)));
+    renderGiven(sheet);
+  }
+
+  function renderGiven(sheet) {
+    const g = state.given[sheet];
+    const chips = [
+      ["rho", RHO + " kg/m³"], ["g", G + " m/s²"],
+      ["h", g.h.toFixed(1) + " m"], ["b", g.b.toFixed(1) + " m"]
+    ];
+    if (sheet === "s2") chips.push(["D", g.D.toFixed(1) + " m"]);
+    chips.push(["W", g.W + " kN"]);
+    el("given-" + sheet).innerHTML = chips.map(([k, v]) => `<div class="given-chip"><b>${k}</b><span>${v}</span></div>`).join("");
+  }
+
+  /* ---------- student checks ---------- */
+
+  function showMark(chkId, msgId, result) {
+    const chk = el(chkId), msg = el(msgId);
+    if (!result) { chk.textContent = "·"; chk.className = "chk neutral"; msg.textContent = ""; msg.className = "eq-msg"; return; }
+    chk.textContent = result.ok ? "✓" : "✗";
+    chk.className = "chk " + (result.ok ? "ok" : "bad");
+    msg.textContent = result.ok ? "Correct." : result.message;
+    msg.className = "eq-msg " + (result.ok ? "ok" : "bad");
+  }
+
+  function showStatus(statusId, r) {
+    const statusEl = el(statusId);
+    statusEl.textContent = r.message;
+    statusEl.className = "status-row " + (r.ok ? "ok" : "bad");
+  }
+
+  function checkDiagram(sheet) {
+    const r = gradeDiagram(sheet, state.sel[sheet]);
+    showStatus("status-diagram-" + sheet, r);
+    state.result[sheet].diagram = r.ok;
+    save();
+  }
+
+  function checkSense(sheet) {
+    const r = gradeSense(state.trueSense[sheet]);
+    showStatus("status-sense-" + sheet, r);
+    state.result[sheet].sense = r.ok;
+    save();
+  }
+
+  function checkEqField(sheet, field) {
+    const text = el(`eq-${field}-${sheet}`).value.trim();
+    const result = text ? gradeEq(sheet, field, text, state.sel[sheet]) : null;
+    showMark(`chk-${field}-${sheet}`, `msg-${field}-${sheet}`, result);
+    state.result[sheet][field] = result ? result.ok : null;
+    save();
+  }
+
+  function checkSolField(sheet, field) {
+    const text = el(`sol-${field}-${sheet}`).value.trim();
+    const result = text ? gradeSol(sheet, field, text, state.sel[sheet]) : null;
+    showMark(`chk-sol-${field}-${sheet}`, `msg-sol-${field}-${sheet}`, result);
+    state.result[sheet][field] = result ? result.ok : null;
+    save();
+  }
+
+  function checkNumField(sheet, field) {
+    const text = el(`num-${field}-${sheet}`).value.trim();
+    const result = text ? gradeNum(sheet, field, text, state.sel[sheet], state.given[sheet]) : null;
+    showMark(`chk-num-${field}-${sheet}`, `msg-num-${field}-${sheet}`, result);
+    state.result[sheet]["n" + field] = result ? result.ok : null;
+    save();
+  }
+
+  // Editing an answer after checking it clears the old verdict, so a PASS
+  // can't outlive the answer that earned it.
+  function invalidateStatus(sheet, field, statusId) {
+    if (state.result[sheet][field] === null) return;
+    state.result[sheet][field] = null;
+    const statusEl = el(statusId);
+    statusEl.textContent = "Changed since last check — check again.";
+    statusEl.className = "status-row neutral";
+  }
+  function invalidateDiagram(sheet) { invalidateStatus(sheet, "diagram", "status-diagram-" + sheet); }
+
+  function invalidateField(sheet, field, chkId, msgId) {
+    if (state.result[sheet][field] === null) return;
+    state.result[sheet][field] = null;
+    showMark(chkId, msgId, null);
+    el(msgId).textContent = "Changed since last check — check again.";
+  }
+
+  // Changing an assumed sense changes what counts as correct for every
+  // equation and every reaction answer on the sheet.
+  function invalidateSenseDependent(sheet) {
+    SENSE_DEPENDENT.forEach(f => {
+      if (state.result[sheet][f] === null) return;
+      if (FIELDS[sheet].eq.indexOf(f) >= 0) invalidateField(sheet, f, `chk-${f}-${sheet}`, `msg-${f}-${sheet}`);
+      else if (f[0] === "n") invalidateField(sheet, f, `chk-num-${f.slice(1)}-${sheet}`, `msg-num-${f.slice(1)}-${sheet}`);
+      else invalidateField(sheet, f, `chk-sol-${f}-${sheet}`, `msg-sol-${f}-${sheet}`);
+      el(f[0] === "n" ? `msg-num-${f.slice(1)}-${sheet}` : FIELDS[sheet].eq.indexOf(f) >= 0 ? `msg-${f}-${sheet}` : `msg-sol-${f}-${sheet}`)
+        .textContent = "Your assumed senses changed — check again.";
+    });
+  }
+
+  /* ---------- wiring ---------- */
+
+  function showTab(tab) {
+    if (!SHEET_TITLES[tab]) return;
+    document.querySelectorAll(".tab-btn").forEach(b => {
+      b.classList.toggle("active", b.dataset.tab === tab);
+      b.setAttribute("aria-selected", String(b.dataset.tab === tab));
+    });
+    state.current = tab;
+    SHEETS.forEach(sh => { el("sheet-" + sh).hidden = tab !== sh; });
+  }
+
+  DIAGRAM_SHEETS.forEach(sh => { buildSelectors(sh); buildExtraStages(sh); });
+
+  document.querySelectorAll(".tab-btn").forEach(btn => {
+    btn.addEventListener("click", () => { showTab(btn.dataset.tab); save(); });
+  });
+  document.querySelectorAll('[data-action="check-diagram"]').forEach(btn => {
+    btn.addEventListener("click", () => checkDiagram(btn.dataset.sheet));
+  });
+  document.querySelectorAll('[data-action="check-sense"]').forEach(btn => {
+    btn.addEventListener("click", () => checkSense(btn.dataset.sheet));
+  });
+  document.querySelectorAll('[data-action="check-eq"]').forEach(btn => {
+    btn.addEventListener("click", () => checkEqField(btn.dataset.sheet, btn.dataset.field));
+  });
+  document.querySelectorAll('[data-action="check-sol"]').forEach(btn => {
+    btn.addEventListener("click", () => checkSolField(btn.dataset.sheet, btn.dataset.field));
+  });
+  SHEETS.forEach(sh => {
+    FIELDS[sh].eq.forEach(f => el(`eq-${f}-${sh}`).addEventListener("input",
+      () => invalidateField(sh, f, `chk-${f}-${sh}`, `msg-${f}-${sh}`)));
+    FIELDS[sh].sol.forEach(f => el(`sol-${f}-${sh}`).addEventListener("input",
+      () => invalidateField(sh, f, `chk-sol-${f}-${sh}`, `msg-sol-${f}-${sh}`)));
+  });
+  el("depth").addEventListener("input", renderExplore);
+
+  /* ---------- saving work in this browser ---------- */
+
+  const STORE_KEY = "water-gate-lab:v2";
+
+  function persistentFields() {
+    return [...document.querySelectorAll(".sheet input[type=text], .sheet textarea.reflect, #student-name, #depth")];
+  }
+
+  function save() {
+    try {
+      const values = {};
+      persistentFields().forEach(f => { values[f.id] = f.value; });
+      const checked = {};
+      SHEETS.forEach(sh => {
+        checked[sh] = Object.keys(state.result[sh]).filter(k => state.result[sh][k] !== null);
+      });
+      localStorage.setItem(STORE_KEY, JSON.stringify({
+        values, sel: state.sel, trueSense: state.trueSense, given: state.given, tab: state.current, checked
+      }));
+    } catch (e) { /* storage unavailable — work just won't persist */ }
+  }
+
+  function restore() {
+    let data = null;
+    try { data = JSON.parse(localStorage.getItem(STORE_KEY) || "null"); } catch (e) { data = null; }
+    if (!data || typeof data !== "object") { save(); return; }   // save so this visit's numbers stick
+    DIAGRAM_SHEETS.forEach(sh => {
+      if (data.given && validGiven(sh, data.given[sh])) { state.given[sh] = data.given[sh]; renderGiven(sh); }
+    });
+    const values = data.values || {};
+    persistentFields().forEach(f => { if (typeof values[f.id] === "string") f.value = values[f.id]; });
+    DIAGRAM_SHEETS.forEach(sh => {
+      POINTS[sh].forEach(p => {
+        const d = data.sel && data.sel[sh] && data.sel[sh][p.key];
+        if (p.options.indexOf(d) >= 0) selectDir(sh, p.key, d);
+      });
+      SENSE_POINTS.forEach(p => {
+        const d = data.trueSense && data.trueSense[sh] && data.trueSense[sh][p.key];
+        if (p.options.indexOf(d) >= 0) selectTrueSense(sh, p.key, d);
+      });
+    });
+    if (data.tab) showTab(data.tab);
+    renderExplore();
+    // Re-run (rather than trust) every check that had been made before reload.
+    SHEETS.forEach(sh => {
+      const list = (data.checked && data.checked[sh]) || [];
+      list.forEach(f => {
+        if (DIAGRAM_SHEETS.indexOf(sh) >= 0 && f === "diagram") checkDiagram(sh);
+        else if (DIAGRAM_SHEETS.indexOf(sh) >= 0 && f === "sense") checkSense(sh);
+        else if (FIELDS[sh].eq.indexOf(f) >= 0) checkEqField(sh, f);
+        else if (FIELDS[sh].sol.indexOf(f) >= 0) checkSolField(sh, f);
+        else if (f[0] === "n" && FIELDS[sh].num.indexOf(f.slice(1)) >= 0) checkNumField(sh, f.slice(1));
+      });
+    });
+    save();
+  }
+
+  persistentFields().forEach(f => f.addEventListener("input", save));
+
+  el("btn-reset").addEventListener("click", () => {
+    if (!confirm("Erase all of your answers on this page and start over? You will also get new numeric values. This cannot be undone.")) return;
+    try { localStorage.removeItem(STORE_KEY); } catch (e) {}
+    location.reload();
+  });
+
+  /* ---------- submission report ---------- */
+
+  function fnv1a(str) {
+    let h = 0x811c9dc5;
+    for (let i = 0; i < str.length; i++) {
+      h ^= str.charCodeAt(i);
+      h = Math.imul(h, 0x01000193);
+    }
+    return (h >>> 0).toString(16).padStart(8, "0");
+  }
+
+  // Pasting into a dropbox's rich-text editor changes line endings, turns
+  // spaces into non-breaking spaces, collapses runs of spaces, and adds blank
+  // lines between paragraphs. Hash only the visible words, line by line, so an
+  // honest report still matches after all of that.
+  function normalizeForHash(s) {
+    return s.replace(/\r/g, "").split("\n")
+      .map(l => l.replace(/\s+/g, " ").trim())
+      .filter(l => l !== "")
+      .join("\n");
+  }
+
+  const GRADED_LINE = /^\s*\[(s[123])\.(\w+)\]\s+(PASS|FAIL|NOT CHECKED|BLANK)\s+[^:]*:\s?(.*)$/;
+  const GIVEN_LINE = /^\s*\[(s[12])\.given\]\s+(.*)$/;
+  const WRITTEN_HEADER = "WRITTEN RESPONSES";
+  const HASH_LABEL = "Integrity hash:";
+
+  function statusOf(sheet, field, answered) {
+    if (!answered) return "BLANK";
+    const r = state.result[sheet][field];
+    return r === true ? "PASS" : r === false ? "FAIL" : "NOT CHECKED";
+  }
+
+  function gradedLine(sheet, field, status, label, answer) {
+    return ("  [" + sheet + "." + field + "]").padEnd(18) + status.padEnd(13) + label + ": " + answer;
+  }
+
+  const selText = (keys, sel) => keys.filter(k => sel[k]).map(k => k + "=" + sel[k]).join(", ");
+
+  function gradedEntries(sh) {
+    return resultFields(sh).map(f => {
+      if (f === "diagram") return [f, "Diagram", selText(POINTS[sh].map(p => p.key), state.sel[sh])];
+      if (f === "sense") return [f, "True senses", selText(SENSE_KEYS, state.trueSense[sh])];
+      if (FIELDS[sh].eq.indexOf(f) >= 0) return [f, EQ_LABELS[f], el(`eq-${f}-${sh}`).value.trim()];
+      if (f[0] === "n" && DIAGRAM_SHEETS.indexOf(sh) >= 0 && FIELDS[sh].num.indexOf(f.slice(1)) >= 0) {
+        const b = f.slice(1);
+        return [f, SOL_LABELS[b] + " [" + NUM_UNITS[b] + "]", el(`num-${b}-${sh}`).value.trim()];
+      }
+      return [f, SOL_LABELS[f], el(`sol-${f}-${sh}`).value.trim()];
+    });
+  }
+
+  function givenText(sh) {
+    const g = state.given[sh];
+    return "h = " + g.h + " m, b = " + g.b + " m" + (sh === "s2" ? ", D = " + g.D + " m" : "") + ", W = " + g.W + " kN";
+  }
+
+  function buildReport(name) {
+    const lines = [];
+    lines.push("WATER GATE EQUILIBRIUM LAB — SUBMISSION REPORT");
+    lines.push("Name: " + name);
+    lines.push("Generated: " + new Date().toISOString());
+    lines.push("");
+    let passed = 0, total = 0;
+    SHEETS.forEach(sh => {
+      lines.push(SHEET_TITLES[sh]);
+      if (DIAGRAM_SHEETS.indexOf(sh) >= 0) lines.push(("  [" + sh + ".given]").padEnd(18) + givenText(sh));
+      gradedEntries(sh).forEach(([f, label, answer]) => {
+        const status = statusOf(sh, f, answer !== "");
+        total++; if (status === "PASS") passed++;
+        lines.push(gradedLine(sh, f, status, label, answer));
+      });
+      lines.push("");
+    });
+    lines.push("Overall: " + passed + " / " + total + " checks passed" + (passed === total ? " — ALL CHECKS PASSED" : ""));
+    lines.push("");
+    lines.push(WRITTEN_HEADER);
+    [
+      ["reflect-shape-s1", "Sheet 1 – why the pressure has this shape"],
+      ["reflect-tau-s1", "Sheet 1 – moment point"],
+      ["reflect-shape-s2", "Sheet 2 – why the pressure has this shape"],
+      ["reflect-tau-s2", "Sheet 2 – moment point"],
+      ["reflect-yp-s3", "Sheet 3 (a) – how the line of action of F moves"],
+      ["reflect-share-s3", "Sheet 3 (b) – R/F compared with y_p/h"],
+      ["reflect-W-s3", "Sheet 3 (c) – role of the gate's weight; rough stop"]
+    ].forEach(([id, label]) => {
+      const val = el(id).value.trim();
+      lines.push(label + ":");
+      (val || "(not answered)").split(/\r?\n/).forEach(l => lines.push("  " + l));
+      lines.push("");
+    });
+    const body = lines.join("\n");
+    return body + "\n\n" + HASH_LABEL + " " + fnv1a(normalizeForHash(body));
+  }
+
+  el("btn-report").addEventListener("click", () => {
+    currentReport();
+    el("copy-note").textContent = "";
+  });
+
+  function currentReport() {
+    // Always regenerate so the report can never be stale.
+    const name = el("student-name").value.trim() || "(name not entered)";
+    const text = buildReport(name);
+    el("report-out").value = text;
+    return text;
+  }
+
+  el("btn-download").addEventListener("click", () => {
+    const text = currentReport();
+    const who = el("student-name").value.trim().replace(/[^A-Za-z0-9]+/g, "-").replace(/^-|-$/g, "") || "student";
+    const url = URL.createObjectURL(new Blob([text], { type: "text/plain;charset=utf-8" }));
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "water-gate-lab-report-" + who + ".txt";
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 2000);
+    el("copy-note").textContent = "Downloaded " + a.download + " — upload it to the dropbox.";
+  });
+
+  // Brightspace shows the page inside a frame, which often blocks the
+  // Clipboard API, so fall back to the older copy command.
+  el("btn-copy").addEventListener("click", async () => {
+    const ta = el("report-out");
+    const text = currentReport();
+    try {
+      await navigator.clipboard.writeText(text);
+      el("copy-note").textContent = "Copied.";
+      return;
+    } catch (e) { /* fall through */ }
+    ta.focus();
+    ta.select();
+    let ok = false;
+    try { ok = document.execCommand("copy"); } catch (e) {}
+    el("copy-note").textContent = ok ? "Copied." : "Your browser blocked copying — the report is selected; press Ctrl+C (Cmd+C on a Mac).";
+  });
+
+  /* ---------- instructor verification ---------- */
+
+  function parsePairs(answer) {
+    const out = {};
+    answer.split(",").forEach(part => {
+      const [k, v] = part.split("=").map(s => (s || "").trim());
+      if (k) out[k] = v;
+    });
+    return out;
+  }
+
+  function parseGiven(text) {
+    const g = {};
+    Object.entries(parsePairs(text)).forEach(([k, v]) => { g[k] = parseFloat(v); });
+    return g;
+  }
+
+  // ctx: { sel, given } for the sheet, as recorded in the report itself.
+  function regrade(sheet, field, answer, ctx) {
+    if (!answer) return null;
+    if (field === "diagram") return gradeDiagram(sheet, parsePairs(answer));
+    if (field === "sense") return gradeSense(parsePairs(answer));
+    if (FIELDS[sheet].eq.indexOf(field) >= 0) return gradeEq(sheet, field, answer, ctx.sel);
+    if (FIELDS[sheet].sol.indexOf(field) >= 0) return gradeSol(sheet, field, answer, ctx.sel);
+    if (field[0] === "n" && FIELDS[sheet].num.indexOf(field.slice(1)) >= 0) return gradeNum(sheet, field.slice(1), answer, ctx.sel, ctx.given);
+    return { ok: false, message: "Unknown field" };
+  }
+
+  function verifyReport(raw) {
+    const text = raw.replace(/\r/g, "").replace(/ /g, " ");
+    const hashIdx = text.lastIndexOf(HASH_LABEL);
+    let hash;
+    if (hashIdx < 0) {
+      hash = { cls: "bad", text: "No integrity hash found — the report is incomplete or was edited." };
+    } else {
+      const claimed = text.slice(hashIdx + HASH_LABEL.length).trim().split(/\s+/)[0].toLowerCase();
+      const actual = fnv1a(normalizeForHash(text.slice(0, hashIdx)));
+      hash = claimed === actual
+        ? { cls: "ok", text: "Integrity hash matches — the text is as generated (or was re-hashed by someone determined)." }
+        : { cls: "bad", text: "Integrity hash does NOT match — the report text was changed after it was generated." };
+    }
+
+    const gradedEnd = text.indexOf("\n" + WRITTEN_HEADER);
+    const gradedPart = gradedEnd >= 0 ? text.slice(0, gradedEnd) : text;
+    const found = {}, givens = {};
+    gradedPart.split("\n").forEach(line => {
+      const gm = line.match(GIVEN_LINE);
+      if (gm) { if (!givens[gm[1]]) givens[gm[1]] = parseGiven(gm[2]); return; }
+      const m = line.match(GRADED_LINE);
+      if (m && !found[m[1] + "." + m[2]]) found[m[1] + "." + m[2]] = { claimed: m[3], answer: m[4].trim() };
+    });
+
+    const rows = [];
+    let mismatches = 0;
+    SHEETS.forEach(sh => {
+      const dia = found[sh + ".diagram"];
+      const ctx = { sel: dia ? parsePairs(dia.answer) : {}, given: givens[sh] };
+      resultFields(sh).forEach(f => {
+        const key = sh + "." + f;
+        const entry = found[key];
+        if (!entry) { mismatches++; rows.push({ key, claimed: "—", answer: "", regraded: "—", cls: "bad", note: "missing from report" }); return; }
+        const r = regrade(sh, f, entry.answer, ctx);
+        const regraded = r ? (r.ok ? "PASS" : "FAIL") : "BLANK";
+        let cls = "", note = r && !r.ok ? r.message : "";
+        if ((entry.claimed === "PASS" || entry.claimed === "FAIL") && entry.claimed !== regraded) {
+          cls = "bad"; mismatches++; note = "claimed " + entry.claimed + ", re-grades as " + regraded + (note ? " — " + note : "");
+        } else if (entry.claimed === "BLANK" && entry.answer) {
+          cls = "bad"; mismatches++; note = "claimed BLANK but has an answer";
+        } else if (regraded === "PASS") {
+          cls = "ok";
+        }
+        rows.push({ key, claimed: entry.claimed, answer: entry.answer, regraded, cls, note });
+      });
+    });
+
+    const passed = rows.filter(r => r.regraded === "PASS").length;
+    let html = `<p class="status-row ${hash.cls}">${escapeHtml(hash.text)}</p>`;
+    html += `<p class="status-row ${mismatches ? "bad" : "ok"}">Re-graded: ${passed} / ${rows.length} pass. ` +
+      (mismatches ? `${mismatches} line(s) disagree with what the report claims.` : "Every claimed result agrees with re-grading.") + `</p>`;
+    html += `<div class="verify-scroll"><table class="verify"><thead><tr><th>Item</th><th>Claimed</th><th>Re-graded</th><th>Answer</th><th>Note</th></tr></thead><tbody>`;
+    rows.forEach(r => {
+      html += `<tr class="${r.cls}"><td>${escapeHtml(r.key)}</td><td>${escapeHtml(r.claimed)}</td><td>${escapeHtml(r.regraded)}</td>` +
+        `<td><code>${escapeHtml(r.answer)}</code></td><td>${escapeHtml(r.note)}</td></tr>`;
+    });
+    html += `</tbody></table></div>`;
+    return html;
+  }
+
+  el("btn-verify").addEventListener("click", () => {
+    const raw = el("verify-in").value;
+    el("verify-out").innerHTML = raw.trim() ? verifyReport(raw) : `<p class="status-row bad">Paste a report first.</p>`;
+  });
+
+  /* ---------- init ---------- */
+
+  function renderAll() {
+    DIAGRAM_SHEETS.forEach(sh => { renderRealistic(sh); renderGhost(sh); renderYpDef(sh); });
+    renderExplore();
+  }
+
+  // Diagram colors are read from CSS variables at render time, so redraw
+  // whenever the theme changes.
+  try { matchMedia("(prefers-color-scheme: dark)").addEventListener("change", renderAll); } catch (e) {}
+  new MutationObserver(renderAll).observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
+
+  function syncInstructorPanel() {
+    const on = location.hash === "#instructor";
+    el("instructor").hidden = !on;
+    if (on) el("instructor").open = true;
+  }
+  window.addEventListener("hashchange", syncInstructorPanel);
+
+  wireChart();
+  renderAll();
+  restore();
+  syncInstructorPanel();
+})();
+</script>
