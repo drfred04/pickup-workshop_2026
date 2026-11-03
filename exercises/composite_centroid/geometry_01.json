@@ -1,0 +1,70 @@
+{
+  "name": "Gusseted mounting bracket",
+  "units": "mm",
+  "origin": "bottom-left corner of the part's bounding box; x to the right, y up",
+  "parts": [
+    {
+      "id": "R1",
+      "label": "Base plate",
+      "type": "rectangle",
+      "x0": 0,
+      "y0": 0,
+      "width": 140,
+      "height": 30
+    },
+    {
+      "id": "R2",
+      "label": "Upright",
+      "type": "rectangle",
+      "x0": 0,
+      "y0": 30,
+      "width": 30,
+      "height": 80
+    },
+    {
+      "id": "R3",
+      "label": "Mounting lug",
+      "type": "rectangle",
+      "x0": 110,
+      "y0": 30,
+      "width": 30,
+      "height": 20
+    },
+    {
+      "id": "T1",
+      "label": "Gusset",
+      "type": "triangle",
+      "vertices": [
+        [
+          30,
+          30
+        ],
+        [
+          90,
+          30
+        ],
+        [
+          30,
+          90
+        ]
+      ]
+    },
+    {
+      "id": "H1",
+      "label": "Lug bolt hole",
+      "type": "hole",
+      "cx": 125,
+      "cy": 40,
+      "r": 8
+    },
+    {
+      "id": "H2",
+      "label": "Upright bolt hole",
+      "type": "hole",
+      "cx": 15,
+      "cy": 90,
+      "r": 10,
+      "callout_deg": -90
+    }
+  ]
+}
