@@ -1,0 +1,151 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Stepped Gate Sketch</title>
+<style>
+  :root {
+    --paper: #eef0e8; --surface: #f8f9f4; --surface-2: #f1f3ec;
+    --ink: #22252b; --ink-soft: #595f6b; --rule: #c6c9b8;
+    --water: rgba(64, 128, 196, .20); --water-edge: #3570ad;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --paper: #141821; --surface: #1b2130; --surface-2: #151a26;
+      --ink: #e8eaf0; --ink-soft: #a7adba; --rule: #333b50;
+      --water: rgba(96, 160, 232, .22); --water-edge: #7fb2ec;
+    }
+  }
+  :root[data-theme="dark"] {
+    --paper: #141821; --surface: #1b2130; --surface-2: #151a26;
+    --ink: #e8eaf0; --ink-soft: #a7adba; --rule: #333b50;
+    --water: rgba(96, 160, 232, .22); --water-edge: #7fb2ec;
+  }
+  body { margin: 0; background: var(--paper); color: var(--ink); font-family: Inter, system-ui, sans-serif; }
+  main { max-width: 760px; margin: 0 auto; padding: 24px 16px; }
+  h1 { font-size: 20px; margin: 0 0 4px; }
+  h2 { font-size: 15px; margin: 24px 0 8px; }
+  p { color: var(--ink-soft); margin: 0 0 16px; font-size: 14px; }
+  figure { margin: 0; background: var(--surface); border: 1px solid var(--rule); border-radius: 8px; padding: 12px; }
+  figcaption { color: var(--ink-soft); font-size: 13px; margin-top: 6px; }
+  svg { display: block; width: 100%; height: auto; }
+</style>
+</head>
+<body>
+<main>
+  <h1>Stepped gate (draft figures)</h1>
+  <p>Gate with two right-angle bends: upper leg, horizontal center with hinge A at its midpoint, lower leg. Water on the left. Drawn with a = 2c.</p>
+
+  <h2>Case 1: water surface above the top of the gate</h2>
+  <figure>
+    <svg id="scene-above" viewBox="0 0 480 360"></svg>
+    <figcaption>Surface a distance d above B; the wall holds back the water above the gate.</figcaption>
+  </figure>
+
+  <h2>Case 2: water surface below the top of the gate</h2>
+  <figure>
+    <svg id="scene-below" viewBox="0 0 480 360"></svg>
+    <figcaption>Surface on the upper leg, a depth h above the horizontal center (0 &lt; h &lt; a).</figcaption>
+  </figure>
+</main>
+<script>
+(() => {
+  function cssVar(n) { return getComputedStyle(document.documentElement).getPropertyValue(n).trim(); }
+  const MONO = "IBM Plex Mono, monospace", SANS = "Inter, sans-serif";
+
+  function hatchDown(x1, x2, y, color) {
+    let out = `<line x1="${x1}" y1="${y}" x2="${x2}" y2="${y}" stroke="${color}" stroke-width="2"/>`;
+    for (let x = x1; x <= x2; x += 12) out += `<line x1="${x}" y1="${y}" x2="${x - 8}" y2="${y + 10}" stroke="${color}" stroke-width="1.2"/>`;
+    return out;
+  }
+  function dimV(x, y1, y2, label, ink, side) {
+    const tx = x + (side === "left" ? -8 : 8), anchor = side === "left" ? "end" : "start";
+    return `<g stroke="${ink}" stroke-width="1.1"><line x1="${x}" y1="${y1}" x2="${x}" y2="${y2}"/>
+      <line x1="${x - 5}" y1="${y1}" x2="${x + 5}" y2="${y1}"/><line x1="${x - 5}" y1="${y2}" x2="${x + 5}" y2="${y2}"/></g>
+      <text x="${tx}" y="${(y1 + y2) / 2 + 4}" font-family="${MONO}" font-size="13" fill="${ink}" text-anchor="${anchor}">${label}</text>`;
+  }
+  function dimH(y, x1, x2, label, ink) {
+    return `<g stroke="${ink}" stroke-width="1.1"><line x1="${x1}" y1="${y}" x2="${x2}" y2="${y}"/>
+      <line x1="${x1}" y1="${y - 5}" x2="${x1}" y2="${y + 5}"/><line x1="${x2}" y1="${y - 5}" x2="${x2}" y2="${y + 5}"/></g>
+      <text x="${(x1 + x2) / 2}" y="${y - 7}" font-family="${MONO}" font-size="13" fill="${ink}" text-anchor="middle">${label}</text>`;
+  }
+  function surfaceMark(x, y, c) {
+    return `<path d="M ${x - 7} ${y - 10} L ${x + 7} ${y - 10} L ${x} ${y - 2} Z" fill="none" stroke="${c}" stroke-width="1.3"/>
+      <line x1="${x - 9}" y1="${y + 4}" x2="${x + 9}" y2="${y + 4}" stroke="${c}" stroke-width="1"/>
+      <line x1="${x - 5}" y1="${y + 8}" x2="${x + 5}" y2="${y + 8}" stroke="${c}" stroke-width="1"/>`;
+  }
+
+  // Geometry: upper leg at X1 from YT to YC, horizontal from X1 to X2 at YC, lower leg at X2 from YC to FLOOR.
+  // a = 2c: a = 120, c = 60.
+  const X1 = 200, X2 = 320, YT = 110, YC = 230, FLOOR = 290, XA = (X1 + X2) / 2;
+
+  const CASES = {
+    above: {
+      surf: 50,
+      aria: "Case 1. A stepped gate with two right-angle bends holds back water on its left. The upper leg of height a hangs from the bottom of a fixed wall, bends away from the water into a horizontal center of length b, then bends down into a lower leg of height c = a/2 that reaches the floor. The gate pivots on hinge A at the middle of the horizontal center. The water surface is a distance d above the top of the gate, so the wall holds back the water above the gate."
+    },
+    below: {
+      surf: 190,
+      aria: "Case 2. The same stepped gate, but the water surface lies partway down the upper leg, a depth h above the horizontal center. The top of the upper leg and the wall above it are dry."
+    }
+  };
+
+  function render(id, kase) {
+    const ink = cssVar("--ink"), soft = cssVar("--ink-soft"), rule = cssVar("--rule");
+    const water = cssVar("--water"), edge = cssVar("--water-edge"), bg = cssVar("--surface-2");
+    const SURF = kase.surf, above = SURF < YT;
+    let s = "";
+    // water: left of wall/upper leg, and beneath the horizontal center out to the lower leg
+    s += `<path d="M 20 ${SURF} L ${X1} ${SURF} L ${X1} ${YC} L ${X2} ${YC} L ${X2} ${FLOOR} L 20 ${FLOOR} Z" fill="${water}"/>`;
+    s += `<line x1="20" y1="${SURF}" x2="${X1}" y2="${SURF}" stroke="${edge}" stroke-width="1.6"/>`;
+    s += surfaceMark(above ? 60 : 110, SURF, edge);
+    s += hatchDown(20, 460, FLOOR, soft);
+    // fixed wall above the gate, ending exactly at the top of the gate
+    s += `<rect x="${X1 - 7}" y="18" width="14" height="${YT - 18}" fill="${rule}" stroke="${ink}" stroke-width="1.2"/>`;
+    for (let y = 26; y < YT - 8; y += 12) s += `<line x1="${X1 - 7}" y1="${y + 8}" x2="${X1 + 7}" y2="${y}" stroke="${soft}" stroke-width="1"/>`;
+    // gate
+    s += `<path d="M ${X1} ${YT} L ${X1} ${YC} L ${X2} ${YC} L ${X2} ${FLOOR}" fill="none" stroke="${ink}" stroke-width="7" stroke-linejoin="miter"/>`;
+    // hinge A at center of horizontal segment, supported from above on the dry side
+    s += `<path d="M ${XA - 12} ${YC - 30} L ${XA} ${YC} L ${XA + 12} ${YC - 30} Z" fill="${rule}" stroke="${ink}" stroke-width="1.2"/>`;
+    s += `<line x1="${XA - 20}" y1="${YC - 30}" x2="${XA + 20}" y2="${YC - 30}" stroke="${soft}" stroke-width="2"/>`;
+    for (let x = XA - 16; x <= XA + 20; x += 8) s += `<line x1="${x}" y1="${YC - 30}" x2="${x - 6}" y2="${YC - 38}" stroke="${soft}" stroke-width="1.2"/>`;
+    s += `<circle cx="${XA}" cy="${YC}" r="6" fill="${bg}" stroke="${ink}" stroke-width="2"/>`;
+    s += `<text x="${XA + 10}" y="${YC + 22}" font-family="${MONO}" font-size="14" font-weight="600" fill="${ink}">A</text>`;
+    // corner / end labels
+    s += `<text x="${X1 + 10}" y="${YT + 4}" font-family="${MONO}" font-size="13" font-weight="600" fill="${ink}">B</text>`;
+    s += `<text x="${X2 + 10}" y="${FLOOR - 8}" font-family="${MONO}" font-size="13" font-weight="600" fill="${ink}">C</text>`;
+    // gate dimensions
+    s += dimV(X1 - 28, YT, YC, "a", ink, "left");
+    s += dimH(YC - 70, X1, X2, "b", ink);
+    s += dimV(X2 + 60, YC, FLOOR, "c", ink, "right");
+    // water level
+    if (above) {
+      s += dimV(40, SURF, YT, "d", ink, "right");
+      s += `<line x1="30" y1="${YT}" x2="${X1 - 10}" y2="${YT}" stroke="${soft}" stroke-width="0.8" stroke-dasharray="3,3"/>`;
+    } else {
+      s += dimV(40, SURF, YC, "h", ink, "right");
+      s += `<line x1="30" y1="${YC}" x2="${X1 - 6}" y2="${YC}" stroke="${soft}" stroke-width="0.8" stroke-dasharray="3,3"/>`;
+    }
+    // region labels
+    s += `<text x="110" y="${FLOOR - 14}" font-family="${SANS}" font-size="12" fill="${soft}" text-anchor="middle">water</text>`;
+    s += `<text x="400" y="${YC - 20}" font-family="${SANS}" font-size="12" fill="${soft}" text-anchor="middle">air</text>`;
+    if (!above) s += `<text x="110" y="${YT}" font-family="${SANS}" font-size="12" fill="${soft}" text-anchor="middle">air</text>`;
+    s += `<text x="${X1 - 14}" y="32" font-family="${SANS}" font-size="12" fill="${soft}" text-anchor="end">wall</text>`;
+    s += `<text x="240" y="340" font-family="${SANS}" font-size="12" fill="${soft}" text-anchor="middle">gate width w into the page</text>`;
+    const svg = document.getElementById(id);
+    svg.innerHTML = s;
+    svg.setAttribute("role", "img");
+    svg.setAttribute("aria-label", kase.aria);
+  }
+
+  function renderAll() {
+    render("scene-above", CASES.above);
+    render("scene-below", CASES.below);
+  }
+  renderAll();
+  matchMedia("(prefers-color-scheme: dark)").addEventListener("change", renderAll);
+})();
+</script>
+</body>
+</html>

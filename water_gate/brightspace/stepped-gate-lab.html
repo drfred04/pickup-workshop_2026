@@ -1,0 +1,1899 @@
+<!doctype html>
+<html lang="en">
+<title>Stepped Gate Equilibrium</title>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@600;700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --paper: #eef0e8;
+    --surface: #f8f9f4;
+    --surface-2: #ffffff;
+    --ink: #22252b;
+    --ink-soft: #595f6b;
+    --rule: #c6c9b8;
+    --accent: #3b4f8a;
+    --applied: #b4502a;
+    --reaction: #3b4f8a;
+    --water: rgba(64, 128, 196, .20);
+    --water-edge: #3570ad;
+    --success: #2f7d4f;
+    --success-bg: #dcefdf;
+    --warn: #93650c;
+    --warn-bg: #f5e6c8;
+    --danger: #a8341f;
+    --danger-bg: #f3ded9;
+    --shadow: 0 1px 2px rgba(34,37,43,.08), 0 6px 20px rgba(34,37,43,.08);
+    color-scheme: light dark;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --paper: #141821; --surface: #1b2130; --surface-2: #151a26;
+      --ink: #e8eaf0; --ink-soft: #a7adba; --rule: #333b50;
+      --accent: #8fa3e0; --applied: #ff9a6b; --reaction: #8fa3e0;
+      --water: rgba(96, 160, 232, .22); --water-edge: #7fb2ec;
+      --success: #79d99a; --success-bg: #123222; --warn: #e0b64a; --warn-bg: #33280f;
+      --danger: #ff7a6b; --danger-bg: #341313;
+      --shadow: 0 1px 2px rgba(0,0,0,.4), 0 8px 24px rgba(0,0,0,.35);
+    }
+  }
+  :root[data-theme="dark"] {
+    --paper: #141821; --surface: #1b2130; --surface-2: #151a26;
+    --ink: #e8eaf0; --ink-soft: #a7adba; --rule: #333b50;
+    --accent: #8fa3e0; --applied: #ff9a6b; --reaction: #8fa3e0;
+    --water: rgba(96, 160, 232, .22); --water-edge: #7fb2ec;
+    --success: #79d99a; --success-bg: #123222; --warn: #e0b64a; --warn-bg: #33280f;
+    --danger: #ff7a6b; --danger-bg: #341313;
+    --shadow: 0 1px 2px rgba(0,0,0,.4), 0 8px 24px rgba(0,0,0,.35);
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--paper); color: var(--ink); font-family: "Inter", system-ui, sans-serif; padding-inline: 20px; padding-block: 28px 70px; }
+  @media (max-width: 520px) { body { padding-inline: 16px; } }
+  h1, h2, h3 { font-family: "Fraunces", Georgia, serif; text-wrap: balance; margin: 0; }
+  .wrap { max-width: 1180px; margin: 0 auto; }
+  header.top { margin-bottom: 18px; }
+  .eyebrow { font-family: "IBM Plex Mono", monospace; font-size: .72rem; letter-spacing: .12em; text-transform: uppercase; color: var(--accent); font-weight: 600; margin-bottom: 6px; display: block; }
+  h1 { font-size: clamp(1.6rem, 3vw, 2.1rem); font-weight: 700; }
+  .lede { max-width: 68ch; color: var(--ink-soft); font-size: 1rem; line-height: 1.6; margin-top: 10px; }
+  .legend { display: flex; flex-wrap: wrap; gap: 10px 22px; margin-top: 16px; padding: 12px 16px; background: var(--surface); border: 1px solid var(--rule); border-radius: 10px; font-size: .85rem; }
+  .legend-item { display: flex; align-items: center; gap: 8px; }
+  .swatch { width: 26px; height: 12px; border-radius: 2px; flex-shrink: 0; }
+  .swatch.applied { background: var(--applied); }
+  .swatch.reaction { background: var(--reaction); }
+  .swatch.water { background: var(--water); border: 1px solid var(--water-edge); }
+  .swatch.cg { background: none; width: 16px; height: 16px; border-radius: 50%; position: relative; overflow: hidden; border: 1.5px solid var(--ink-soft); }
+  .swatch.cg::before, .swatch.cg::after { content: ""; position: absolute; width: 50%; height: 50%; background: var(--ink-soft); }
+  .swatch.cg::before { top: 0; left: 0; }
+  .swatch.cg::after { bottom: 0; right: 0; }
+
+  .tabs { display: flex; gap: 6px; margin-top: 22px; border-bottom: 2px solid var(--rule); overflow-x: auto; }
+  .tab-btn { font-family: "IBM Plex Mono", monospace; font-size: .82rem; font-weight: 600; letter-spacing: .02em; background: transparent; border: none; cursor: pointer; padding: 10px 18px; color: var(--ink-soft); border-bottom: 3px solid transparent; margin-bottom: -2px; white-space: nowrap; }
+  .tab-btn.active { color: var(--ink); border-bottom-color: var(--accent); }
+  .tab-btn:hover { color: var(--ink); }
+  /* On phones, wrap the tabs onto their own lines so every sheet stays visible. */
+  @media (max-width: 640px) {
+    .tabs { flex-direction: column; gap: 0; overflow-x: visible; }
+    .tab-btn { text-align: left; white-space: normal; padding: 10px 12px; border-bottom: none; border-left: 3px solid transparent; margin-bottom: 0; }
+    .tab-btn.active { border-left-color: var(--accent); }
+  }
+
+  .sheet { padding-top: 22px; }
+  .givens { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 20px; }
+  .given-chip { background: var(--surface); border: 1px solid var(--rule); border-radius: 8px; padding: 8px 12px; font-size: .88rem; display: flex; gap: 8px; align-items: baseline; }
+  .given-chip b { font-family: "IBM Plex Mono", monospace; color: var(--accent); }
+
+  .stage { background: var(--surface); border: 1px solid var(--rule); border-radius: 12px; padding: 18px 20px; margin-bottom: 18px; box-shadow: var(--shadow); }
+  .stage h2 { font-size: 1.05rem; font-weight: 700; margin-bottom: 4px; }
+  .stage .sub { color: var(--ink-soft); font-size: .9rem; margin-bottom: 14px; line-height: 1.5; }
+
+  .panels { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  @media (max-width: 820px) { .panels { grid-template-columns: 1fr; } }
+  .panel { background: var(--surface-2); border: 1px solid var(--rule); border-radius: 10px; padding: 10px; min-width: 0; }
+  .panel h3 { font-size: .78rem; font-family: "IBM Plex Mono", monospace; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; color: var(--ink-soft); margin-bottom: 6px; }
+  svg.illustration, svg.ghost { display: block; width: 100%; height: auto; background: var(--surface-2); }
+
+  .selectors { margin-top: 10px; display: flex; flex-direction: column; gap: 8px; }
+  .selector-row { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; font-size: .85rem; }
+  .selector-row .pt-label { font-family: "IBM Plex Mono", monospace; font-weight: 600; min-width: 150px; color: var(--ink); }
+  .selector-group { font-family: "IBM Plex Mono", monospace; font-size: .72rem; letter-spacing: .06em; text-transform: uppercase; color: var(--ink-soft); margin-top: 6px; }
+  .dir-btn { border: 1px solid var(--rule); background: var(--surface); color: var(--ink); border-radius: 6px; padding: 5px 10px; font-size: .82rem; cursor: pointer; }
+  .dir-btn.sel { background: var(--accent); color: var(--surface-2); border-color: var(--accent); }
+  .dir-btn:hover { border-color: var(--accent); }
+
+  button.action { font-family: "IBM Plex Mono", monospace; font-weight: 600; font-size: .82rem; letter-spacing: .02em; background: var(--accent); color: var(--surface-2); border: none; border-radius: 8px; padding: 10px 16px; cursor: pointer; margin-top: 4px; }
+  button.action:hover { opacity: .9; }
+  button.action.secondary { background: transparent; color: var(--accent); border: 1px solid var(--accent); }
+
+  .status-row { margin-top: 10px; font-size: .88rem; font-weight: 600; }
+  .status-row.ok { color: var(--success); }
+  .status-row.bad { color: var(--danger); }
+  .status-row.neutral { color: var(--ink-soft); }
+
+  .eq-row { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin-bottom: 10px; }
+  .eq-row label { font-family: "IBM Plex Mono", monospace; font-size: .9rem; min-width: 96px; }
+  .eq-row input[type=text] { flex: 1 1 260px; min-width: 0; font-family: "IBM Plex Mono", monospace; font-size: .9rem; padding: 8px 10px; border: 1px solid var(--rule); border-radius: 6px; background: var(--surface-2); color: var(--ink); }
+  .eq-row input.num { flex: 0 1 160px; }
+  .eq-row .unit { font-family: "IBM Plex Mono", monospace; font-size: .85rem; color: var(--ink-soft); min-width: 22px; }
+  .eq-row .dirs { display: inline-flex; gap: 6px; }
+  .eq-row .chk { font-size: 1.1rem; min-width: 22px; text-align: center; }
+  .eq-row .chk.ok { color: var(--success); }
+  .eq-row .chk.bad { color: var(--danger); }
+  .eq-row .chk.neutral { color: var(--ink-soft); }
+  .eq-msg { font-size: .8rem; color: var(--ink-soft); flex: 1 1 100%; margin-top: -4px; }
+  .eq-msg.bad { color: var(--danger); }
+  .eq-msg.ok { color: var(--success); }
+
+  textarea.reflect { width: 100%; min-height: 54px; font-family: "Inter", sans-serif; font-size: .88rem; padding: 8px 10px; border: 1px solid var(--rule); border-radius: 6px; background: var(--surface-2); color: var(--ink); resize: vertical; }
+
+  details.hint { margin-top: 6px; font-size: .85rem; }
+  details.hint summary { cursor: pointer; color: var(--accent); font-weight: 600; }
+  details.hint p { color: var(--ink-soft); margin: 6px 0 0; line-height: 1.5; }
+
+  .def-grid { display: grid; grid-template-columns: minmax(0, 1fr) 210px; gap: 18px; align-items: start; }
+  @media (max-width: 640px) { .def-grid { grid-template-columns: 1fr; } .def-grid svg { max-width: 240px; } }
+  .def-fig { background: var(--surface-2); border: 1px solid var(--rule); border-radius: 10px; padding: 6px; }
+  .def-fig figcaption { font-size: .75rem; color: var(--ink-soft); text-align: center; margin-top: 2px; }
+  figure { margin: 0; }
+
+  .name-input { font-family: "Inter", sans-serif; font-size: .9rem; padding: 8px 10px; border: 1px solid var(--rule); border-radius: 6px; background: var(--surface-2); color: var(--ink); width: 280px; max-width: 100%; }
+  textarea.report { width: 100%; min-height: 160px; font-family: "IBM Plex Mono", monospace; font-size: .8rem; padding: 10px; border: 1px solid var(--rule); border-radius: 6px; background: var(--surface-2); color: var(--ink); margin-top: 10px; }
+  .report-actions { display: flex; gap: 10px; margin-top: 10px; flex-wrap: wrap; align-items: center; }
+  .copy-note { font-size: .8rem; color: var(--ink-soft); }
+  .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
+  :focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+  button.action.secondary.danger { color: var(--danger); border-color: var(--danger); }
+
+  details.instructor > summary { cursor: pointer; font-weight: 700; font-size: 1.05rem; }
+  .verify-scroll { overflow-x: auto; margin-top: 10px; }
+  table.verify { width: 100%; border-collapse: collapse; font-size: .82rem; }
+  table.verify th, table.verify td { text-align: left; padding: 6px 8px; border-bottom: 1px solid var(--rule); vertical-align: top; }
+  table.verify th { font-family: "IBM Plex Mono", monospace; font-size: .72rem; text-transform: uppercase; letter-spacing: .04em; color: var(--ink-soft); }
+  table.verify td:first-child { font-family: "IBM Plex Mono", monospace; white-space: nowrap; }
+  table.verify tr.ok td:nth-child(3) { color: var(--success); font-weight: 600; }
+  table.verify tr.bad { background: var(--danger-bg); }
+  table.verify tr.bad td:nth-child(3), table.verify tr.bad td:last-child { color: var(--danger); }
+</style>
+
+<div class="wrap">
+  <header class="top">
+    <span class="eyebrow">Statics &middot; Hydrostatic Loading</span>
+    <h1>The Stepped Gate: Holding It Shut at the Hinge</h1>
+    <p class="lede">A gate bent through two right angles holds back water. Its <b>upper leg</b> (height <b>a</b>) hangs from the bottom of a wall, bends away from the water into a <b>horizontal center</b> section (length <b>b</b>), then bends down into a <b>lower leg</b> (height <b>c</b>). The gate is <b>L</b> long into the page. It is carried at <b>A</b>, the midpoint of the center section, by a hinge with a locking actuator that can push in any direction <em>and</em> supply a holding moment. Water presses on three faces at once. You will draw the free-body diagram, replace each distributed water load with a resultant, write the equilibrium equations, and solve for the forces and moment the hinge must supply.</p>
+  </header>
+
+  <div class="legend">
+    <div class="legend-item"><span class="swatch applied"></span> Applied load &mdash; water pressure, its resultants, and the gate&rsquo;s weight</div>
+    <div class="legend-item"><span class="swatch reaction"></span> Reaction &mdash; forces and moment at the hinge A</div>
+    <div class="legend-item"><span class="swatch water"></span> Water</div>
+    <div class="legend-item"><span class="swatch cg"></span> Center of gravity of the gate</div>
+  </div>
+
+  <div class="tabs" role="tablist" aria-label="Lab sheets">
+    <button class="tab-btn active" role="tab" aria-selected="true" aria-controls="sheet-s1" data-tab="s1">Sheet 1 &middot; Water Below the Top of the Gate</button>
+    <button class="tab-btn" role="tab" aria-selected="false" aria-controls="sheet-s2" data-tab="s2">Sheet 2 &middot; Water Above the Top of the Gate</button>
+  </div>
+
+  <!-- ================= SHEET 1 ================= -->
+  <section class="sheet" id="sheet-s1" data-sheet="s1" role="tabpanel" aria-label="Sheet 1: Water below the top of the gate">
+    <div class="givens">
+      <div class="given-chip"><b>a</b><span>height of the upper leg</span></div>
+      <div class="given-chip"><b>b</b><span>length of the horizontal center (A at its midpoint)</span></div>
+      <div class="given-chip"><b>c</b><span>height of the lower leg</span></div>
+      <div class="given-chip"><b>h</b><span>water depth above the center section (0 &lt; h &lt; a)</span></div>
+      <div class="given-chip"><b>L</b><span>length of the gate, into the page</span></div>
+      <div class="given-chip"><b>rho</b><span>density of water</span></div>
+      <div class="given-chip"><b>g</b><span>gravitational acceleration</span></div>
+      <div class="given-chip"><b>W</b><span>weight of the gate</span></div>
+      <div class="given-chip"><b>x_G</b><span>horizontal distance from A to the gate&rsquo;s CG (CG is to the left of A)</span></div>
+    </div>
+    <p class="sub">The water surface lies partway down the upper leg, a depth <b>h</b> above the center section. The wall above the gate and the top of the upper leg are dry. The gate touches nothing but the hinge: there is a small sealed gap at the wall (B) and at the floor (C), so neither can push on the gate. Ignore atmospheric pressure &mdash; it acts on both faces of the gate and cancels.</p>
+
+    <div class="stage" data-stage="diagram">
+      <h2>1. Build the free-body diagram</h2>
+      <p class="sub">Isolate the gate. The <b>loads</b> are known, so give their true form and direction: the shape and direction of the water pressure on each wetted face, and the gate&rsquo;s weight. The <b>reactions</b> at A &mdash; A<sub>x</sub>, A<sub>y</sub> and the holding moment M<sub>A</sub> &mdash; are unknowns, so you may <b>assume either sense</b> for each one. Your equations will tell you whether each assumption was right.</p>
+      <div class="panels">
+        <div class="panel">
+          <h3>Scenario</h3>
+          <svg class="illustration" id="real-s1" viewBox="0 0 480 360"></svg>
+        </div>
+        <div class="panel">
+          <h3>Free-body diagram of the gate</h3>
+          <svg class="ghost" id="ghost-s1" viewBox="0 0 480 360"></svg>
+          <div class="selectors" id="selectors-s1" role="group" aria-label="Loading and reaction directions"></div>
+        </div>
+      </div>
+      <button class="action" data-action="check-diagram" data-sheet="s1">Check diagram</button>
+      <div class="status-row neutral" id="status-diagram-s1" role="status">Not checked yet.</div>
+      <p class="sub" style="margin-top:14px;margin-bottom:6px">Explain the shape you chose for the pressure on each of the three faces. What is the pressure at the water line, at the center section, and at the bottom of the lower leg? (Not graded, but your instructor will read it.)</p>
+      <textarea class="reflect" id="reflect-shape-s1" aria-label="Sheet 1: explain the pressure shapes" placeholder="At the water line the pressure is... along the center section it is... at the bottom of the lower leg it is..."></textarea>
+    </div>
+
+    <div class="stage" data-stage="resultant">
+      <h2>2. Replace each water load with its resultant</h2>
+      <div class="def-grid">
+      <div>
+      <p class="sub">Each resultant equals the &ldquo;volume&rdquo; of its pressure distribution (area of the pressure diagram &times; length <b>L</b>) and acts through the centroid of that diagram. Call them <b>F_1</b> (upper leg), <b>F_2</b> (underside of the center section) and <b>F_3</b> (lower leg).</p>
+      <p class="sub">Locate each line of action relative to the hinge A, as in the sketch: <b>y_1</b> is measured <b>up</b> from the level of A to F_1, <b>y_3</b> is measured <b>down</b> from the level of A to F_3, and <b>x_2</b> is the horizontal distance from A to the line of action of F_2.</p>
+      <p class="sub">Write each in terms of <b>rho</b>, <b>g</b>, <b>L</b>, <b>h</b>, <b>b</b>, <b>c</b>. Use <code>*</code> for multiplication and <code>^</code> for powers, e.g. <code>rho*g*L*h^2</code>.</p>
+      </div>
+      <figure class="def-fig"><svg class="illustration" id="ydef-s1" viewBox="0 0 200 220"></svg><figcaption>Definitions of y<sub>1</sub> and y<sub>3</sub> (not to scale)</figcaption></figure>
+      </div>
+      <div class="eq-row">
+        <label for="sol-F1-s1">F_1 =</label>
+        <input type="text" id="sol-F1-s1" autocomplete="off" spellcheck="false">
+        <span class="chk neutral" id="chk-sol-F1-s1" aria-hidden="true">&middot;</span>
+        <button class="action secondary" data-action="check-sol" data-sheet="s1" data-field="F1">Check</button>
+        <div class="eq-msg" id="msg-sol-F1-s1" role="status"></div>
+      </div>
+      <div class="eq-row">
+        <label for="sol-y1-s1">y_1 (above A) =</label>
+        <input type="text" id="sol-y1-s1" autocomplete="off" spellcheck="false">
+        <span class="chk neutral" id="chk-sol-y1-s1" aria-hidden="true">&middot;</span>
+        <button class="action secondary" data-action="check-sol" data-sheet="s1" data-field="y1">Check</button>
+        <div class="eq-msg" id="msg-sol-y1-s1" role="status"></div>
+      </div>
+      <div class="eq-row">
+        <label for="sol-F2-s1">F_2 =</label>
+        <input type="text" id="sol-F2-s1" autocomplete="off" spellcheck="false">
+        <span class="chk neutral" id="chk-sol-F2-s1" aria-hidden="true">&middot;</span>
+        <button class="action secondary" data-action="check-sol" data-sheet="s1" data-field="F2">Check</button>
+        <div class="eq-msg" id="msg-sol-F2-s1" role="status"></div>
+      </div>
+      <div class="eq-row">
+        <label for="sol-x2-s1">x_2 (from A) =</label>
+        <input type="text" id="sol-x2-s1" autocomplete="off" spellcheck="false">
+        <span class="chk neutral" id="chk-sol-x2-s1" aria-hidden="true">&middot;</span>
+        <button class="action secondary" data-action="check-sol" data-sheet="s1" data-field="x2">Check</button>
+        <div class="eq-msg" id="msg-sol-x2-s1" role="status"></div>
+      </div>
+      <div class="eq-row">
+        <label for="sol-F3-s1">F_3 =</label>
+        <input type="text" id="sol-F3-s1" autocomplete="off" spellcheck="false">
+        <span class="chk neutral" id="chk-sol-F3-s1" aria-hidden="true">&middot;</span>
+        <button class="action secondary" data-action="check-sol" data-sheet="s1" data-field="F3">Check</button>
+        <div class="eq-msg" id="msg-sol-F3-s1" role="status"></div>
+      </div>
+      <div class="eq-row">
+        <label for="sol-y3-s1">y_3 (below A) =</label>
+        <input type="text" id="sol-y3-s1" autocomplete="off" spellcheck="false">
+        <span class="chk neutral" id="chk-sol-y3-s1" aria-hidden="true">&middot;</span>
+        <button class="action secondary" data-action="check-sol" data-sheet="s1" data-field="y3">Check</button>
+        <div class="eq-msg" id="msg-sol-y3-s1" role="status"></div>
+      </div>
+      <details class="hint"><summary>Hint</summary><p><b>Upper leg:</b> the pressure grows from zero at the water line to &rho;gh at the level of A, so the diagram is a triangle; its centroid is one-third of the way up from its wide end. <b>Center section:</b> every point of the underside is at the same depth h. <b>Lower leg:</b> the pressure grows from &rho;gh at the bend to &rho;g(h + c) at the bottom &mdash; split the trapezoid into a rectangle plus a triangle, add their forces, and find y_3 by requiring the moment of F_3 about A to equal the sum of the moments of the two pieces.</p></details>
+    </div>
+
+    <div class="stage" data-stage="equations">
+      <h2>3. Write the three equilibrium equations</h2>
+      <p class="sub">Use the resultants in place of the distributed loads. Allowed symbols: <b>F_1</b>, <b>F_2</b>, <b>F_3</b>, <b>y_1</b>, <b>x_2</b>, <b>y_3</b>, <b>W</b>, <b>x_G</b>, the dimensions <b>a</b>, <b>b</b>, <b>c</b>, <b>h</b>, and the reactions <b>A_x</b>, <b>A_y</b>, <b>M_A</b>. Each reaction symbol stands for the force or moment in the sense <b>you drew</b> on your free-body diagram, and your signs are checked against that diagram. You may write an expression (= 0 is assumed) or use an explicit <code>=</code>.</p>
+      <div class="eq-row">
+        <label for="eq-fx-s1">&Sigma;F<sub>x</sub> = 0</label>
+        <input type="text" id="eq-fx-s1" autocomplete="off" spellcheck="false">
+        <span class="chk neutral" id="chk-fx-s1" aria-hidden="true">&middot;</span>
+        <button class="action secondary" data-action="check-eq" data-sheet="s1" data-field="fx">Check</button>
+        <div class="eq-msg" id="msg-fx-s1" role="status"></div>
+      </div>
+      <div class="eq-row">
+        <label for="eq-fy-s1">&Sigma;F<sub>y</sub> = 0</label>
+        <input type="text" id="eq-fy-s1" autocomplete="off" spellcheck="false">
+        <span class="chk neutral" id="chk-fy-s1" aria-hidden="true">&middot;</span>
+        <button class="action secondary" data-action="check-eq" data-sheet="s1" data-field="fy">Check</button>
+        <div class="eq-msg" id="msg-fy-s1" role="status"></div>
+      </div>
+      <p class="sub" style="margin-top:14px;margin-bottom:6px">State the point you are taking moments about, and why it is a convenient choice (not graded, but your instructor will read it):</p>
+      <textarea class="reflect" id="reflect-tau-s1" aria-label="Sheet 1: state your moment point" placeholder="I take moments about..."></textarea>
+      <div class="eq-row" style="margin-top:10px">
+        <label for="eq-tau-s1">&Sigma;M = 0</label>
+        <input type="text" id="eq-tau-s1" autocomplete="off" spellcheck="false">
+        <span class="chk neutral" id="chk-tau-s1" aria-hidden="true">&middot;</span>
+        <button class="action secondary" data-action="check-eq" data-sheet="s1" data-field="tau">Check</button>
+        <div class="eq-msg" id="msg-tau-s1" role="status"></div>
+      </div>
+      <p class="sub" style="margin-top:14px;margin-bottom:6px">F_2 is usually the largest of the three water forces, yet it does not appear in your moment equation about A. Explain why (not graded, but your instructor will read it):</p>
+      <textarea class="reflect" id="reflect-F2-s1" aria-label="Sheet 1: why F_2 has no moment about A" placeholder="F_2 has no moment about A because..."></textarea>
+      <details class="hint"><summary>Hint</summary><p>Any moment point is accepted. Taking moments about the hinge A eliminates A<sub>x</sub> and A<sub>y</sub> at once, leaving M<sub>A</sub> as the only unknown. Remember that a couple such as M<sub>A</sub> has the same moment about every point. The weight acts at the CG, a horizontal distance x_G to the <em>left</em> of A.</p></details>
+    </div>
+
+    <div class="stage" data-stage="solution">
+      <h2>4. Solve for the hinge reactions</h2>
+      <p class="sub">Write each reaction only in terms of the given quantities <b>rho</b>, <b>g</b>, <b>L</b>, <b>h</b>, <b>b</b>, <b>c</b>, <b>W</b>, <b>x_G</b> (substitute your results from step 2). Each symbol is the component in the sense you drew, so keep any minus sign your algebra produces &mdash; it tells you the true sense is opposite to your assumption.</p>
+      <div class="eq-row">
+        <label for="sol-Ax-s1">A_x =</label>
+        <input type="text" id="sol-Ax-s1" autocomplete="off" spellcheck="false">
+        <span class="chk neutral" id="chk-sol-Ax-s1" aria-hidden="true">&middot;</span>
+        <button class="action secondary" data-action="check-sol" data-sheet="s1" data-field="Ax">Check</button>
+        <div class="eq-msg" id="msg-sol-Ax-s1" role="status"></div>
+      </div>
+      <div class="eq-row">
+        <label for="sol-Ay-s1">A_y =</label>
+        <input type="text" id="sol-Ay-s1" autocomplete="off" spellcheck="false">
+        <span class="chk neutral" id="chk-sol-Ay-s1" aria-hidden="true">&middot;</span>
+        <button class="action secondary" data-action="check-sol" data-sheet="s1" data-field="Ay">Check</button>
+        <div class="eq-msg" id="msg-sol-Ay-s1" role="status"></div>
+      </div>
+      <div class="eq-row">
+        <label for="sol-MA-s1">M_A =</label>
+        <input type="text" id="sol-MA-s1" autocomplete="off" spellcheck="false">
+        <span class="chk neutral" id="chk-sol-MA-s1" aria-hidden="true">&middot;</span>
+        <button class="action secondary" data-action="check-sol" data-sheet="s1" data-field="MA">Check</button>
+        <div class="eq-msg" id="msg-sol-MA-s1" role="status"></div>
+      </div>
+      <details class="hint"><summary>Hint</summary><p>Self-check for M<sub>A</sub>: if the water stood at h = 2c, the moments of F_1 and F_3 about A would cancel exactly, so the hinge would only have to hold the weight&rsquo;s moment W&middot;x_G.</p></details>
+    </div>
+  </section>
+
+  <!-- ================= SHEET 2 ================= -->
+  <section class="sheet" id="sheet-s2" data-sheet="s2" role="tabpanel" aria-label="Sheet 2: Water above the top of the gate" hidden>
+    <div class="givens">
+      <div class="given-chip"><b>a</b><span>height of the upper leg</span></div>
+      <div class="given-chip"><b>b</b><span>length of the horizontal center (A at its midpoint)</span></div>
+      <div class="given-chip"><b>c</b><span>height of the lower leg</span></div>
+      <div class="given-chip"><b>d</b><span>depth of the water surface above the top of the gate (B)</span></div>
+      <div class="given-chip"><b>L</b><span>length of the gate, into the page</span></div>
+      <div class="given-chip"><b>rho</b><span>density of water</span></div>
+      <div class="given-chip"><b>g</b><span>gravitational acceleration</span></div>
+      <div class="given-chip"><b>W</b><span>weight of the gate</span></div>
+      <div class="given-chip"><b>x_G</b><span>horizontal distance from A to the gate&rsquo;s CG (CG is to the left of A)</span></div>
+    </div>
+    <p class="sub">Now the reservoir is fuller: the water surface is a distance <b>d</b> above the top of the gate, so the whole upper leg is wet and the wall holds back the water above B. The gate is the same as in Sheet 1 &mdash; it touches nothing but the hinge (sealed gaps at B and C). Ignore atmospheric pressure. The wall is not part of the gate, so the water pushing on the wall does not appear on your free-body diagram.</p>
+
+    <div class="stage" data-stage="diagram">
+      <h2>1. Build the free-body diagram</h2>
+      <p class="sub">Isolate the gate. Give the true shape and direction of the water pressure on each wetted face and the direction of the gate&rsquo;s weight. Assume <b>either sense</b> for each hinge reaction A<sub>x</sub>, A<sub>y</sub> and M<sub>A</sub> &mdash; you don&rsquo;t have to repeat your Sheet 1 choices.</p>
+      <div class="panels">
+        <div class="panel">
+          <h3>Scenario</h3>
+          <svg class="illustration" id="real-s2" viewBox="0 0 480 360"></svg>
+        </div>
+        <div class="panel">
+          <h3>Free-body diagram of the gate</h3>
+          <svg class="ghost" id="ghost-s2" viewBox="0 0 480 360"></svg>
+          <div class="selectors" id="selectors-s2" role="group" aria-label="Loading and reaction directions"></div>
+        </div>
+      </div>
+      <button class="action" data-action="check-diagram" data-sheet="s2">Check diagram</button>
+      <div class="status-row neutral" id="status-diagram-s2" role="status">Not checked yet.</div>
+      <p class="sub" style="margin-top:14px;margin-bottom:6px">What is the pressure at the top of the gate (B) now, and how does that change the shape of the load on the upper leg compared with Sheet 1? (Not graded, but your instructor will read it.)</p>
+      <textarea class="reflect" id="reflect-shape-s2" aria-label="Sheet 2: explain the pressure shapes" placeholder="At B the pressure is... so the upper-leg load is now..."></textarea>
+    </div>
+
+    <div class="stage" data-stage="resultant">
+      <h2>2. Replace each water load with its resultant</h2>
+      <div class="def-grid">
+      <div>
+      <p class="sub">As before, call the resultants <b>F_1</b> (upper leg), <b>F_2</b> (underside of the center section) and <b>F_3</b> (lower leg). <b>y_1</b> is measured <b>up</b> from the level of A to F_1, <b>y_3</b> is measured <b>down</b> from the level of A to F_3, and <b>x_2</b> is the horizontal distance from A to the line of action of F_2.</p>
+      <p class="sub">Write each in terms of <b>rho</b>, <b>g</b>, <b>L</b>, <b>d</b>, <b>a</b>, <b>b</b>, <b>c</b>. Use <code>*</code> for multiplication and <code>^</code> for powers.</p>
+      </div>
+      <figure class="def-fig"><svg class="illustration" id="ydef-s2" viewBox="0 0 200 220"></svg><figcaption>Definitions of y<sub>1</sub> and y<sub>3</sub> (not to scale)</figcaption></figure>
+      </div>
+      <div class="eq-row">
+        <label for="sol-F1-s2">F_1 =</label>
+        <input type="text" id="sol-F1-s2" autocomplete="off" spellcheck="false">
+        <span class="chk neutral" id="chk-sol-F1-s2" aria-hidden="true">&middot;</span>
+        <button class="action secondary" data-action="check-sol" data-sheet="s2" data-field="F1">Check</button>
+        <div class="eq-msg" id="msg-sol-F1-s2" role="status"></div>
+      </div>
+      <div class="eq-row">
+        <label for="sol-y1-s2">y_1 (above A) =</label>
+        <input type="text" id="sol-y1-s2" autocomplete="off" spellcheck="false">
+        <span class="chk neutral" id="chk-sol-y1-s2" aria-hidden="true">&middot;</span>
+        <button class="action secondary" data-action="check-sol" data-sheet="s2" data-field="y1">Check</button>
+        <div class="eq-msg" id="msg-sol-y1-s2" role="status"></div>
+      </div>
+      <div class="eq-row">
+        <label for="sol-F2-s2">F_2 =</label>
+        <input type="text" id="sol-F2-s2" autocomplete="off" spellcheck="false">
+        <span class="chk neutral" id="chk-sol-F2-s2" aria-hidden="true">&middot;</span>
+        <button class="action secondary" data-action="check-sol" data-sheet="s2" data-field="F2">Check</button>
+        <div class="eq-msg" id="msg-sol-F2-s2" role="status"></div>
+      </div>
+      <div class="eq-row">
+        <label for="sol-x2-s2">x_2 (from A) =</label>
+        <input type="text" id="sol-x2-s2" autocomplete="off" spellcheck="false">
+        <span class="chk neutral" id="chk-sol-x2-s2" aria-hidden="true">&middot;</span>
+        <button class="action secondary" data-action="check-sol" data-sheet="s2" data-field="x2">Check</button>
+        <div class="eq-msg" id="msg-sol-x2-s2" role="status"></div>
+      </div>
+      <div class="eq-row">
+        <label for="sol-F3-s2">F_3 =</label>
+        <input type="text" id="sol-F3-s2" autocomplete="off" spellcheck="false">
+        <span class="chk neutral" id="chk-sol-F3-s2" aria-hidden="true">&middot;</span>
+        <button class="action secondary" data-action="check-sol" data-sheet="s2" data-field="F3">Check</button>
+        <div class="eq-msg" id="msg-sol-F3-s2" role="status"></div>
+      </div>
+      <div class="eq-row">
+        <label for="sol-y3-s2">y_3 (below A) =</label>
+        <input type="text" id="sol-y3-s2" autocomplete="off" spellcheck="false">
+        <span class="chk neutral" id="chk-sol-y3-s2" aria-hidden="true">&middot;</span>
+        <button class="action secondary" data-action="check-sol" data-sheet="s2" data-field="y3">Check</button>
+        <div class="eq-msg" id="msg-sol-y3-s2" role="status"></div>
+      </div>
+      <details class="hint"><summary>Hint</summary><p><b>Upper leg:</b> the pressure grows from &rho;gd at B to &rho;g(d + a) at the level of A, so the diagram is now a trapezoid &mdash; split it into a rectangle plus a triangle, and find y_1 by matching moments about A, just as you did for F_3 in Sheet 1. <b>Center section:</b> every point of the underside is at depth d + a. <b>Lower leg:</b> the pressure grows from &rho;g(d + a) at the bend to &rho;g(d + a + c) at the bottom.</p></details>
+    </div>
+
+    <div class="stage" data-stage="equations">
+      <h2>3. Write the three equilibrium equations</h2>
+      <p class="sub">Use the resultants in place of the distributed loads. Allowed symbols: <b>F_1</b>, <b>F_2</b>, <b>F_3</b>, <b>y_1</b>, <b>x_2</b>, <b>y_3</b>, <b>W</b>, <b>x_G</b>, the dimensions <b>a</b>, <b>b</b>, <b>c</b>, <b>d</b>, and the reactions <b>A_x</b>, <b>A_y</b>, <b>M_A</b>, each in the sense <b>you drew</b> on this sheet&rsquo;s free-body diagram.</p>
+      <div class="eq-row">
+        <label for="eq-fx-s2">&Sigma;F<sub>x</sub> = 0</label>
+        <input type="text" id="eq-fx-s2" autocomplete="off" spellcheck="false">
+        <span class="chk neutral" id="chk-fx-s2" aria-hidden="true">&middot;</span>
+        <button class="action secondary" data-action="check-eq" data-sheet="s2" data-field="fx">Check</button>
+        <div class="eq-msg" id="msg-fx-s2" role="status"></div>
+      </div>
+      <div class="eq-row">
+        <label for="eq-fy-s2">&Sigma;F<sub>y</sub> = 0</label>
+        <input type="text" id="eq-fy-s2" autocomplete="off" spellcheck="false">
+        <span class="chk neutral" id="chk-fy-s2" aria-hidden="true">&middot;</span>
+        <button class="action secondary" data-action="check-eq" data-sheet="s2" data-field="fy">Check</button>
+        <div class="eq-msg" id="msg-fy-s2" role="status"></div>
+      </div>
+      <p class="sub" style="margin-top:14px;margin-bottom:6px">State the point you are taking moments about, and why it is a convenient choice (not graded, but your instructor will read it):</p>
+      <textarea class="reflect" id="reflect-tau-s2" aria-label="Sheet 2: state your moment point" placeholder="I take moments about..."></textarea>
+      <div class="eq-row" style="margin-top:10px">
+        <label for="eq-tau-s2">&Sigma;M = 0</label>
+        <input type="text" id="eq-tau-s2" autocomplete="off" spellcheck="false">
+        <span class="chk neutral" id="chk-tau-s2" aria-hidden="true">&middot;</span>
+        <button class="action secondary" data-action="check-eq" data-sheet="s2" data-field="tau">Check</button>
+        <div class="eq-msg" id="msg-tau-s2" role="status"></div>
+      </div>
+      <details class="hint"><summary>Hint</summary><p>Any moment point is accepted. The forces act in the same directions as in Sheet 1 &mdash; only their sizes and lines of action have changed &mdash; so your equations should have the same form.</p></details>
+    </div>
+
+    <div class="stage" data-stage="solution">
+      <h2>4. Solve for the hinge reactions</h2>
+      <p class="sub">Write each reaction only in terms of <b>rho</b>, <b>g</b>, <b>L</b>, <b>d</b>, <b>a</b>, <b>b</b>, <b>c</b>, <b>W</b>, <b>x_G</b>. Each symbol is the component in the sense you drew, so keep any minus sign your algebra produces.</p>
+      <div class="eq-row">
+        <label for="sol-Ax-s2">A_x =</label>
+        <input type="text" id="sol-Ax-s2" autocomplete="off" spellcheck="false">
+        <span class="chk neutral" id="chk-sol-Ax-s2" aria-hidden="true">&middot;</span>
+        <button class="action secondary" data-action="check-sol" data-sheet="s2" data-field="Ax">Check</button>
+        <div class="eq-msg" id="msg-sol-Ax-s2" role="status"></div>
+      </div>
+      <div class="eq-row">
+        <label for="sol-Ay-s2">A_y =</label>
+        <input type="text" id="sol-Ay-s2" autocomplete="off" spellcheck="false">
+        <span class="chk neutral" id="chk-sol-Ay-s2" aria-hidden="true">&middot;</span>
+        <button class="action secondary" data-action="check-sol" data-sheet="s2" data-field="Ay">Check</button>
+        <div class="eq-msg" id="msg-sol-Ay-s2" role="status"></div>
+      </div>
+      <div class="eq-row">
+        <label for="sol-MA-s2">M_A =</label>
+        <input type="text" id="sol-MA-s2" autocomplete="off" spellcheck="false">
+        <span class="chk neutral" id="chk-sol-MA-s2" aria-hidden="true">&middot;</span>
+        <button class="action secondary" data-action="check-sol" data-sheet="s2" data-field="MA">Check</button>
+        <div class="eq-msg" id="msg-sol-MA-s2" role="status"></div>
+      </div>
+      <details class="hint"><summary>Hint</summary><p>Self-check: set d = 0. The water then stands exactly at the top of the gate, so every result here should reduce to your Sheet 1 result with h = a.</p></details>
+    </div>
+  </section>
+
+  <div class="stage" id="report-stage">
+    <h2>Submission report</h2>
+    <p class="sub">When you are done, enter your name, click <b>Generate report</b>, then <b>Download report</b> and upload the downloaded <code>.txt</code> file to the assignment dropbox. (If downloading doesn't work on your device, use <b>Copy report</b> and paste it into the dropbox text box instead.) The report lists every answer you entered and whether it passed its most recent check, so your instructor can re-check your work. Your answers are saved in this browser as you go.</p>
+    <label for="student-name" class="sr-only">Full name</label>
+    <input class="name-input" id="student-name" autocomplete="name" placeholder="Full name, as it appears on your roster">
+    <div class="report-actions">
+      <button class="action" id="btn-report">Generate report</button>
+      <button class="action secondary" id="btn-download">Download report (.txt)</button>
+      <button class="action secondary" id="btn-copy">Copy report</button>
+      <span class="copy-note" id="copy-note" role="status"></span>
+      <button class="action secondary danger" id="btn-reset" style="margin-left:auto">Start over</button>
+    </div>
+    <textarea class="report" id="report-out" readonly aria-label="Submission report" placeholder="Your report will appear here."></textarea>
+  </div>
+
+  <details class="stage instructor" id="instructor" hidden>
+    <summary>Instructor: verify a submitted report</summary>
+    <p class="sub" style="margin-top:10px">This panel only appears when the page address ends in <code>#instructor</code>. Paste a student's report (an uploaded .txt file's contents, or text pasted into the dropbox). Every answer in it is re-graded here, and the integrity hash is recomputed. Lines whose claimed result disagrees with re-grading are flagged.</p>
+    <textarea class="report" id="verify-in" aria-label="Report to verify" placeholder="Paste the full report here, including the integrity hash line."></textarea>
+    <div class="report-actions"><button class="action" id="btn-verify">Verify report</button></div>
+    <div id="verify-out" role="status"></div>
+  </details>
+</div>
+
+<script>
+(function () {
+  "use strict";
+
+  /* ---------- tiny expression parser / evaluator ---------- */
+
+  function tokenize(str) {
+    const toks = []; let i = 0;
+    while (i < str.length) {
+      const c = str[i];
+      if (/\s/.test(c)) { i++; continue; }
+      if (/[0-9.]/.test(c)) {
+        let j = i; while (j < str.length && /[0-9.]/.test(str[j])) j++;
+        toks.push({ t: "num", v: parseFloat(str.slice(i, j)) }); i = j; continue;
+      }
+      if (/[A-Za-z_]/.test(c)) {
+        let j = i; while (j < str.length && /[A-Za-z0-9_]/.test(str[j])) j++;
+        toks.push({ t: "id", v: str.slice(i, j) }); i = j; continue;
+      }
+      if ("+-*/^(),=".indexOf(c) >= 0) { toks.push({ t: c }); i++; continue; }
+      throw new Error("Unrecognized character '" + c + "'");
+    }
+    return toks;
+  }
+
+  function makeParser(toks) {
+    let pos = 0;
+    function peek() { return toks[pos]; }
+    function next() { return toks[pos++]; }
+    function expect(t) { if (!peek() || peek().t !== t) throw new Error("Expected '" + t + "'"); return next(); }
+
+    function parseExpr() {
+      let node = parseTerm();
+      while (peek() && (peek().t === "+" || peek().t === "-")) {
+        const op = next().t; node = { type: "bin", op, left: node, right: parseTerm() };
+      }
+      return node;
+    }
+    function parseTerm() {
+      let node = parseUnary();
+      while (peek() && (peek().t === "*" || peek().t === "/")) {
+        const op = next().t; node = { type: "bin", op, left: node, right: parseUnary() };
+      }
+      return node;
+    }
+    function parseUnary() {
+      if (peek() && peek().t === "-") { next(); return { type: "neg", value: parseUnary() }; }
+      if (peek() && peek().t === "+") { next(); return parseUnary(); }
+      return parsePow();
+    }
+    function parsePow() {
+      let node = parsePrimary();
+      if (peek() && peek().t === "^") { next(); return { type: "bin", op: "^", left: node, right: parseUnary() }; }
+      return node;
+    }
+    function parsePrimary() {
+      const tk = peek();
+      if (!tk) throw new Error("Unexpected end of expression");
+      if (tk.t === "num") { next(); return { type: "num", value: tk.v }; }
+      if (tk.t === "(") { next(); const e = parseExpr(); expect(")"); return e; }
+      if (tk.t === "id") {
+        next();
+        if (peek() && peek().t === "(") {
+          next();
+          const args = [parseExpr()];
+          while (peek() && peek().t === ",") { next(); args.push(parseExpr()); }
+          expect(")");
+          return { type: "call", name: tk.v, args };
+        }
+        return { type: "var", name: tk.v };
+      }
+      throw new Error("Unexpected token near '" + tk.t + "'");
+    }
+    return { parseExpr, isDone: () => pos >= toks.length };
+  }
+
+  function parseFullExpr(tokens) {
+    const p = makeParser(tokens);
+    const node = p.parseExpr();
+    if (!p.isDone()) throw new Error("Unexpected trailing input");
+    return node;
+  }
+
+  function parseEquationText(str) {
+    const toks = tokenize(str);
+    const eqIdx = [];
+    toks.forEach((t, i) => { if (t.t === "=") eqIdx.push(i); });
+    if (eqIdx.length > 1) throw new Error("Only one '=' is allowed");
+    let lhsToks, rhsToks;
+    if (eqIdx.length === 1) {
+      lhsToks = toks.slice(0, eqIdx[0]);
+      rhsToks = toks.slice(eqIdx[0] + 1);
+    } else {
+      lhsToks = toks;
+      rhsToks = [{ t: "num", v: 0 }];
+    }
+    if (lhsToks.length === 0 || rhsToks.length === 0) throw new Error("Incomplete equation");
+    const lhs = parseFullExpr(lhsToks);
+    const rhs = parseFullExpr(rhsToks);
+    return { type: "bin", op: "-", left: lhs, right: rhs };
+  }
+
+  // Case-insensitive, underscore-insensitive symbol names (A_x = Ax = ax, F_1 = F1, M_A = MA).
+  // Digits are kept so F_1, F_2 and F_3 stay distinct.
+  const ALIAS = {
+    rho: "rho", g: "g", l: "L", h: "h", d: "d", a: "a", b: "b", c: "c", w: "W", xg: "xG",
+    f1: "F1", f2: "F2", f3: "F3", y1: "y1", x2: "x2", y3: "y3",
+    ax: "Ax", ay: "Ay", ma: "MA", m: "MA"
+  };
+  function canon(name) {
+    const key = name.toLowerCase().replace(/[^a-z0-9]/g, "");
+    return ALIAS[key] || name;
+  }
+  const FUNCS = { sin: Math.sin, cos: Math.cos, tan: Math.tan, sqrt: Math.sqrt, abs: Math.abs };
+
+  function evalAst(ast, env) {
+    switch (ast.type) {
+      case "num": return ast.value;
+      case "neg": return -evalAst(ast.value, env);
+      case "var": {
+        const key = canon(ast.name);
+        if (key in env) return env[key];
+        if (key === "pi") return Math.PI;
+        if (key === "e") return Math.E;
+        throw new Error("Unknown symbol '" + ast.name + "'");
+      }
+      case "call": {
+        const fname = ast.name.toLowerCase();
+        if (!(fname in FUNCS)) throw new Error("Unknown function '" + ast.name + "'");
+        return FUNCS[fname](...ast.args.map(a => evalAst(a, env)));
+      }
+      case "bin": {
+        const l = evalAst(ast.left, env), r = evalAst(ast.right, env);
+        switch (ast.op) {
+          case "+": return l + r;
+          case "-": return l - r;
+          case "*": return l * r;
+          case "/": return l / r;
+          case "^": return Math.pow(l, r);
+        }
+      }
+    }
+    throw new Error("Malformed expression");
+  }
+
+  function collectVars(ast, set) {
+    switch (ast.type) {
+      case "var": set.add(canon(ast.name)); break;
+      case "neg": collectVars(ast.value, set); break;
+      case "bin": collectVars(ast.left, set); collectVars(ast.right, set); break;
+      case "call": ast.args.forEach(a => collectVars(a, set)); break;
+    }
+  }
+
+  const DISPLAY = {
+    rho: "rho", g: "g", L: "L", h: "h", d: "d", a: "a", b: "b", c: "c", W: "W", xG: "x_G",
+    F1: "F_1", F2: "F_2", F3: "F_3", y1: "y_1", x2: "x_2", y3: "y_3",
+    Ax: "A_x", Ay: "A_y", MA: "M_A"
+  };
+
+  function validateSymbols(ast, allowed) {
+    const used = new Set();
+    collectVars(ast, used);
+    const bad = [...used].filter(s => s !== "pi" && s !== "e" && allowed.indexOf(s) < 0);
+    if (bad.length) {
+      throw new Error("Unexpected symbol" + (bad.length > 1 ? "s" : "") + ": " + bad.map(s => DISPLAY[s] || s).join(", ") +
+        ". " + (allowed.length ? "Allowed: " + allowed.map(s => DISPLAY[s] || s).join(", ") : "Enter a number (no symbols)."));
+    }
+  }
+
+  // Line of action of F_3 below A: trapezoid from rho*g*h at the bend to
+  // rho*g*(h + c) at the bottom of the lower leg.
+  function y3Of(h, c) { return c * (3 * h + 2 * c) / (3 * (2 * h + c)); }
+
+  function randomGeom() {
+    const c = 0.5 + Math.random() * 2;
+    const a = c * (1.5 + Math.random());
+    const h = a * (0.15 + Math.random() * 0.8);
+    return {
+      a, c, h, d: 0.2 + Math.random() * 2,
+      b: 1 + Math.random() * 3,
+      L: 1 + Math.random() * 4,
+      rho: 900 + Math.random() * 200,
+      g: 9 + Math.random(),
+      xG: 0.1 + Math.random(),
+      y1: h / 3, x2: 0, y3: y3Of(h, c)
+    };
+  }
+  function randomForces() {
+    const r = () => (Math.random() * 2 - 1) * 1000;
+    return { W: 500 + Math.random() * 1000, F1: 200 + Math.random() * 800, F2: 200 + Math.random() * 800, F3: 200 + Math.random() * 800, Ax: r(), Ay: r(), MA: r() };
+  }
+  function randomEnv() {
+    return { ...randomGeom(), ...randomForces() };
+  }
+
+  function closeRel(a, b, tol) {
+    return Number.isFinite(a) && Number.isFinite(b) && Math.abs(a - b) <= tol * Math.max(1, Math.abs(a), Math.abs(b));
+  }
+
+  // Solve the small square system M c = v by Gaussian elimination; null if singular.
+  function solveLinear(M, v) {
+    const n = v.length;
+    const A = M.map((row, i) => [...row, v[i]]);
+    for (let col = 0; col < n; col++) {
+      let piv = col;
+      for (let r = col + 1; r < n; r++) if (Math.abs(A[r][col]) > Math.abs(A[piv][col])) piv = r;
+      if (Math.abs(A[piv][col]) < 1e-9) return null;
+      [A[col], A[piv]] = [A[piv], A[col]];
+      for (let r = 0; r < n; r++) {
+        if (r === col) continue;
+        const f = A[r][col] / A[col][col];
+        for (let k = col; k <= n; k++) A[r][k] -= f * A[col][k];
+      }
+    }
+    return A.map((row, i) => row[n] / row[i]);
+  }
+
+  /* ---------- equation / solution checking ---------- */
+
+  function checkEquation(text, ref, allowedSymbols) {
+    let diffAst;
+    try { diffAst = parseEquationText(text); }
+    catch (e) { return { ok: false, message: e.message }; }
+    try { validateSymbols(diffAst, allowedSymbols); }
+    catch (e) { return { ok: false, message: e.message }; }
+
+    const envs = Array.from({ length: 6 }, () => randomEnv());
+    let studentVals;
+    try { studentVals = envs.map(e => evalAst(diffAst, e)); }
+    catch (e) { return { ok: false, message: e.message }; }
+
+    const refVals = envs.map(e => ref(e));
+    const ratios = studentVals.map((sv, i) => sv / refVals[i]);
+    const allFinite = ratios.every(r => Number.isFinite(r));
+    const nonZero = Math.abs(ratios[0]) > 1e-9;
+    const consistent = ratios.every(r => Math.abs(r - ratios[0]) <= 1e-4 * Math.max(1, Math.abs(ratios[0])));
+    if (allFinite && nonZero && consistent) return { ok: true };
+    return { ok: false, message: "Doesn't match a valid form of this equilibrium equation — check which forces belong in it and their signs." };
+  }
+
+  // A moment equation about ANY point (x, y) equals the moment about A plus
+  // x*(ΣFy) and y*(ΣFx) terms, since shifting the moment point changes every
+  // moment arm by the same amount (the couple M_A is the same about every
+  // point). So a correct student equation must equal k*M_A + m*ΣFx + n*ΣFy
+  // with k nonzero. The moment point may itself depend on the geometry, so
+  // k, m, n are constants only while the geometry is held fixed; only the
+  // force symbols vary within each group of trials.
+  function checkMomentEquation(text, refs, allowedSymbols) {
+    let diffAst;
+    try { diffAst = parseEquationText(text); }
+    catch (e) { return { ok: false, message: e.message }; }
+    try { validateSymbols(diffAst, allowedSymbols); }
+    catch (e) { return { ok: false, message: e.message }; }
+
+    const nb = refs.length;
+    for (let gi = 0; gi < 2; gi++) {
+      const geom = randomGeom();
+      const trials = Array.from({ length: nb + 3 }, () => ({ ...geom, ...randomForces() }));
+      let studentVals;
+      try { studentVals = trials.map(e => evalAst(diffAst, e)); }
+      catch (e) { return { ok: false, message: e.message }; }
+      const basis = trials.map(e => refs.map(fn => fn(e)));
+      const c = solveLinear(basis.slice(0, nb), studentVals.slice(0, nb));
+      if (!c) return { ok: false, message: "Couldn't verify this equation — please try checking again." };
+      if (Math.abs(c[0]) < 1e-6) {
+        return { ok: false, message: "This doesn't look like a moment balance — check that every term is a force times a moment arm, or the couple M_A." };
+      }
+      const consistent = trials.every((e, i) => i < nb ||
+        closeRel(studentVals[i], basis[i].reduce((s, bv, j) => s + c[j] * bv, 0), 1e-4));
+      if (!consistent) {
+        return { ok: false, message: "Doesn't match a valid moment equation about any point — check your signs, terms, and moment arms." };
+      }
+    }
+    return { ok: true };
+  }
+
+  function checkSolution(text, refFn, allowedSymbols) {
+    let ast;
+    try { ast = parseFullExpr(tokenize(text)); }
+    catch (e) { return { ok: false, message: e.message }; }
+    try { validateSymbols(ast, allowedSymbols); }
+    catch (e) { return { ok: false, message: e.message }; }
+
+    const envs = Array.from({ length: 6 }, () => randomEnv());
+    let studentVals;
+    try { studentVals = envs.map(e => evalAst(ast, e)); }
+    catch (e) { return { ok: false, message: e.message }; }
+    const refVals = envs.map(e => refFn(e));
+    const ok = studentVals.every((sv, i) => closeRel(sv, refVals[i], 1e-4));
+    return ok ? { ok: true } : { ok: false, message: "Expression doesn't match the correct result for all values tried." };
+  }
+
+  /* ---------- reference equations ---------- */
+
+  // Origin at the hinge A; x positive to the right (the direction the water
+  // pushes on both legs), y positive up, moments positive counterclockwise.
+  // F_1 pushes right at y_1 above A, F_2 pushes up through A (x_2 = 0), F_3
+  // pushes right at y_3 below A, and W acts down at x_G to the left of A.
+  // The student may assume either sense for A_x, A_y and M_A on the FBD, and
+  // each symbol then stands for the component along the assumed sense. s.Ax,
+  // s.Ay, s.MA are +1 when the assumed sense is right / up / counterclockwise
+  // and -1 otherwise, so every reference equation and answer below matches the
+  // student's own diagram.
+  const fxRef = (v, s) => v.F1 + v.F3 + s.Ax * v.Ax;
+  const fyRef = (v, s) => v.F2 - v.W + s.Ay * v.Ay;
+  const momentA = (v, s) => -v.F1 * v.y1 + v.F3 * v.y3 + v.F2 * v.x2 + v.W * v.xG + s.MA * v.MA;
+
+  // Water depth at the top of the wetted part of the upper leg (T) and at the
+  // level of A (H). Sheet 1: the surface is on the upper leg, h above A.
+  // Sheet 2: the surface is d above B, so the whole upper leg is wet.
+  const DEPTHS = {
+    s1: (v) => ({ T: 0, H: v.h }),
+    s2: (v) => ({ T: v.d, H: v.d + v.a })
+  };
+  const DEPTH_KEY = { s1: "h", s2: "d" };
+
+  // Line of action of F_1 above A: trapezoid from rho*g*T at its top to
+  // rho*g*H at the level of A (a triangle, h/3, when T = 0).
+  function y1Of(T, H) { return (H - T) * (2 * T + H) / (3 * (T + H)); }
+
+  function waterLoads(sheet, v) {
+    const { T, H } = DEPTHS[sheet](v), k = v.rho * v.g * v.L;
+    return {
+      F1: k * (H * H - T * T) / 2, y1: y1Of(T, H),
+      F2: k * H * v.b, x2: 0,
+      F3: k * v.c * (H + v.c / 2), y3: y3Of(H, v.c)
+    };
+  }
+
+  function makeRefs(sheet, dims) {
+    const load = (f) => (v) => waterLoads(sheet, v)[f];
+    const given = ["rho", "g", "L", ...dims];
+    const all = [...given, "W", "xG"];
+    return {
+      eq: { fx: fxRef, fy: fyRef },
+      moment: [momentA, fxRef, fyRef],
+      allowed: ["F1", "F2", "F3", "y1", "x2", "y3", "W", "xG", "a", "b", "c", DEPTH_KEY[sheet], "Ax", "Ay", "MA"],
+      solAllowed: { F1: given, y1: given, F2: given, x2: given, F3: given, y3: given, Ax: all, Ay: all, MA: all },
+      sol: {
+        F1: load("F1"), y1: load("y1"), F2: load("F2"), x2: load("x2"), F3: load("F3"), y3: load("y3"),
+        Ax: (v, s) => { const w = waterLoads(sheet, v); return -s.Ax * (w.F1 + w.F3); },
+        Ay: (v, s) => s.Ay * (v.W - waterLoads(sheet, v).F2),
+        // The water's net counterclockwise moment about A is F_3*y_3 - F_1*y_1.
+        MA: (v, s) => { const w = waterLoads(sheet, v); return -s.MA * (w.F3 * w.y3 - w.F1 * w.y1 + v.W * v.xG); }
+      }
+    };
+  }
+
+  const REFS = {
+    s1: makeRefs("s1", ["h", "b", "c"]),
+    s2: makeRefs("s2", ["d", "a", "b", "c"])
+  };
+
+  const SHEETS = ["s1", "s2"];
+  const SENSE_KEYS = ["Ax", "Ay", "MA"];
+  // Field order here is also the order of the report lines.
+  const SHEET_FIELDS = () => ({
+    res: ["F1", "y1", "F2", "x2", "F3", "y3"],
+    eq: ["fx", "fy", "tau"],
+    sol: ["Ax", "Ay", "MA"],
+    num: ["F1", "y1", "F2", "F3", "y3", "Ax", "Ay", "MA"]
+  });
+  const FIELDS = { s1: SHEET_FIELDS(), s2: SHEET_FIELDS() };
+  // Symbolic answers that change sign with the sense the student assumed.
+  // (Numeric answers are magnitudes plus a true direction, so they don't.)
+  const SENSE_DEPENDENT = ["fx", "fy", "tau", "Ax", "Ay", "MA"];
+  const SHEET_TITLES = { s1: "Sheet 1 — Water Below the Top of the Gate", s2: "Sheet 2 — Water Above the Top of the Gate" };
+  const EQ_LABELS = { fx: "ΣFx = 0", fy: "ΣFy = 0", tau: "ΣM = 0" };
+  const SOL_LABELS = {
+    F1: "F_1", y1: "y_1 (above A)", F2: "F_2", x2: "x_2 (from A)", F3: "F_3", y3: "y_3 (below A)",
+    Ax: "A_x", Ay: "A_y", MA: "M_A"
+  };
+  const NUM_UNITS = { F1: "kN", y1: "m", F2: "kN", F3: "kN", y3: "m", Ax: "kN", Ay: "kN", MA: "kN·m" };
+  // Reported reactions are a positive magnitude plus the true direction.
+  const NUM_DIRS = {
+    Ax: { options: ["left", "right"], labels: { left: "← left", right: "→ right" } },
+    Ay: { options: ["up", "down"], labels: { up: "↑ up", down: "↓ down" } },
+    MA: { options: ["ccw", "cw"], labels: { ccw: "↺ counterclockwise", cw: "↻ clockwise" } }
+  };
+  const allFields = (sh) => [...FIELDS[sh].res, ...FIELDS[sh].sol];
+
+  function sensesOf(sel) {
+    const s = {
+      Ax: sel.Ax === "right" ? 1 : sel.Ax === "left" ? -1 : null,
+      Ay: sel.Ay === "up" ? 1 : sel.Ay === "down" ? -1 : null,
+      MA: sel.MA === "ccw" ? 1 : sel.MA === "cw" ? -1 : null
+    };
+    return SENSE_KEYS.every(k => s[k] !== null) ? s : null;
+  }
+  const NEED_SENSE = { ok: false, message: "First choose a sense for A_x, A_y and M_A on your free-body diagram (step 1). Your answers are checked against the senses you drew." };
+
+  // Pure grading functions (no DOM), shared by the student checks and the
+  // instructor report verifier. sel is the student's FBD selection.
+  function gradeEq(sheet, field, text, sel) {
+    const s = sensesOf(sel || {});
+    if (!s) return NEED_SENSE;
+    const ref = REFS[sheet];
+    if (field === "tau") return checkMomentEquation(text, ref.moment.map(fn => (v) => fn(v, s)), ref.allowed);
+    return checkEquation(text, (v) => ref.eq[field](v, s), ref.allowed);
+  }
+  function gradeSol(sheet, field, text, sel) {
+    let s = null;
+    if (SENSE_KEYS.indexOf(field) >= 0) {
+      s = sensesOf(sel || {});
+      if (!s) return NEED_SENSE;
+    }
+    return checkSolution(text, (v) => REFS[sheet].sol[field](v, s), REFS[sheet].solAllowed[field]);
+  }
+
+  /* ---------- numeric values (one random set per student) ---------- */
+
+  const RHO = 1000, G = 9.81;
+  const round1 = (x) => Math.round(x * 10) / 10;
+  const round2 = (x) => Math.round(x * 100) / 100;
+
+  // a = 2c. x_G is the CG of a uniform plate bent into the three segments.
+  // Redraw until A_y and M_A are each clearly one way or the other, so their
+  // directions are never a coin flip after rounding. (On Sheet 2 the water's
+  // moment and the weight's moment about A oppose each other, so M_A can go
+  // either way.)
+  function randomGiven(sheet) {
+    for (;;) {
+      const c = round1(1 + Math.random() * 1.5);
+      const a = round1(2 * c);
+      const b = round1(1.5 + Math.random() * 2);
+      const L = round1(2 + Math.random() * 4);
+      const W = Math.round(15 + Math.random() * 60);
+      const xG = round2(b * (a - c) / (2 * (a + b + c)));
+      const g = { a, b, c, L, W, xG };
+      if (sheet === "s1") g.h = round1(a * (0.25 + Math.random() * 0.6));
+      else g.d = round1(0.3 + Math.random() * 2.2);
+      const t = numericTruth(sheet, g);
+      if (Math.abs(t.Ay) > 0.15 * Math.max(W, t.F2) && Math.abs(t.MA) > 0.25 * W * xG) return g;
+    }
+  }
+  function validGiven(sheet, g) {
+    if (!g || typeof g !== "object") return false;
+    const ok = ["a", "b", "c", DEPTH_KEY[sheet], "L", "W", "xG"].every(k => typeof g[k] === "number" && Number.isFinite(g[k]) && g[k] > 0);
+    return ok && (sheet !== "s1" || g.h < g.a);
+  }
+
+  // True values (forces in kN, distances in m, moment in kN·m), signed with
+  // x right, y up and counterclockwise positive.
+  function numericTruth(sheet, g) {
+    const w = waterLoads(sheet, { ...g, rho: RHO, g: G });
+    const F1 = w.F1 / 1000, F2 = w.F2 / 1000, F3 = w.F3 / 1000, y1 = w.y1, y3 = w.y3;
+    return { F1, y1, F2, F3, y3, Ax: -(F1 + F3), Ay: g.W - F2, MA: F1 * y1 - F3 * y3 - g.W * g.xG };
+  }
+  function trueDir(field, val) {
+    if (field === "Ax") return val >= 0 ? "right" : "left";
+    if (field === "Ay") return val >= 0 ? "up" : "down";
+    return val >= 0 ? "ccw" : "cw";
+  }
+
+  function gradeNum(sheet, field, text, dir, given) {
+    if (!validGiven(sheet, given)) return { ok: false, message: "No numeric values found for this sheet." };
+    let val;
+    try {
+      const ast = parseFullExpr(tokenize(text));
+      validateSymbols(ast, []);
+      val = evalAst(ast, {});
+    } catch (e) { return { ok: false, message: e.message + (/symbol/i.test(e.message) ? "" : " (enter a plain number such as 1234.5)") }; }
+    if (!Number.isFinite(val)) return { ok: false, message: "Enter a plain number such as 1234.5." };
+    if (val < 0) {
+      return { ok: false, message: NUM_DIRS[field]
+        ? "Enter a positive magnitude and show the sense with the direction buttons."
+        : "Enter a positive magnitude." };
+    }
+    const truth = numericTruth(sheet, given)[field];
+    const want = Math.abs(truth);
+    const magOk = Math.abs(val - want) <= 0.005 * want;
+    if (!magOk) return { ok: false, message: "Not within 0.5% of the expected value. Check your arithmetic and units (" + NUM_UNITS[field] + ")." };
+    if (NUM_DIRS[field]) {
+      if (!dir) return { ok: false, message: "Right magnitude — now choose the direction it actually acts." };
+      if (dir !== trueDir(field, truth)) {
+        return { ok: false, message: "Right magnitude, wrong direction. If your equations gave a minus sign for this reaction, the true sense is opposite to the one you drew." };
+      }
+    }
+    return { ok: true };
+  }
+
+  /* ---------- free-body diagram choices ---------- */
+
+  // top/bot (or left/right for the center) are the relative arrow lengths at
+  // the two ends of each face. Each sheet's trapezoids are drawn in the
+  // proportions of its own FBD (Sheet 2: d = a/4 and a = 2c).
+  const PC_SHAPES = {
+    uniform: { label: "uniform", top: 1, bot: 1 },
+    incR: { label: "triangle: zero at the upper leg, largest at the lower leg", top: 0, bot: 1 },
+    incL: { label: "triangle: largest at the upper leg, zero at the lower leg", top: 1, bot: 0 }
+  };
+  const plShapes = (trapTop) => ({
+    uniform: { label: "uniform", top: 0.6, bot: 0.6 },
+    trap: { label: "trapezoid: nonzero at the bend, larger at the bottom", top: trapTop, bot: 1 },
+    tri0top: { label: "triangle: zero at the bend, largest at the bottom", top: 0, bot: 1 },
+    tri0bot: { label: "triangle: largest at the bend, zero at the bottom", top: 1, bot: 0 }
+  });
+  const SHAPES = {
+    s1: {
+      Pu: {
+        tri0top: { label: "triangle: zero at the water line, largest at the bend", top: 0, bot: 1 },
+        tri0bot: { label: "triangle: largest at the water line, zero at the bend", top: 1, bot: 0 },
+        uniform: { label: "uniform", top: 0.7, bot: 0.7 },
+        trap: { label: "trapezoid: nonzero at the water line, larger at the bend", top: 0.4, bot: 1 }
+      },
+      Pc: PC_SHAPES,
+      Pl: plShapes(0.4)
+    },
+    s2: {
+      Pu: {
+        tri0top: { label: "triangle: zero at the top (B), largest at the bend", top: 0, bot: 1 },
+        tri0bot: { label: "triangle: largest at the top (B), zero at the bend", top: 1, bot: 0 },
+        uniform: { label: "uniform", top: 0.7, bot: 0.7 },
+        trap: { label: "trapezoid: nonzero at the top (B), larger at the bend", top: 0.2, bot: 1 }
+      },
+      Pc: PC_SHAPES,
+      Pl: plShapes(0.71)
+    }
+  };
+  const shapeLabels = (sheet, face) => Object.fromEntries(Object.entries(SHAPES[sheet][face]).map(([k, v]) => [k, v.label]));
+  const LR = { left: "← left", right: "→ right" };
+  const UD = { up: "↑ up", down: "↓ down" };
+
+  // correct: null marks an unknown reaction whose sense the student may assume.
+  function makePoints(sheet, puGroup, puCorrect) {
+    const sh = SHAPES[sheet];
+    return [
+      { key: "PuShape", group: puGroup, label: "Pressure shape", options: Object.keys(sh.Pu), labels: shapeLabels(sheet, "Pu"), correct: puCorrect },
+      { key: "PuDir", label: "Pressure direction", options: ["right", "left"], labels: { right: "→ pushes right", left: "← pushes left" }, correct: "right" },
+      { key: "PcShape", group: "Underside of the center section", label: "Pressure shape", options: Object.keys(sh.Pc), labels: shapeLabels(sheet, "Pc"), correct: "uniform" },
+      { key: "PcDir", label: "Pressure direction", options: ["up", "down"], labels: { up: "↑ pushes up", down: "↓ pushes down" }, correct: "up" },
+      { key: "PlShape", group: "Lower leg", label: "Pressure shape", options: Object.keys(sh.Pl), labels: shapeLabels(sheet, "Pl"), correct: "trap" },
+      { key: "PlDir", label: "Pressure direction", options: ["right", "left"], labels: { right: "→ pushes right", left: "← pushes left" }, correct: "right" },
+      { key: "W", group: "Weight and hinge reactions", label: "Gate weight at CG", options: ["down", "up"], labels: UD, correct: "down" },
+      { key: "Ax", label: "Hinge A, horizontal (assumed sense)", options: ["left", "right"], labels: LR, correct: null },
+      { key: "Ay", label: "Hinge A, vertical (assumed sense)", options: ["up", "down"], labels: UD, correct: null },
+      { key: "MA", label: "Holding moment at A (assumed sense)", options: ["ccw", "cw"], labels: { ccw: "↺ counterclockwise", cw: "↻ clockwise" }, correct: null }
+    ];
+  }
+  const POINTS = {
+    s1: makePoints("s1", "Upper leg (below the water line)", "tri0top"),
+    s2: makePoints("s2", "Upper leg (wet all the way up to B)", "trap")
+  };
+  const POINT_NAMES = {
+    PuShape: "upper-leg pressure shape", PuDir: "upper-leg pressure direction",
+    PcShape: "center-section pressure shape", PcDir: "center-section pressure direction",
+    PlShape: "lower-leg pressure shape", PlDir: "lower-leg pressure direction", W: "gate weight"
+  };
+
+  function gradeDiagram(sheet, sel) {
+    const pts = POINTS[sheet];
+    if (pts.some(p => !sel[p.key])) return { ok: false, message: "Choose an option for every row first." };
+    const wrong = pts.filter(p => p.correct && sel[p.key] !== p.correct).map(p => POINT_NAMES[p.key]);
+    if (wrong.length) return { ok: false, message: "Not quite — recheck: " + wrong.join("; ") + "." };
+    return { ok: true, message: "Valid diagram — the loads are correct, and you have assumed a sense for each reaction. Your equations and answers will be checked against the senses you drew." };
+  }
+
+  const state = {
+    current: "s1",
+    sel: { s1: {}, s2: {} },
+    numDir: { s1: {}, s2: {} },
+    given: { s1: randomGiven("s1"), s2: randomGiven("s2") },
+    result: { s1: {}, s2: {} }
+  };
+  SHEETS.forEach(sh => {
+    POINTS[sh].forEach(p => { state.sel[sh][p.key] = null; });
+    Object.keys(NUM_DIRS).forEach(k => { state.numDir[sh][k] = null; });
+  });
+
+  // result[sheet][field]: true/false once checked, null if never checked or
+  // edited since the last check. Field order here is also the order of the report lines.
+  function resultFields(sh) {
+    return ["diagram", ...FIELDS[sh].res, ...FIELDS[sh].eq, ...FIELDS[sh].sol, ...FIELDS[sh].num.map(f => "n" + f)];
+  }
+  SHEETS.forEach(sh => resultFields(sh).forEach(f => { state.result[sh][f] = null; }));
+
+  /* ---------- drawing helpers ---------- */
+
+  function cssVar(name) { return getComputedStyle(document.documentElement).getPropertyValue(name).trim(); }
+  const MONO = "IBM Plex Mono, monospace";
+  const SANS = "Inter, sans-serif";
+
+  function cgSymbol(cx, cy, r, ink, bg) {
+    const uid = "cg" + Math.round(cx) + "_" + Math.round(cy) + "_" + Math.random().toString(36).slice(2, 7);
+    return `<g>
+      <clipPath id="${uid}"><circle cx="${cx}" cy="${cy}" r="${r}" /></clipPath>
+      <circle cx="${cx}" cy="${cy}" r="${r}" fill="${bg}" />
+      <g clip-path="url(#${uid})">
+        <rect x="${cx - r}" y="${cy - r}" width="${r}" height="${r}" fill="${ink}" />
+        <rect x="${cx}" y="${cy}" width="${r}" height="${r}" fill="${ink}" />
+      </g>
+      <circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="${ink}" stroke-width="1.4" />
+    </g>`;
+  }
+
+  function hatchDown(x1, x2, y, color) {
+    let out = `<line x1="${x1}" y1="${y}" x2="${x2}" y2="${y}" stroke="${color}" stroke-width="2"/>`;
+    for (let x = x1; x <= x2; x += 12) out += `<line x1="${x}" y1="${y}" x2="${x - 8}" y2="${y + 10}" stroke="${color}" stroke-width="1.2"/>`;
+    return out;
+  }
+
+  // Vertical dimension line from y1 to y2 at x, with a label beside it.
+  function dimV(x, y1, y2, label, ink, side) {
+    const tx = x + (side === "left" ? -8 : 8);
+    const anchor = side === "left" ? "end" : "start";
+    return `<g stroke="${ink}" stroke-width="1.1">
+      <line x1="${x}" y1="${y1}" x2="${x}" y2="${y2}"/>
+      <line x1="${x - 5}" y1="${y1}" x2="${x + 5}" y2="${y1}"/>
+      <line x1="${x - 5}" y1="${y2}" x2="${x + 5}" y2="${y2}"/>
+    </g>
+    <text x="${tx}" y="${(y1 + y2) / 2 + 4}" font-family="${MONO}" font-size="13" fill="${ink}" text-anchor="${anchor}">${label}</text>`;
+  }
+
+  function dimH(y, x1, x2, label, ink) {
+    return `<g stroke="${ink}" stroke-width="1.1">
+      <line x1="${x1}" y1="${y}" x2="${x2}" y2="${y}"/>
+      <line x1="${x1}" y1="${y - 5}" x2="${x1}" y2="${y + 5}"/>
+      <line x1="${x2}" y1="${y - 5}" x2="${x2}" y2="${y + 5}"/>
+    </g>
+    <text x="${(x1 + x2) / 2}" y="${y - 7}" font-family="${MONO}" font-size="13" fill="${ink}" text-anchor="middle">${label}</text>`;
+  }
+
+  // fixedPx: draw the head at a fixed size instead of scaling with stroke width.
+  function arrowMarkerDefs(id, color, fixedPx) {
+    const size = fixedPx
+      ? `markerUnits="userSpaceOnUse" markerWidth="${fixedPx}" markerHeight="${fixedPx}"`
+      : `markerWidth="6" markerHeight="6"`;
+    return `<marker id="arrow-${id}" viewBox="0 0 10 10" refX="8" refY="5" ${size} orient="auto-start-reverse">
+      <path d="M0,0L10,5L0,10Z" fill="${color}"/>
+    </marker>`;
+  }
+
+  function arrow(x1, y1, x2, y2, color, markerId, width) {
+    return `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="${color}" stroke-width="${width || 3.2}" marker-end="url(#arrow-${markerId})"/>`;
+  }
+
+  function surfaceMark(x, y, color) {
+    return `<path d="M ${x - 7} ${y - 10} L ${x + 7} ${y - 10} L ${x} ${y - 2} Z" fill="none" stroke="${color}" stroke-width="1.3"/>
+      <line x1="${x - 9}" y1="${y + 4}" x2="${x + 9}" y2="${y + 4}" stroke="${color}" stroke-width="1"/>
+      <line x1="${x - 5}" y1="${y + 8}" x2="${x + 5}" y2="${y + 8}" stroke="${color}" stroke-width="1"/>`;
+  }
+
+  /* ---------- scenario + FBD ---------- */
+
+  // Scenario geometry (a = 2c): upper leg at X1 from YT to YC, center from X1
+  // to X2 at YC, lower leg at X2 from YC to the floor. Sheet 1's surface is
+  // h = a/3 above the center; Sheet 2's is d = a/2 above the top of the gate.
+  const SC = { X1: 200, X2: 320, YT: 110, YC: 230, FLOOR: 290 };
+  const SURF = { s1: 190, s2: 50 };
+  const SCENE_ARIA = {
+    s1: "A stepped gate with two right-angle bends holds back water on its left. The upper leg of height a hangs from the bottom of a fixed wall at B, bends away from the water into a horizontal center of length b, then bends down into a lower leg of height c that ends just above the floor at C. The gate is held by a hinge with a locking actuator at A, the middle of the center section. The water surface lies partway down the upper leg, a depth h above the center section; water also fills the space under the center section out to the lower leg.",
+    s2: "The same stepped gate, but the water surface is a distance d above the top of the gate at B. The fixed wall above B holds back the water above the gate, the whole upper leg is wet, and water fills the space under the center section out to the lower leg. The hinge at A is on the dry side, above the center section."
+  };
+
+  function renderRealistic(sheet) {
+    const svg = document.getElementById("real-" + sheet);
+    const ink = cssVar("--ink"), soft = cssVar("--ink-soft"), rule = cssVar("--rule");
+    const water = cssVar("--water"), edge = cssVar("--water-edge"), bg = cssVar("--surface-2");
+    const { X1, X2, YT, YC, FLOOR } = SC, XA = (X1 + X2) / 2, surf = SURF[sheet], above = surf < YT;
+    let s = "";
+    // water: left of the wall and upper leg below the surface, and beneath the center out to the lower leg
+    s += `<path d="M 20 ${surf} L ${X1} ${surf} L ${X1} ${YC} L ${X2} ${YC} L ${X2} ${FLOOR} L 20 ${FLOOR} Z" fill="${water}"/>`;
+    s += `<line x1="20" y1="${surf}" x2="${X1}" y2="${surf}" stroke="${edge}" stroke-width="1.6"/>`;
+    s += surfaceMark(above ? 70 : 110, surf, edge);
+    s += hatchDown(20, 460, FLOOR, soft);
+    // fixed wall above the gate, ending at the top of the gate
+    s += `<rect x="${X1 - 7}" y="18" width="14" height="${YT - 18}" fill="${rule}" stroke="${ink}" stroke-width="1.2"/>`;
+    for (let y = 26; y < YT - 8; y += 12) s += `<line x1="${X1 - 7}" y1="${y + 8}" x2="${X1 + 7}" y2="${y}" stroke="${soft}" stroke-width="1"/>`;
+    // gate
+    s += `<path d="M ${X1} ${YT} L ${X1} ${YC} L ${X2} ${YC} L ${X2} ${FLOOR}" fill="none" stroke="${ink}" stroke-width="7" stroke-linejoin="miter"/>`;
+    // hinge A with its actuator bracket, mounted from above on the dry side
+    s += `<path d="M ${XA - 12} ${YC - 30} L ${XA} ${YC} L ${XA + 12} ${YC - 30} Z" fill="${rule}" stroke="${ink}" stroke-width="1.2"/>`;
+    s += `<line x1="${XA - 20}" y1="${YC - 30}" x2="${XA + 20}" y2="${YC - 30}" stroke="${soft}" stroke-width="2"/>`;
+    for (let x = XA - 16; x <= XA + 20; x += 8) s += `<line x1="${x}" y1="${YC - 30}" x2="${x - 6}" y2="${YC - 38}" stroke="${soft}" stroke-width="1.2"/>`;
+    s += `<circle cx="${XA}" cy="${YC}" r="6" fill="${bg}" stroke="${ink}" stroke-width="2"/>`;
+    s += `<text x="${XA + 10}" y="${YC + 22}" font-family="${MONO}" font-size="14" font-weight="600" fill="${ink}">A</text>`;
+    s += `<text x="${X1 + 10}" y="${YT + 4}" font-family="${MONO}" font-size="13" font-weight="600" fill="${ink}">B</text>`;
+    s += `<text x="${X2 + 10}" y="${FLOOR - 8}" font-family="${MONO}" font-size="13" font-weight="600" fill="${ink}">C</text>`;
+    // dimensions
+    s += dimV(X1 - 28, YT, YC, "a", ink, "left");
+    s += dimH(YC - 70, X1, X2, "b", ink);
+    s += dimV(X2 + 60, YC, FLOOR, "c", ink, "right");
+    if (above) {
+      s += dimV(40, surf, YT, "d", ink, "right");
+      s += `<line x1="30" y1="${YT}" x2="${X1 - 10}" y2="${YT}" stroke="${soft}" stroke-width="0.8" stroke-dasharray="3,3"/>`;
+    } else {
+      s += dimV(40, surf, YC, "h", ink, "right");
+      s += `<line x1="30" y1="${YC}" x2="${X1 - 6}" y2="${YC}" stroke="${soft}" stroke-width="0.8" stroke-dasharray="3,3"/>`;
+    }
+    // region labels
+    s += `<text x="110" y="${FLOOR - 14}" font-family="${SANS}" font-size="12" fill="${soft}" text-anchor="middle">water</text>`;
+    if (!above) s += `<text x="110" y="${YT}" font-family="${SANS}" font-size="12" fill="${soft}" text-anchor="middle">air</text>`;
+    s += `<text x="400" y="${YC - 20}" font-family="${SANS}" font-size="12" fill="${soft}" text-anchor="middle">air</text>`;
+    s += `<text x="${X1 - 14}" y="32" font-family="${SANS}" font-size="12" fill="${soft}" text-anchor="end">wall</text>`;
+    s += `<text x="240" y="340" font-family="${SANS}" font-size="12" fill="${soft}" text-anchor="middle">gate length L into the page</text>`;
+    svg.innerHTML = s;
+    svg.setAttribute("role", "img");
+    svg.setAttribute("aria-label", SCENE_ARIA[sheet]);
+  }
+
+  // FBD geometry, drawn larger than the scenario so the loads have room.
+  // a = 200, b = 200, c = 100 px; water line h = a/3 above A. The CG of a
+  // uniform bent plate with these proportions sits 20 px left of and 30 px
+  // above A.
+  const FB = { X1: 130, X2: 330, YT: 30, YC: 230, YB: 330, WL: 163 };
+  FB.XA = (FB.X1 + FB.X2) / 2;
+  FB.CG = { x: FB.XA - 20, y: FB.YC - 30 };
+  // Per-sheet FBD loading: wetTop is where the upper-leg load starts, WL is
+  // where the water surface is marked, and the max values are arrow lengths
+  // (px) at the bottom of each face. Sheet 1: pressure P0 at the level of A,
+  // 2.5*P0 at C. Sheet 2 is drawn with d = a/4, so the pressures at B, A and C
+  // are in the ratio 1 : 5 : 7.
+  const P0 = 30;
+  const GHOST = {
+    s1: { wetTop: FB.WL, WL: FB.WL, label: "water line", nUpper: 4, PuMax: P0, PcMax: P0, PlMax: P0 * 2.5 },
+    s2: { wetTop: FB.YT, WL: 14, label: "surface", nUpper: 6, PuMax: 34, PcMax: 34, PlMax: 48 }
+  };
+
+  function renderGhost(sheet) {
+    const svg = document.getElementById("ghost-" + sheet);
+    const ink = cssVar("--ink"), soft = cssVar("--ink-soft"), bg = cssVar("--surface-2"), edge = cssVar("--water-edge");
+    const applied = cssVar("--applied"), reaction = cssVar("--reaction");
+    const sel = state.sel[sheet], gh = GHOST[sheet], shapes = SHAPES[sheet];
+    const { X1, X2, YT, YC, YB, XA } = FB, WL = gh.WL, top = gh.wetTop;
+    let s = "<defs>" + arrowMarkerDefs(sheet + "-applied", applied, 13) + arrowMarkerDefs(sheet + "-reaction", reaction, 13) +
+      arrowMarkerDefs(sheet + "-p", applied, 9) + "</defs>";
+    s += `<path d="M ${X1} ${YT} L ${X1} ${YC} L ${X2} ${YC} L ${X2} ${YB}" fill="none" stroke="${ink}" stroke-width="3" stroke-dasharray="6,4"/>`;
+    // water surface marker, so the wetted part is clear
+    s += `<line x1="${X1 - 64}" y1="${WL}" x2="${X1}" y2="${WL}" stroke="${edge}" stroke-width="1.2" stroke-dasharray="4,3"/>`;
+    s += `<path d="M ${X1 - 52} ${WL - 10} L ${X1 - 38} ${WL - 10} L ${X1 - 45} ${WL - 2} Z" fill="none" stroke="${edge}" stroke-width="1.2"/>`;
+    s += `<text x="${X1 - 68}" y="${WL + 4}" font-family="${SANS}" font-size="11" fill="${soft}" text-anchor="end">${gh.label}</text>`;
+    s += `<circle cx="${XA}" cy="${YC}" r="4" fill="${ink}"/>`;
+    s += `<text x="${XA + 6}" y="${YC + 22}" font-family="${MONO}" font-size="13" font-weight="600" fill="${ink}">A</text>`;
+    s += `<text x="${X1 + 8}" y="${YT + 12}" font-family="${MONO}" font-size="13" font-weight="600" fill="${ink}">B</text>`;
+    s += `<text x="${X2 + 8}" y="${YB - 4}" font-family="${MONO}" font-size="13" font-weight="600" fill="${ink}">C</text>`;
+
+    const pm = sheet + "-p";
+    // Upper leg: vertical face from the top of the wetted part to YC; arrows
+    // sit on the side they push from.
+    if (sel.PuShape && sel.PuDir) {
+      const shp = shapes.Pu[sel.PuShape], sgn = sel.PuDir === "right" ? -1 : 1, max = gh.PuMax, n = gh.nUpper;
+      const len = (t) => max * (shp.top + (shp.bot - shp.top) * t);
+      const env = [];
+      for (let i = 0; i < n; i++) {
+        const y = top + 10 + (YC - top - 16) * i / (n - 1), t = (y - top) / (YC - top), l = len(t);
+        env.push(`${X1 + sgn * l},${y}`);
+        if (l > 7) s += arrow(X1 + sgn * l, y, X1 + sgn * 2, y, applied, pm, 1.6);
+      }
+      s += `<polyline points="${X1},${top} ${X1 + sgn * len(0)},${top} ${env.join(" ")} ${X1 + sgn * len(1)},${YC} ${X1},${YC}" fill="none" stroke="${applied}" stroke-width="1.3"/>`;
+    }
+    // Center section: horizontal face from X1 to X2. Arrows stop short of the
+    // lower leg so they don't run into that leg's pressure arrows.
+    if (sel.PcShape && sel.PcDir) {
+      const shp = shapes.Pc[sel.PcShape], sgn = sel.PcDir === "up" ? 1 : -1, max = gh.PcMax;
+      const len = (t) => max * (shp.top + (shp.bot - shp.top) * t);
+      for (let i = 0; i < 5; i++) {
+        const x = X1 + 14 + (X2 - X1 - 60) * i / 4, t = (x - X1) / (X2 - X1), l = len(t);
+        if (l > 7) s += arrow(x, YC + sgn * l, x, YC + sgn * 2, applied, pm, 1.6);
+      }
+      s += `<polyline points="${X1},${YC} ${X1},${YC + sgn * len(0)} ${X2},${YC + sgn * len(1)} ${X2},${YC}" fill="none" stroke="${applied}" stroke-width="1.3"/>`;
+    }
+    // Lower leg: vertical face from YC to YB. The pressure at the bend matches
+    // the center section and grows toward the bottom.
+    if (sel.PlShape && sel.PlDir) {
+      const shp = shapes.Pl[sel.PlShape], sgn = sel.PlDir === "right" ? -1 : 1, max = gh.PlMax;
+      const len = (t) => max * (shp.top + (shp.bot - shp.top) * t);
+      const env = [];
+      for (let i = 0; i < 5; i++) {
+        const y = YC + 16 + (YB - YC - 22) * i / 4, t = (y - YC) / (YB - YC), l = len(t);
+        env.push(`${X2 + sgn * l},${y}`);
+        if (l > 7) s += arrow(X2 + sgn * l, y, X2 + sgn * 2, y, applied, pm, 1.6);
+      }
+      s += `<polyline points="${X2},${YC} ${X2 + sgn * len(0)},${YC} ${env.join(" ")} ${X2 + sgn * len(1)},${YB} ${X2},${YB}" fill="none" stroke="${applied}" stroke-width="1.3"/>`;
+    }
+
+    const sub = (base, sb) => `${base}<tspan font-size="9" dy="3">${sb}</tspan>`;
+    // Weight: arrow into the CG from above (down), or out of it (up).
+    if (sel.W) {
+      const { x, y } = FB.CG;
+      if (sel.W === "down") s += arrow(x, y - 58, x, y - 8, applied, sheet + "-applied", 3.4);
+      else s += arrow(x, y - 8, x, y - 58, applied, sheet + "-applied", 3.4);
+      s += `<text x="${x - 8}" y="${y - 40}" font-family="${MONO}" font-size="12" fill="${applied}" text-anchor="end">W</text>`;
+    }
+    // A_x sits just above the center section on the left of A, A_y above A,
+    // and M_A in the upper-right quadrant, so none of them cross the water loads.
+    if (sel.Ax) {
+      const y = YC - 8;
+      if (sel.Ax === "left") s += arrow(XA - 2, y, XA - 54, y, reaction, sheet + "-reaction", 3.4);
+      else s += arrow(XA - 54, y, XA - 4, y, reaction, sheet + "-reaction", 3.4);
+      s += `<text x="${XA - (sel.Ax === "left" ? 70 : 60)}" y="${y + 4}" font-family="${MONO}" font-size="12" fill="${reaction}" text-anchor="end">${sub("A", "x")}</text>`;
+    }
+    if (sel.Ay) {
+      if (sel.Ay === "up") s += arrow(XA, YC - 4, XA, YC - 56, reaction, sheet + "-reaction", 3.4);
+      else s += arrow(XA, YC - 56, XA, YC - 6, reaction, sheet + "-reaction", 3.4);
+      s += `<text x="${XA + 8}" y="${YC - 48}" font-family="${MONO}" font-size="12" fill="${reaction}">${sub("A", "y")}</text>`;
+    }
+    if (sel.MA) {
+      const r = 36, pt = (deg) => [XA + r * Math.cos(deg * Math.PI / 180), YC - r * Math.sin(deg * Math.PI / 180)];
+      const [x15, y15] = pt(6), [x70, y70] = pt(64);
+      const d = sel.MA === "ccw"
+        ? `M ${x15} ${y15} A ${r} ${r} 0 0 0 ${x70} ${y70}`
+        : `M ${x70} ${y70} A ${r} ${r} 0 0 1 ${x15} ${y15}`;
+      s += `<path d="${d}" fill="none" stroke="${reaction}" stroke-width="3" marker-end="url(#arrow-${sheet}-reaction)"/>`;
+      s += `<text x="${XA + 40}" y="${YC - 36}" font-family="${MONO}" font-size="12" fill="${reaction}">${sub("M", "A")}</text>`;
+    }
+    s += cgSymbol(FB.CG.x, FB.CG.y, 6, ink, bg);
+    svg.innerHTML = s;
+
+    const chosen = POINTS[sheet].filter(p => sel[p.key]).map(p => (POINT_NAMES[p.key] || p.label) + ": " + p.labels[sel[p.key]].replace(/^[←→↑↓↺↻]\s*/, ""));
+    svg.setAttribute("role", "img");
+    svg.setAttribute("aria-label", "Your free-body diagram of the gate. " + (chosen.length ? chosen.join("; ") + "." : "Nothing drawn yet."));
+  }
+
+  // Sketch defining y_1 and y_3. F_1 and F_3 are deliberately placed at
+  // arbitrary heights so the sketch doesn't give away the answers.
+  function renderYDef(sheet) {
+    const svg = document.getElementById("ydef-" + sheet);
+    const ink = cssVar("--ink"), soft = cssVar("--ink-soft");
+    const applied = cssVar("--applied"), accent = cssVar("--accent");
+    const water = cssVar("--water"), edge = cssVar("--water-edge");
+    // Sheet 1: water line partway down the upper leg. Sheet 2: surface above
+    // the top of the gate, with a stub of the wall above it.
+    const x1 = 44, x2 = 144, yt = sheet === "s2" ? 34 : 20, yc = 128, yb = 182, xa = (x1 + x2) / 2;
+    const wl = sheet === "s2" ? 8 : 88;
+    const f1y = sheet === "s2" ? 92 : 108, f3y = 162;
+    let s = "<defs>" + arrowMarkerDefs("yd-" + sheet, applied, 11) + "</defs>";
+    s += `<path d="M 4 ${wl} L ${x1} ${wl} L ${x1} ${yc} L ${x2} ${yc} L ${x2} ${yb} L 4 ${yb} Z" fill="${water}"/>`;
+    s += `<line x1="4" y1="${wl}" x2="${x1}" y2="${wl}" stroke="${edge}" stroke-width="1.4"/>`;
+    if (sheet === "s2") s += `<rect x="${x1 - 4}" y="0" width="8" height="${yt}" fill="${cssVar("--rule")}" stroke="${soft}" stroke-width="1"/>`;
+    s += `<path d="M ${x1} ${yt} L ${x1} ${yc} L ${x2} ${yc} L ${x2} ${yb}" fill="none" stroke="${ink}" stroke-width="5"/>`;
+    s += `<circle cx="${xa}" cy="${yc}" r="4" fill="${ink}"/>`;
+    s += `<text x="${xa}" y="${yc + 18}" font-family="${MONO}" font-size="13" font-weight="600" fill="${ink}" text-anchor="middle">A</text>`;
+    s += `<line x1="6" y1="${f1y}" x2="${x1 - 4}" y2="${f1y}" stroke="${applied}" stroke-width="3" marker-end="url(#arrow-yd-${sheet})"/>`;
+    s += `<text x="10" y="${f1y - 7}" font-family="${MONO}" font-size="12" font-weight="600" fill="${applied}">F<tspan font-size="9" dy="3">1</tspan></text>`;
+    s += `<line x1="${x2 - 40}" y1="${f3y}" x2="${x2 - 4}" y2="${f3y}" stroke="${applied}" stroke-width="3" marker-end="url(#arrow-yd-${sheet})"/>`;
+    s += `<text x="${x2 - 44}" y="${f3y + 4}" font-family="${MONO}" font-size="12" font-weight="600" fill="${applied}" text-anchor="end">F<tspan font-size="9" dy="3">3</tspan></text>`;
+    // y_1: up from the level of A to F_1's line of action
+    const d1 = x1 + 26, d3 = x2 + 30;
+    s += `<g stroke="${accent}" stroke-width="1.3">
+      <line x1="${x1 + 3}" y1="${f1y}" x2="${d1 + 6}" y2="${f1y}" stroke-dasharray="2,2"/>
+      <line x1="${d1 - 6}" y1="${yc}" x2="${xa - 6}" y2="${yc}" stroke-dasharray="2,2"/>
+      <line x1="${d1}" y1="${f1y}" x2="${d1}" y2="${yc}"/>
+      <line x1="${d1 - 5}" y1="${f1y}" x2="${d1 + 5}" y2="${f1y}"/>
+      <line x1="${d1 - 5}" y1="${yc}" x2="${d1 + 5}" y2="${yc}"/>
+      <line x1="${xa + 6}" y1="${yc}" x2="${d3 + 6}" y2="${yc}" stroke-dasharray="2,2"/>
+      <line x1="${x2 + 3}" y1="${f3y}" x2="${d3 + 6}" y2="${f3y}" stroke-dasharray="2,2"/>
+      <line x1="${d3}" y1="${yc}" x2="${d3}" y2="${f3y}"/>
+      <line x1="${d3 - 5}" y1="${yc}" x2="${d3 + 5}" y2="${yc}"/>
+      <line x1="${d3 - 5}" y1="${f3y}" x2="${d3 + 5}" y2="${f3y}"/>
+    </g>`;
+    s += `<text x="${d1 + 6}" y="${(f1y + yc) / 2 + 2}" font-family="${MONO}" font-size="12" font-weight="600" fill="${accent}">y<tspan font-size="9" dy="3">1</tspan></text>`;
+    s += `<text x="${d3 + 8}" y="${(yc + f3y) / 2 + 4}" font-family="${MONO}" font-size="12" font-weight="600" fill="${accent}">y<tspan font-size="9" dy="3">3</tspan></text>`;
+    s += `<text x="100" y="210" font-family="${SANS}" font-size="10" fill="${soft}" text-anchor="middle">x₂ is measured horizontally from A</text>`;
+    svg.innerHTML = s;
+    svg.setAttribute("role", "img");
+    svg.setAttribute("aria-label", "Sketch defining the distances: y_1 is measured upward from the level of the hinge A to the line of action of F_1 on the upper leg; y_3 is measured downward from the level of A to the line of action of F_3 on the lower leg; x_2 is measured horizontally from A to the line of action of F_2.");
+  }
+
+  /* ---------- DOM helpers ---------- */
+
+  function el(id) { return document.getElementById(id); }
+
+  function escapeHtml(s) {
+    return String(s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+  }
+
+  function setPressed(host, point, dir) {
+    host.querySelectorAll(`.dir-btn[data-point="${point}"]`).forEach(b => {
+      b.classList.toggle("sel", b.dataset.dir === dir);
+      b.setAttribute("aria-pressed", String(b.dataset.dir === dir));
+    });
+  }
+
+  function selectDir(sheet, point, dir) {
+    state.sel[sheet][point] = dir;
+    setPressed(el("selectors-" + sheet), point, dir);
+    renderGhost(sheet);
+  }
+
+  function selectNumDir(sheet, field, dir) {
+    state.numDir[sheet][field] = dir;
+    setPressed(el(`numdirs-${field}-${sheet}`), field, dir);
+  }
+
+  function selectorRowsHtml(sheet, points, prefix) {
+    return points.map(p => {
+      const labelId = `${prefix}-${sheet}-${p.key}`;
+      return (p.group ? `<div class="selector-group">${p.group}</div>` : "") +
+        `<div class="selector-row" role="group" aria-labelledby="${labelId}"><span class="pt-label" id="${labelId}">${p.label}</span>` +
+        p.options.map(opt => `<button type="button" class="dir-btn" aria-pressed="false" data-sheet="${sheet}" data-point="${p.key}" data-dir="${opt}">${p.labels[opt]}</button>`).join("") +
+        `</div>`;
+    }).join("");
+  }
+
+  function buildSelectors(sheet) {
+    const host = el("selectors-" + sheet);
+    host.innerHTML = selectorRowsHtml(sheet, POINTS[sheet], "lbl");
+    host.querySelectorAll(".dir-btn").forEach(btn => {
+      btn.addEventListener("click", () => {
+        const { sheet: sh, point, dir } = btn.dataset;
+        const changed = state.sel[sh][point] !== dir;
+        selectDir(sh, point, dir);
+        invalidateDiagram(sh);
+        if (changed && SENSE_KEYS.indexOf(point) >= 0) invalidateSenseDependent(sh);
+        save();
+      });
+    });
+  }
+
+  // Written question at the end of a sheet's step 5.
+  const NUM_EXTRA = {
+    s2: `
+      <p class="sub" style="margin-top:14px;margin-bottom:6px">Compare the holding moment M<sub>A</sub> with your Sheet 1 result. Did its sense change? Which water force&rsquo;s moment about A wins now, and why does raising the water above the gate favor it? (Not graded, but your instructor will read it.)</p>
+      <textarea class="reflect" id="reflect-compare-s2" aria-label="Sheet 2: compare the holding moment with Sheet 1" placeholder="On Sheet 1 the hinge had to supply a ... moment; now..."></textarea>`
+  };
+
+  // Step 5 is built here so its rows can share the numeric markup.
+  function buildNumericStage(sheet) {
+    const sol = document.querySelector(`#sheet-${sheet} [data-stage="solution"]`);
+    const num = document.createElement("div");
+    num.className = "stage";
+    num.dataset.stage = "numeric";
+    const rows = FIELDS[sheet].num.map(f => {
+      const nd = NUM_DIRS[f];
+      const dirs = nd
+        ? `<span class="dirs" id="numdirs-${f}-${sheet}" role="group" aria-label="${SOL_LABELS[f]} direction">` +
+          nd.options.map(o => `<button type="button" class="dir-btn" aria-pressed="false" data-point="${f}" data-dir="${o}">${nd.labels[o]}</button>`).join("") +
+          `</span>`
+        : "";
+      return `
+      <div class="eq-row">
+        <label for="num-${f}-${sheet}">${SOL_LABELS[f]} =</label>
+        <input type="text" class="num" id="num-${f}-${sheet}" autocomplete="off" spellcheck="false" inputmode="decimal">
+        <span class="unit">${NUM_UNITS[f]}</span>
+        ${dirs}
+        <span class="chk neutral" id="chk-num-${f}-${sheet}" aria-hidden="true">&middot;</span>
+        <button class="action secondary" data-action="check-num" data-sheet="${sheet}" data-field="${f}">Check</button>
+        <div class="eq-msg" id="msg-num-${f}-${sheet}" role="status"></div>
+      </div>`;
+    }).join("");
+    num.innerHTML = `
+      <h2>5. Put in numbers</h2>
+      <p class="sub">These values were chosen at random for you and are saved with your work. Use your symbolic results from steps 2&ndash;4. Enter forces in <b>kN</b>, distances in <b>m</b> and the moment in <b>kN&middot;m</b>, as plain positive numbers. For each hinge reaction, report its <b>magnitude</b> and choose the direction it <b>actually</b> acts &mdash; if your equations gave a minus sign, the true sense is opposite to the one you drew. Answers within 0.5% are accepted.</p>
+      <div class="givens" id="given-${sheet}"></div>
+      ${rows}${NUM_EXTRA[sheet] || ""}`;
+    sol.after(num);
+    num.querySelectorAll('[data-action="check-num"]').forEach(btn => {
+      btn.addEventListener("click", () => checkNumField(sheet, btn.dataset.field));
+    });
+    num.querySelectorAll(".dirs .dir-btn").forEach(btn => {
+      btn.addEventListener("click", () => {
+        const f = btn.dataset.point;
+        selectNumDir(sheet, f, btn.dataset.dir);
+        invalidateField(sheet, "n" + f, `chk-num-${f}-${sheet}`, `msg-num-${f}-${sheet}`);
+        save();
+      });
+    });
+    FIELDS[sheet].num.forEach(f => el(`num-${f}-${sheet}`).addEventListener("input",
+      () => invalidateField(sheet, "n" + f, `chk-num-${f}-${sheet}`, `msg-num-${f}-${sheet}`)));
+    renderGiven(sheet);
+  }
+
+  function renderGiven(sheet) {
+    const g = state.given[sheet];
+    const chips = [
+      ["rho", RHO + " kg/m³"], ["g", G + " m/s²"],
+      ["a", g.a.toFixed(1) + " m"], ["b", g.b.toFixed(1) + " m"], ["c", g.c.toFixed(1) + " m"],
+      [DEPTH_KEY[sheet], g[DEPTH_KEY[sheet]].toFixed(1) + " m"], ["L", g.L.toFixed(1) + " m"],
+      ["W", g.W + " kN"], ["x_G", g.xG.toFixed(2) + " m"]
+    ];
+    el("given-" + sheet).innerHTML = chips.map(([k, v]) => `<div class="given-chip"><b>${k}</b><span>${v}</span></div>`).join("");
+  }
+
+  /* ---------- student checks ---------- */
+
+  function showMark(chkId, msgId, result) {
+    const chk = el(chkId), msg = el(msgId);
+    if (!result) { chk.textContent = "·"; chk.className = "chk neutral"; msg.textContent = ""; msg.className = "eq-msg"; return; }
+    chk.textContent = result.ok ? "✓" : "✗";
+    chk.className = "chk " + (result.ok ? "ok" : "bad");
+    msg.textContent = result.ok ? "Correct." : result.message;
+    msg.className = "eq-msg " + (result.ok ? "ok" : "bad");
+  }
+
+  function showStatus(statusId, r) {
+    const statusEl = el(statusId);
+    statusEl.textContent = r.message;
+    statusEl.className = "status-row " + (r.ok ? "ok" : "bad");
+  }
+
+  function checkDiagram(sheet) {
+    const r = gradeDiagram(sheet, state.sel[sheet]);
+    showStatus("status-diagram-" + sheet, r);
+    state.result[sheet].diagram = r.ok;
+    save();
+  }
+
+  function checkEqField(sheet, field) {
+    const text = el(`eq-${field}-${sheet}`).value.trim();
+    const result = text ? gradeEq(sheet, field, text, state.sel[sheet]) : null;
+    showMark(`chk-${field}-${sheet}`, `msg-${field}-${sheet}`, result);
+    state.result[sheet][field] = result ? result.ok : null;
+    save();
+  }
+
+  function checkSolField(sheet, field) {
+    const text = el(`sol-${field}-${sheet}`).value.trim();
+    const result = text ? gradeSol(sheet, field, text, state.sel[sheet]) : null;
+    showMark(`chk-sol-${field}-${sheet}`, `msg-sol-${field}-${sheet}`, result);
+    state.result[sheet][field] = result ? result.ok : null;
+    save();
+  }
+
+  function checkNumField(sheet, field) {
+    const text = el(`num-${field}-${sheet}`).value.trim();
+    const result = text ? gradeNum(sheet, field, text, state.numDir[sheet][field], state.given[sheet]) : null;
+    showMark(`chk-num-${field}-${sheet}`, `msg-num-${field}-${sheet}`, result);
+    state.result[sheet]["n" + field] = result ? result.ok : null;
+    save();
+  }
+
+  // Editing an answer after checking it clears the old verdict, so a PASS
+  // can't outlive the answer that earned it.
+  function invalidateStatus(sheet, field, statusId) {
+    if (state.result[sheet][field] === null) return;
+    state.result[sheet][field] = null;
+    const statusEl = el(statusId);
+    statusEl.textContent = "Changed since last check — check again.";
+    statusEl.className = "status-row neutral";
+  }
+  function invalidateDiagram(sheet) { invalidateStatus(sheet, "diagram", "status-diagram-" + sheet); }
+
+  function invalidateField(sheet, field, chkId, msgId) {
+    if (state.result[sheet][field] === null) return;
+    state.result[sheet][field] = null;
+    showMark(chkId, msgId, null);
+    el(msgId).textContent = "Changed since last check — check again.";
+  }
+
+  // Changing an assumed sense changes what counts as correct for every
+  // equation and every symbolic reaction on the sheet.
+  function invalidateSenseDependent(sheet) {
+    SENSE_DEPENDENT.forEach(f => {
+      if (state.result[sheet][f] === null) return;
+      const isEq = FIELDS[sheet].eq.indexOf(f) >= 0;
+      const chkId = isEq ? `chk-${f}-${sheet}` : `chk-sol-${f}-${sheet}`;
+      const msgId = isEq ? `msg-${f}-${sheet}` : `msg-sol-${f}-${sheet}`;
+      invalidateField(sheet, f, chkId, msgId);
+      el(msgId).textContent = "Your assumed senses changed — check again.";
+    });
+  }
+
+  /* ---------- wiring ---------- */
+
+  function showTab(tab) {
+    if (!SHEET_TITLES[tab]) return;
+    document.querySelectorAll(".tab-btn").forEach(b => {
+      b.classList.toggle("active", b.dataset.tab === tab);
+      b.setAttribute("aria-selected", String(b.dataset.tab === tab));
+    });
+    state.current = tab;
+    SHEETS.forEach(sh => { el("sheet-" + sh).hidden = tab !== sh; });
+  }
+
+  SHEETS.forEach(sh => { buildSelectors(sh); buildNumericStage(sh); });
+
+  document.querySelectorAll(".tab-btn").forEach(btn => {
+    btn.addEventListener("click", () => { showTab(btn.dataset.tab); save(); });
+  });
+  document.querySelectorAll('[data-action="check-diagram"]').forEach(btn => {
+    btn.addEventListener("click", () => checkDiagram(btn.dataset.sheet));
+  });
+  document.querySelectorAll('[data-action="check-eq"]').forEach(btn => {
+    btn.addEventListener("click", () => checkEqField(btn.dataset.sheet, btn.dataset.field));
+  });
+  document.querySelectorAll('[data-action="check-sol"]').forEach(btn => {
+    btn.addEventListener("click", () => checkSolField(btn.dataset.sheet, btn.dataset.field));
+  });
+  SHEETS.forEach(sh => {
+    FIELDS[sh].eq.forEach(f => el(`eq-${f}-${sh}`).addEventListener("input",
+      () => invalidateField(sh, f, `chk-${f}-${sh}`, `msg-${f}-${sh}`)));
+    allFields(sh).forEach(f => el(`sol-${f}-${sh}`).addEventListener("input",
+      () => invalidateField(sh, f, `chk-sol-${f}-${sh}`, `msg-sol-${f}-${sh}`)));
+  });
+
+  /* ---------- saving work in this browser ---------- */
+
+  const STORE_KEY = "stepped-gate-lab:v1";
+
+  function persistentFields() {
+    return [...document.querySelectorAll(".sheet input[type=text], .sheet textarea.reflect, #student-name")];
+  }
+
+  function save() {
+    try {
+      const values = {};
+      persistentFields().forEach(f => { values[f.id] = f.value; });
+      const checked = {};
+      SHEETS.forEach(sh => {
+        checked[sh] = Object.keys(state.result[sh]).filter(k => state.result[sh][k] !== null);
+      });
+      localStorage.setItem(STORE_KEY, JSON.stringify({
+        values, sel: state.sel, numDir: state.numDir, given: state.given, tab: state.current, checked
+      }));
+    } catch (e) { /* storage unavailable — work just won't persist */ }
+  }
+
+  function restore() {
+    let data = null;
+    try { data = JSON.parse(localStorage.getItem(STORE_KEY) || "null"); } catch (e) { data = null; }
+    if (!data || typeof data !== "object") { save(); return; }   // save so this visit's numbers stick
+    SHEETS.forEach(sh => {
+      if (data.given && validGiven(sh, data.given[sh])) { state.given[sh] = data.given[sh]; renderGiven(sh); }
+    });
+    const values = data.values || {};
+    persistentFields().forEach(f => { if (typeof values[f.id] === "string") f.value = values[f.id]; });
+    SHEETS.forEach(sh => {
+      POINTS[sh].forEach(p => {
+        const d = data.sel && data.sel[sh] && data.sel[sh][p.key];
+        if (p.options.indexOf(d) >= 0) selectDir(sh, p.key, d);
+      });
+      Object.keys(NUM_DIRS).forEach(f => {
+        const d = data.numDir && data.numDir[sh] && data.numDir[sh][f];
+        if (NUM_DIRS[f].options.indexOf(d) >= 0) selectNumDir(sh, f, d);
+      });
+    });
+    if (data.tab) showTab(data.tab);
+    // Re-run (rather than trust) every check that had been made before reload.
+    SHEETS.forEach(sh => {
+      const list = (data.checked && data.checked[sh]) || [];
+      list.forEach(f => {
+        if (f === "diagram") checkDiagram(sh);
+        else if (FIELDS[sh].eq.indexOf(f) >= 0) checkEqField(sh, f);
+        else if (allFields(sh).indexOf(f) >= 0) checkSolField(sh, f);
+        else if (f[0] === "n" && FIELDS[sh].num.indexOf(f.slice(1)) >= 0) checkNumField(sh, f.slice(1));
+      });
+    });
+    save();
+  }
+
+  persistentFields().forEach(f => f.addEventListener("input", save));
+
+  el("btn-reset").addEventListener("click", () => {
+    if (!confirm("Erase all of your answers on this page and start over? You will also get new numeric values. This cannot be undone.")) return;
+    try { localStorage.removeItem(STORE_KEY); } catch (e) {}
+    location.reload();
+  });
+
+  /* ---------- submission report ---------- */
+
+  function fnv1a(str) {
+    let h = 0x811c9dc5;
+    for (let i = 0; i < str.length; i++) {
+      h ^= str.charCodeAt(i);
+      h = Math.imul(h, 0x01000193);
+    }
+    return (h >>> 0).toString(16).padStart(8, "0");
+  }
+
+  // Pasting into a dropbox's rich-text editor changes line endings, turns
+  // spaces into non-breaking spaces, collapses runs of spaces, and adds blank
+  // lines between paragraphs. Hash only the visible words, line by line, so an
+  // honest report still matches after all of that.
+  function normalizeForHash(s) {
+    return s.replace(/\r/g, "").split("\n")
+      .map(l => l.replace(/\s+/g, " ").trim())
+      .filter(l => l !== "")
+      .join("\n");
+  }
+
+  const GRADED_LINE = /^\s*\[(s[12])\.(\w+)\]\s+(PASS|FAIL|NOT CHECKED|BLANK)\s+[^:]*:\s?(.*)$/;
+  const GIVEN_LINE = /^\s*\[(s[12])\.given\]\s+(.*)$/;
+  const WRITTEN_HEADER = "WRITTEN RESPONSES";
+  const HASH_LABEL = "Integrity hash:";
+
+  function statusOf(sheet, field, answered) {
+    if (!answered) return "BLANK";
+    const r = state.result[sheet][field];
+    return r === true ? "PASS" : r === false ? "FAIL" : "NOT CHECKED";
+  }
+
+  function gradedLine(sheet, field, status, label, answer) {
+    return ("  [" + sheet + "." + field + "]").padEnd(18) + status.padEnd(13) + label + ": " + answer;
+  }
+
+  const selText = (keys, sel) => keys.filter(k => sel[k]).map(k => k + "=" + sel[k]).join(", ");
+
+  function gradedEntries(sh) {
+    return resultFields(sh).map(f => {
+      if (f === "diagram") return [f, "Diagram", selText(POINTS[sh].map(p => p.key), state.sel[sh])];
+      if (FIELDS[sh].eq.indexOf(f) >= 0) return [f, EQ_LABELS[f], el(`eq-${f}-${sh}`).value.trim()];
+      if (f[0] === "n" && FIELDS[sh].num.indexOf(f.slice(1)) >= 0) {
+        const b = f.slice(1), val = el(`num-${b}-${sh}`).value.trim(), dir = state.numDir[sh][b];
+        return [f, SOL_LABELS[b] + " [" + NUM_UNITS[b] + "]", val && NUM_DIRS[b] && dir ? val + " " + dir : val];
+      }
+      return [f, SOL_LABELS[f], el(`sol-${f}-${sh}`).value.trim()];
+    });
+  }
+
+  function givenText(sh) {
+    const g = state.given[sh];
+    return ["a", "b", "c", DEPTH_KEY[sh], "L"].map(k => k + " = " + g[k] + " m").join(", ") + ", W = " + g.W + " kN, xG = " + g.xG + " m";
+  }
+
+  function buildReport(name) {
+    const lines = [];
+    lines.push("STEPPED GATE EQUILIBRIUM LAB — SUBMISSION REPORT");
+    lines.push("Name: " + name);
+    lines.push("Generated: " + new Date().toISOString());
+    lines.push("");
+    let passed = 0, total = 0;
+    SHEETS.forEach(sh => {
+      lines.push(SHEET_TITLES[sh]);
+      lines.push(("  [" + sh + ".given]").padEnd(18) + givenText(sh));
+      gradedEntries(sh).forEach(([f, label, answer]) => {
+        const status = statusOf(sh, f, answer !== "");
+        total++; if (status === "PASS") passed++;
+        lines.push(gradedLine(sh, f, status, label, answer));
+      });
+      lines.push("");
+    });
+    lines.push("Overall: " + passed + " / " + total + " checks passed" + (passed === total ? " — ALL CHECKS PASSED" : ""));
+    lines.push("");
+    lines.push(WRITTEN_HEADER);
+    [
+      ["reflect-shape-s1", "Sheet 1 – why the pressure on each face has this shape"],
+      ["reflect-tau-s1", "Sheet 1 – moment point"],
+      ["reflect-F2-s1", "Sheet 1 – why F_2 has no moment about A"],
+      ["reflect-shape-s2", "Sheet 2 – how the water above the gate changes the pressure shapes"],
+      ["reflect-tau-s2", "Sheet 2 – moment point"],
+      ["reflect-compare-s2", "Sheet 2 – why the holding moment changed compared with Sheet 1"]
+    ].forEach(([id, label]) => {
+      const val = el(id).value.trim();
+      lines.push(label + ":");
+      (val || "(not answered)").split(/\r?\n/).forEach(l => lines.push("  " + l));
+      lines.push("");
+    });
+    const body = lines.join("\n");
+    return body + "\n\n" + HASH_LABEL + " " + fnv1a(normalizeForHash(body));
+  }
+
+  el("btn-report").addEventListener("click", () => {
+    currentReport();
+    el("copy-note").textContent = "";
+  });
+
+  function currentReport() {
+    // Always regenerate so the report can never be stale.
+    const name = el("student-name").value.trim() || "(name not entered)";
+    const text = buildReport(name);
+    el("report-out").value = text;
+    return text;
+  }
+
+  el("btn-download").addEventListener("click", () => {
+    const text = currentReport();
+    const who = el("student-name").value.trim().replace(/[^A-Za-z0-9]+/g, "-").replace(/^-|-$/g, "") || "student";
+    const url = URL.createObjectURL(new Blob([text], { type: "text/plain;charset=utf-8" }));
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "stepped-gate-lab-report-" + who + ".txt";
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 2000);
+    el("copy-note").textContent = "Downloaded " + a.download + " — upload it to the dropbox.";
+  });
+
+  // Brightspace shows the page inside a frame, which often blocks the
+  // Clipboard API, so fall back to the older copy command.
+  el("btn-copy").addEventListener("click", async () => {
+    const ta = el("report-out");
+    const text = currentReport();
+    try {
+      await navigator.clipboard.writeText(text);
+      el("copy-note").textContent = "Copied.";
+      return;
+    } catch (e) { /* fall through */ }
+    ta.focus();
+    ta.select();
+    let ok = false;
+    try { ok = document.execCommand("copy"); } catch (e) {}
+    el("copy-note").textContent = ok ? "Copied." : "Your browser blocked copying — the report is selected; press Ctrl+C (Cmd+C on a Mac).";
+  });
+
+  /* ---------- instructor verification ---------- */
+
+  function parsePairs(answer) {
+    const out = {};
+    answer.split(",").forEach(part => {
+      const [k, v] = part.split("=").map(s => (s || "").trim());
+      if (k) out[k] = v;
+    });
+    return out;
+  }
+
+  function parseGiven(text) {
+    const g = {};
+    Object.entries(parsePairs(text)).forEach(([k, v]) => { g[k] = parseFloat(v); });
+    return g;
+  }
+
+  // ctx: { sel, given } for the sheet, as recorded in the report itself.
+  function regrade(sheet, field, answer, ctx) {
+    if (!answer) return null;
+    if (field === "diagram") return gradeDiagram(sheet, parsePairs(answer));
+    if (FIELDS[sheet].eq.indexOf(field) >= 0) return gradeEq(sheet, field, answer, ctx.sel);
+    if (allFields(sheet).indexOf(field) >= 0) return gradeSol(sheet, field, answer, ctx.sel);
+    if (field[0] === "n" && FIELDS[sheet].num.indexOf(field.slice(1)) >= 0) {
+      const f = field.slice(1), m = answer.match(/^(.*?)\s+(left|right|up|down|ccw|cw)$/i);
+      return m ? gradeNum(sheet, f, m[1], m[2].toLowerCase(), ctx.given) : gradeNum(sheet, f, answer, null, ctx.given);
+    }
+    return { ok: false, message: "Unknown field" };
+  }
+
+  function verifyReport(raw) {
+    const text = raw.replace(/\r/g, "").replace(/ /g, " ");
+    const hashIdx = text.lastIndexOf(HASH_LABEL);
+    let hash;
+    if (hashIdx < 0) {
+      hash = { cls: "bad", text: "No integrity hash found — the report is incomplete or was edited." };
+    } else {
+      const claimed = text.slice(hashIdx + HASH_LABEL.length).trim().split(/\s+/)[0].toLowerCase();
+      const actual = fnv1a(normalizeForHash(text.slice(0, hashIdx)));
+      hash = claimed === actual
+        ? { cls: "ok", text: "Integrity hash matches — the text is as generated (or was re-hashed by someone determined)." }
+        : { cls: "bad", text: "Integrity hash does NOT match — the report text was changed after it was generated." };
+    }
+
+    const gradedEnd = text.indexOf("\n" + WRITTEN_HEADER);
+    const gradedPart = gradedEnd >= 0 ? text.slice(0, gradedEnd) : text;
+    const found = {}, givens = {};
+    gradedPart.split("\n").forEach(line => {
+      const gm = line.match(GIVEN_LINE);
+      if (gm) { if (!givens[gm[1]]) givens[gm[1]] = parseGiven(gm[2]); return; }
+      const m = line.match(GRADED_LINE);
+      if (m && !found[m[1] + "." + m[2]]) found[m[1] + "." + m[2]] = { claimed: m[3], answer: m[4].trim() };
+    });
+
+    const rows = [];
+    let mismatches = 0;
+    SHEETS.forEach(sh => {
+      const dia = found[sh + ".diagram"];
+      const ctx = { sel: dia ? parsePairs(dia.answer) : {}, given: givens[sh] };
+      resultFields(sh).forEach(f => {
+        const key = sh + "." + f;
+        const entry = found[key];
+        if (!entry) { mismatches++; rows.push({ key, claimed: "—", answer: "", regraded: "—", cls: "bad", note: "missing from report" }); return; }
+        const r = regrade(sh, f, entry.answer, ctx);
+        const regraded = r ? (r.ok ? "PASS" : "FAIL") : "BLANK";
+        let cls = "", note = r && !r.ok ? r.message : "";
+        if ((entry.claimed === "PASS" || entry.claimed === "FAIL") && entry.claimed !== regraded) {
+          cls = "bad"; mismatches++; note = "claimed " + entry.claimed + ", re-grades as " + regraded + (note ? " — " + note : "");
+        } else if (entry.claimed === "BLANK" && entry.answer) {
+          cls = "bad"; mismatches++; note = "claimed BLANK but has an answer";
+        } else if (regraded === "PASS") {
+          cls = "ok";
+        }
+        rows.push({ key, claimed: entry.claimed, answer: entry.answer, regraded, cls, note });
+      });
+    });
+
+    const passed = rows.filter(r => r.regraded === "PASS").length;
+    let html = `<p class="status-row ${hash.cls}">${escapeHtml(hash.text)}</p>`;
+    html += `<p class="status-row ${mismatches ? "bad" : "ok"}">Re-graded: ${passed} / ${rows.length} pass. ` +
+      (mismatches ? `${mismatches} line(s) disagree with what the report claims.` : "Every claimed result agrees with re-grading.") + `</p>`;
+    html += `<div class="verify-scroll"><table class="verify"><thead><tr><th>Item</th><th>Claimed</th><th>Re-graded</th><th>Answer</th><th>Note</th></tr></thead><tbody>`;
+    rows.forEach(r => {
+      html += `<tr class="${r.cls}"><td>${escapeHtml(r.key)}</td><td>${escapeHtml(r.claimed)}</td><td>${escapeHtml(r.regraded)}</td>` +
+        `<td><code>${escapeHtml(r.answer)}</code></td><td>${escapeHtml(r.note)}</td></tr>`;
+    });
+    html += `</tbody></table></div>`;
+    return html;
+  }
+
+  el("btn-verify").addEventListener("click", () => {
+    const raw = el("verify-in").value;
+    el("verify-out").innerHTML = raw.trim() ? verifyReport(raw) : `<p class="status-row bad">Paste a report first.</p>`;
+  });
+
+  /* ---------- init ---------- */
+
+  function renderAll() {
+    SHEETS.forEach(sh => { renderRealistic(sh); renderGhost(sh); renderYDef(sh); });
+  }
+
+  // Diagram colors are read from CSS variables at render time, so redraw
+  // whenever the theme changes.
+  try { matchMedia("(prefers-color-scheme: dark)").addEventListener("change", renderAll); } catch (e) {}
+  new MutationObserver(renderAll).observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
+
+  function syncInstructorPanel() {
+    const on = location.hash === "#instructor";
+    el("instructor").hidden = !on;
+    if (on) el("instructor").open = true;
+  }
+  window.addEventListener("hashchange", syncInstructorPanel);
+
+  renderAll();
+  restore();
+  syncInstructorPanel();
+})();
+</script>
